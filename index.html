@@ -2564,7 +2564,236 @@
         { min: 41, max: 60, name: "中年期", icon: "👨‍🦳" },
         { min: 61, max: 999, name: "老年期", icon: "👴" },
       ];
+      // ===== 🏫 教育系統 =====
+      // ===== 🏫 教育系統（台灣學校版）=====
+      const EDUCATION_LEVELS = [
+        { id: "none", name: "無學歷", minAge: 0, unlock: true },
+        {
+          id: "kindergarten",
+          name: "幼兒園",
+          minAge: 3,
+          unlock: true,
+          bonus: { intel: 2 },
+        },
+        {
+          id: "elementary",
+          name: "小學",
+          minAge: 6,
+          unlock: true,
+          bonus: { intel: 5, "skills.communication": 5 },
+        },
+        {
+          id: "middle",
+          name: "國中",
+          minAge: 13,
+          unlock: true,
+          bonus: { intel: 10, "skills.communication": 10 },
+        },
+        {
+          id: "high",
+          name: "高中",
+          minAge: 16,
+          unlock: false,
+          requirement: { intel: 40 },
+          bonus: { intel: 15, "skills.communication": 15 },
+        },
+        {
+          id: "university",
+          name: "大學",
+          minAge: 19,
+          unlock: false,
+          requirement: { intel: 60 },
+          bonus: { intel: 25, "skills.communication": 20 },
+          cost: 200000,
+        },
+        {
+          id: "master",
+          name: "碩士",
+          minAge: 23,
+          unlock: false,
+          requirement: { intel: 80 },
+          bonus: { intel: 35, "skills.communication": 25 },
+          cost: 300000,
+        },
+        {
+          id: "phd",
+          name: "博士",
+          minAge: 26,
+          unlock: false,
+          requirement: { intel: 100 },
+          bonus: { intel: 50, "skills.communication": 30 },
+          cost: 500000,
+        },
+      ];
 
+      // 台灣實際學校名單
+      const TAIWAN_SCHOOLS = {
+        kindergarten: [
+          "何嘉仁幼兒園",
+          "康橋幼兒園",
+          "芝麻街美語幼兒園",
+          "吉的堡幼兒園",
+          "小哈佛幼兒園",
+          "道禾幼兒園",
+          "信誼幼兒園",
+          "市立幼兒園",
+        ],
+        elementary: [
+          "台北市立國語實小",
+          "新北市板橋國小",
+          "桃園市中壢國小",
+          "台中市力行國小",
+          "台南市勝利國小",
+          "高雄市鼓山國小",
+          "新竹市東門國小",
+          "台北市敦化國小",
+        ],
+        middle: [
+          "台北市立金華國中",
+          "新北市立板橋國中",
+          "桃園市立青溪國中",
+          "台中市立居仁國中",
+          "台南市立建興國中",
+          "高雄市立明華國中",
+          "新竹市立建華國中",
+          "台北市立中正國中",
+        ],
+        high: [
+          // 頂尖高中（需要高智力）
+          { name: "台北市立建國中學", requirement: 90, prestige: "top" },
+          { name: "台北市立北一女中", requirement: 90, prestige: "top" },
+          { name: "國立師大附中", requirement: 85, prestige: "top" },
+          { name: "台中市立台中一中", requirement: 85, prestige: "top" },
+          { name: "台南市立台南一中", requirement: 85, prestige: "top" },
+          { name: "高雄市立高雄中學", requirement: 85, prestige: "top" },
+
+          // 優質高中
+          { name: "台北市立成功高中", requirement: 75, prestige: "good" },
+          { name: "台北市立中山女中", requirement: 75, prestige: "good" },
+          { name: "新北市立板橋高中", requirement: 70, prestige: "good" },
+          { name: "桃園市立武陵高中", requirement: 80, prestige: "good" },
+          { name: "新竹市立新竹高中", requirement: 75, prestige: "good" },
+          { name: "台中市立台中女中", requirement: 80, prestige: "good" },
+
+          // 一般高中
+          { name: "台北市立松山高中", requirement: 60, prestige: "normal" },
+          { name: "新北市立新莊高中", requirement: 55, prestige: "normal" },
+          { name: "桃園市立中壢高中", requirement: 60, prestige: "normal" },
+          { name: "台中市立惠文高中", requirement: 65, prestige: "normal" },
+          { name: "台南市立台南二中", requirement: 60, prestige: "normal" },
+          { name: "高雄市立新莊高中", requirement: 55, prestige: "normal" },
+        ],
+        university: [
+          // 頂尖大學
+          { name: "國立台灣大學", requirement: 85, prestige: "top" },
+          { name: "國立清華大學", requirement: 80, prestige: "top" },
+          { name: "國立陽明交通大學", requirement: 80, prestige: "top" },
+          { name: "國立成功大學", requirement: 75, prestige: "top" },
+
+          // 優質大學
+          { name: "國立政治大學", requirement: 70, prestige: "good" },
+          { name: "國立中央大學", requirement: 68, prestige: "good" },
+          { name: "國立中興大學", requirement: 65, prestige: "good" },
+          { name: "國立中山大學", requirement: 65, prestige: "good" },
+          { name: "國立台灣師範大學", requirement: 70, prestige: "good" },
+
+          // 一般大學
+          { name: "國立台北大學", requirement: 60, prestige: "normal" },
+          { name: "國立台灣科技大學", requirement: 65, prestige: "normal" },
+          { name: "國立台北科技大學", requirement: 63, prestige: "normal" },
+          { name: "輔仁大學", requirement: 60, prestige: "normal" },
+          { name: "東吳大學", requirement: 58, prestige: "normal" },
+          { name: "淡江大學", requirement: 55, prestige: "normal" },
+          { name: "逢甲大學", requirement: 58, prestige: "normal" },
+        ],
+      };
+      const MAJORS = {
+        university: [
+          {
+            id: "cs",
+            name: "資訊工程學系",
+            skills: { programming: 30 },
+            intel: 10,
+          },
+          {
+            id: "business",
+            name: "企業管理學系",
+            skills: { finance: 30, communication: 20 },
+            intel: 5,
+          },
+          {
+            id: "medicine",
+            name: "醫學系",
+            skills: { medical: 40 },
+            intel: 20,
+            requirement: 85,
+          },
+          {
+            id: "art",
+            name: "藝術學系",
+            skills: { art: 35, charm: 15 },
+            intel: 5,
+          },
+          {
+            id: "engineering",
+            name: "電機工程學系",
+            skills: { programming: 20, communication: 10 },
+            intel: 15,
+          },
+          {
+            id: "education",
+            name: "教育學系",
+            skills: { communication: 30 },
+            intel: 10,
+          },
+          {
+            id: "law",
+            name: "法律學系",
+            skills: { communication: 25 },
+            intel: 15,
+          },
+          {
+            id: "economics",
+            name: "經濟學系",
+            skills: { finance: 35 },
+            intel: 12,
+          },
+        ],
+        master: [
+          {
+            id: "mba",
+            name: "MBA 企管碩士",
+            skills: { finance: 40, communication: 30 },
+            intel: 15,
+          },
+          {
+            id: "cs_master",
+            name: "資工碩士",
+            skills: { programming: 45 },
+            intel: 20,
+          },
+          {
+            id: "med_master",
+            name: "醫學碩士",
+            skills: { medical: 55 },
+            intel: 25,
+          },
+        ],
+        phd: [
+          {
+            id: "cs_phd",
+            name: "資工博士",
+            skills: { programming: 60 },
+            intel: 30,
+          },
+          {
+            id: "med_phd",
+            name: "醫學博士",
+            skills: { medical: 70 },
+            intel: 35,
+          },
+        ],
+      };
       const CARS = [
         {
           id: "car1",
@@ -2700,6 +2929,414 @@
           desc: "終極奢華",
         },
       ];
+      // ===== 👥 NPC 系統 =====
+      const NPC_TEMPLATES = {
+        classmate: [
+          { name: "陳奕安", personality: "friendly", baseRelation: 50 },
+          { name: "林俊佑", personality: "quiet", baseRelation: 40 },
+          { name: "王雲哲", personality: "outgoing", baseRelation: 60 },
+          { name: "張劍輝", personality: "smart", baseRelation: 45 },
+          { name: "劉謙停", personality: "athletic", baseRelation: 55 },
+          { name: "買名翔", personality: "artistic", baseRelation: 50 },
+          { name: "楊正熙", personality: "leader", baseRelation: 65 },
+          { name: "鄭順吉", personality: "kind", baseRelation: 70 },
+          {
+            name: "陳雅婷",
+            personality: "kind",
+            baseRelation: 70,
+            gender: "female",
+          },
+          {
+            name: "林佳穎",
+            personality: "smart",
+            baseRelation: 48,
+            gender: "female",
+          },
+          {
+            name: "黃怡君",
+            personality: "artistic",
+            baseRelation: 50,
+            gender: "female",
+          },
+          {
+            name: "張心怡",
+            personality: "gentle",
+            baseRelation: 60,
+            gender: "female",
+          },
+          {
+            name: "李詩涵",
+            personality: "quiet",
+            baseRelation: 42,
+            gender: "female",
+          },
+          {
+            name: "王雅雯",
+            personality: "outgoing",
+            baseRelation: 62,
+            gender: "female",
+          },
+          {
+            name: "吳佩君",
+            personality: "kind",
+            baseRelation: 68,
+            gender: "female",
+          },
+          {
+            name: "劉欣怡",
+            personality: "cheerful",
+            baseRelation: 58,
+            gender: "female",
+          },
+          {
+            name: "蔡宜庭",
+            personality: "artistic",
+            baseRelation: 52,
+            gender: "female",
+          },
+          {
+            name: "楊靜怡",
+            personality: "gentle",
+            baseRelation: 56,
+            gender: "female",
+          },
+        ],
+        colleague: [
+          // 男性同事
+          {
+            name: "王經理志明",
+            personality: "strict",
+            baseRelation: 30,
+            gender: "male",
+          },
+          {
+            name: "陳工程師建國",
+            personality: "quiet",
+            baseRelation: 40,
+            gender: "male",
+          },
+          {
+            name: "林主管文龍",
+            personality: "competitive",
+            baseRelation: 35,
+            gender: "male",
+          },
+          {
+            name: "張協理俊宏",
+            personality: "leader",
+            baseRelation: 45,
+            gender: "male",
+          },
+          {
+            name: "黃資深員工志豪",
+            personality: "helpful",
+            baseRelation: 60,
+            gender: "male",
+          },
+
+          // 女性同事
+          {
+            name: "李姐淑芬",
+            personality: "helpful",
+            baseRelation: 65,
+            gender: "female",
+          },
+          {
+            name: "劉小姐雅芳",
+            personality: "cheerful",
+            baseRelation: 55,
+            gender: "female",
+          },
+          {
+            name: "吳主任美玲",
+            personality: "strict",
+            baseRelation: 32,
+            gender: "female",
+          },
+          {
+            name: "陳秘書佩珊",
+            personality: "kind",
+            baseRelation: 58,
+            gender: "female",
+          },
+          {
+            name: "楊組長淑惠",
+            personality: "competitive",
+            baseRelation: 38,
+            gender: "female",
+          },
+        ],
+
+        neighbor: [
+          // 男性鄰居
+          {
+            name: "隔壁老王",
+            personality: "nosy",
+            baseRelation: 45,
+            gender: "male",
+          },
+          {
+            name: "樓下陳伯伯",
+            personality: "kind",
+            baseRelation: 60,
+            gender: "male",
+          },
+          {
+            name: "對門的大學生小傑",
+            personality: "friendly",
+            baseRelation: 50,
+            gender: "male",
+          },
+          {
+            name: "一樓林先生",
+            personality: "quiet",
+            baseRelation: 42,
+            gender: "male",
+          },
+
+          // 女性鄰居
+          {
+            name: "樓上陳太太",
+            personality: "gossipy",
+            baseRelation: 40,
+            gender: "female",
+          },
+          {
+            name: "王媽媽",
+            personality: "kind",
+            baseRelation: 65,
+            gender: "female",
+          },
+          {
+            name: "便利商店店員小美",
+            personality: "friendly",
+            baseRelation: 55,
+            gender: "female",
+          },
+          {
+            name: "鄰居李阿姨",
+            personality: "helpful",
+            baseRelation: 58,
+            gender: "female",
+          },
+        ],
+
+        romantic: [
+          // 適合當戀愛對象的女生
+          {
+            name: "林心如",
+            personality: "gentle",
+            baseRelation: 30,
+            gender: "female",
+            charm: 80,
+          },
+          {
+            name: "陳雨涵",
+            personality: "artistic",
+            baseRelation: 28,
+            gender: "female",
+            charm: 75,
+          },
+          {
+            name: "張詩婷",
+            personality: "quiet",
+            baseRelation: 25,
+            gender: "female",
+            charm: 78,
+          },
+          {
+            name: "黃怡安",
+            personality: "cheerful",
+            baseRelation: 32,
+            gender: "female",
+            charm: 82,
+          },
+          {
+            name: "李雅筑",
+            personality: "smart",
+            baseRelation: 26,
+            gender: "female",
+            charm: 76,
+          },
+          {
+            name: "王思涵",
+            personality: "kind",
+            baseRelation: 30,
+            gender: "female",
+            charm: 79,
+          },
+          {
+            name: "吳佳蓉",
+            personality: "outgoing",
+            baseRelation: 35,
+            gender: "female",
+            charm: 77,
+          },
+          {
+            name: "劉婉婷",
+            personality: "gentle",
+            baseRelation: 28,
+            gender: "female",
+            charm: 81,
+          },
+
+          // 適合當戀愛對象的男生
+          {
+            name: "陳柏宇",
+            personality: "confident",
+            baseRelation: 28,
+            gender: "male",
+            charm: 78,
+          },
+          {
+            name: "林子軒",
+            personality: "mature",
+            baseRelation: 25,
+            gender: "male",
+            charm: 80,
+          },
+          {
+            name: "張文凱",
+            personality: "cheerful",
+            baseRelation: 30,
+            gender: "male",
+            charm: 75,
+          },
+          {
+            name: "黃俊凱",
+            personality: "athletic",
+            baseRelation: 32,
+            gender: "male",
+            charm: 77,
+          },
+          {
+            name: "李冠廷",
+            personality: "smart",
+            baseRelation: 26,
+            gender: "male",
+            charm: 76,
+          },
+          {
+            name: "王宥勝",
+            personality: "gentle",
+            baseRelation: 28,
+            gender: "male",
+            charm: 79,
+          },
+          {
+            name: "吳承澔",
+            personality: "confident",
+            baseRelation: 30,
+            gender: "male",
+            charm: 82,
+          },
+          {
+            name: "劉彥廷",
+            personality: "mature",
+            baseRelation: 27,
+            gender: "male",
+            charm: 81,
+          },
+        ],
+
+        // 額外：老師/長輩
+        teacher: [
+          {
+            name: "王老師淑貞",
+            personality: "strict",
+            baseRelation: 50,
+            gender: "female",
+          },
+          {
+            name: "陳老師文雄",
+            personality: "kind",
+            baseRelation: 60,
+            gender: "male",
+          },
+          {
+            name: "林老師美惠",
+            personality: "helpful",
+            baseRelation: 65,
+            gender: "female",
+          },
+          {
+            name: "張老師志成",
+            personality: "strict",
+            baseRelation: 48,
+            gender: "male",
+          },
+          {
+            name: "黃老師雅芳",
+            personality: "gentle",
+            baseRelation: 62,
+            gender: "female",
+          },
+        ],
+
+        // 額外：朋友的朋友
+        friend: [
+          {
+            name: "陳品翰",
+            personality: "outgoing",
+            baseRelation: 45,
+            gender: "male",
+          },
+          {
+            name: "林思妤",
+            personality: "cheerful",
+            baseRelation: 50,
+            gender: "female",
+          },
+          {
+            name: "黃宇辰",
+            personality: "friendly",
+            baseRelation: 48,
+            gender: "male",
+          },
+          {
+            name: "張詠晴",
+            personality: "kind",
+            baseRelation: 52,
+            gender: "female",
+          },
+          {
+            name: "李承翰",
+            personality: "athletic",
+            baseRelation: 46,
+            gender: "male",
+          },
+          {
+            name: "王芷萱",
+            personality: "artistic",
+            baseRelation: 50,
+            gender: "female",
+          },
+        ],
+      };
+
+      const NPC_INTERACTIONS = {
+        chat: { cost: 10, relationChange: 5, moneyChange: 0, desc: "閒聊" },
+        help: {
+          cost: 20,
+          relationChange: 10,
+          moneyChange: -1000,
+          desc: "幫助對方",
+        },
+        gift: {
+          cost: 15,
+          relationChange: 15,
+          moneyChange: -3000,
+          desc: "送禮物",
+        },
+        date: {
+          cost: 25,
+          relationChange: 20,
+          moneyChange: -2000,
+          desc: "約會",
+          requireRelation: 50,
+        },
+        argue: { cost: 5, relationChange: -20, moneyChange: 0, desc: "爭吵" },
+      };
 
       // ==========================================
       // 🔴 遊戲狀態
@@ -2711,6 +3348,10 @@
         name: "",
         origin: "",
         originId: "",
+        education: "none",
+        major: "",
+        isStudying: false,
+        studyProgress: 0,
         age: 0,
         gender: "男",
         money: 0,
@@ -2736,6 +3377,8 @@
 
         inventory: [],
         relationships: [],
+        npcs: [],
+        metNPCs: [],
         talents: [],
         traits: [],
         unlockedTraits: [],
@@ -3625,6 +4268,24 @@
             cost = 25;
             effects = { intel: 8 * Game.learnBonus, money: -2000, happy: -5 };
             break;
+          case "attend_class":
+            cost = 30;
+            effects = { intel: 3 * Game.learnBonus, happy: -5 };
+            if (Game.isStudying) {
+              studyProgress();
+            }
+            break;
+
+          case "go_to_school":
+            cost = 25;
+            effects = {
+              intel: 4 * Game.learnBonus,
+              "skills.communication": 3 * Game.skillBonus,
+            };
+            if (Game.isStudying) {
+              studyProgress();
+            }
+            break;
 
           case "sports":
             cost = 20;
@@ -3889,7 +4550,137 @@
 
         Game.age++;
         Game.stamina = 100;
+        // 自動升學檢查
+        if (Game.age === 3 && Game.education === "none") {
+          const school =
+            TAIWAN_SCHOOLS.kindergarten[
+              Math.floor(Math.random() * TAIWAN_SCHOOLS.kindergarten.length)
+            ];
+          Game.education = "kindergarten";
+          Game.currentSchool = school;
+          log(`🎒 進入 ${school}`);
+        }
 
+        if (Game.age === 6 && Game.education === "kindergarten") {
+          const school =
+            TAIWAN_SCHOOLS.elementary[
+              Math.floor(Math.random() * TAIWAN_SCHOOLS.elementary.length)
+            ];
+          Game.education = "elementary";
+          Game.currentSchool = school;
+          log(`📚 就讀 ${school}`);
+
+          // 入學時認識新同學
+          addNPC("classmate");
+        }
+
+        if (Game.age === 13 && Game.education === "elementary") {
+          const school =
+            TAIWAN_SCHOOLS.middle[
+              Math.floor(Math.random() * TAIWAN_SCHOOLS.middle.length)
+            ];
+          Game.education = "middle";
+          Game.currentSchool = school;
+          log(`🎓 就讀 ${school}`);
+
+          // 入學時認識新同學
+          addNPC("classmate");
+        }
+
+        if (Game.age === 16 && Game.education === "middle") {
+          // 根據智力分配高中
+          const availableHighSchools = TAIWAN_SCHOOLS.high.filter(
+            (s) => Game.intel >= s.requirement,
+          );
+
+          if (availableHighSchools.length > 0) {
+            // 選擇符合條件中最好的學校
+            availableHighSchools.sort((a, b) => b.requirement - a.requirement);
+            const school = availableHighSchools[0];
+
+            Game.education = "high";
+            Game.currentSchool = school.name;
+
+            if (school.prestige === "top") {
+              log(`🏆 考上頂尖高中：${school.name}！`);
+              Game.intel += 5;
+            } else if (school.prestige === "good") {
+              log(`🎓 考上 ${school.name}`);
+              Game.intel += 3;
+            } else {
+              log(`🎓 就讀 ${school.name}`);
+            }
+
+            // 入學時認識新同學
+            addNPC("classmate");
+          } else {
+            log("⚠️ 國中畢業，智力不足無法考上高中");
+          }
+        }
+
+        if (Game.age === 19 && Game.education === "high") {
+          // 根據智力分配大學
+          const availableUniversities = TAIWAN_SCHOOLS.university.filter(
+            (u) => Game.intel >= u.requirement,
+          );
+
+          if (availableUniversities.length > 0 && Game.money >= 200000) {
+            availableUniversities.sort((a, b) => b.requirement - a.requirement);
+            const university = availableUniversities[0];
+
+            Game.currentSchool = university.name;
+
+            let choices = [
+              {
+                text: "不讀了",
+                action: () => {
+                  log("決定不上大學");
+                  closeModal();
+                },
+              },
+            ];
+
+            MAJORS.university.forEach((major) => {
+              if (!major.requirement || Game.intel >= major.requirement) {
+                choices.unshift({
+                  text: major.name,
+                  action: () => {
+                    enterEducation("university", major.id);
+                    if (university.prestige === "top") {
+                      Game.intel += 10;
+                      log(
+                        `🏆 考上頂尖大學：${university.name} ${major.name}！`,
+                      );
+                    } else {
+                      log(`🎓 就讀 ${university.name} ${major.name}`);
+                    }
+                    closeModal();
+                  },
+                });
+              }
+            });
+
+            showModal(
+              "🎓 大學錄取",
+              `恭喜考上 ${university.name}！\n請選擇科系`,
+              choices,
+            );
+          } else {
+            if (Game.intel < 55) {
+              log("⚠️ 智力不足，無法考上大學");
+            } else {
+              log("⚠️ 學費不足，無法上大學");
+            }
+          }
+        }
+        if (Game.age >= 18 && Game.age <= 35 && Math.random() < 0.1) {
+          if (
+            getNPCsByType("romantic").length + getNPCsByType("lover").length ===
+            0
+          ) {
+            addNPC("romantic");
+          }
+        }
         // 記錄年度變化
         const yearChanges = [];
 
@@ -3980,7 +4771,7 @@
             log(`😢 與 ${r.name} 的關係疏遠了`);
           }
         });
-
+        updateNPCRelations();
         // 統計快樂年數
         if (Game.happy > 80) {
           Game.happyYears++;
@@ -4248,167 +5039,416 @@
       // ==========================================
 
       function triggerRandomEvent() {
-        const events = [
-          // 好運事件
+        const RANDOM_EVENTS = [
+          // === 💰 金錢事件 ===
           {
-            prob: 20,
-            title: "🎰 中樂透",
-            desc: "買彩券中了小獎！",
+            title: "💰 路上撿到錢",
+            desc: "走路時在地上發現一個錢包",
+            choices: [
+              {
+                text: "送交警察局",
+                effect: (g) => {
+                  g.happy += 10;
+                  return "做了好事心情很好";
+                },
+              },
+              {
+                text: "拿走現金",
+                effect: (g) => {
+                  const money = Math.floor(Math.random() * 50000) + 10000;
+                  g.money += money;
+                  g.happy -= 5;
+                  return `拿到 $${money.toLocaleString()}，但有點心虛`;
+                },
+              },
+            ],
+          },
+          {
+            title: "🎰 朋友邀你投資",
+            desc: "朋友說有個穩賺不賠的投資機會",
+            choices: [
+              {
+                text: "投資 $50,000",
+                effect: (g) => {
+                  if (g.money < 50000) return "錢不夠";
+                  g.money -= 50000;
+                  if (Math.random() > 0.5) {
+                    g.money += 100000;
+                    return "🎉 賺了 $50,000！";
+                  } else {
+                    return "😢 血本無歸...";
+                  }
+                },
+              },
+              {
+                text: "拒絕",
+                effect: (g) => {
+                  return "保住了錢包";
+                },
+              },
+            ],
+          },
+          {
+            title: "🏆 中獎了",
+            desc: "發票對中獎號",
             effect: (g) => {
-              g.money += 100000;
-              return "獲得 $100,000";
+              const prizes = [200, 1000, 10000, 200000, 10000000];
+              const prize = prizes[Math.floor(Math.random() * prizes.length)];
+              g.money += prize;
+              g.happy += 20;
+              return `中了 $${prize.toLocaleString()}！`;
+            },
+          },
+
+          // === ❤️ 健康事件 ===
+          {
+            title: "🤒 感冒了",
+            desc: "身體不舒服",
+            effect: (g) => {
+              g.health -= 10;
+              g.money -= 1000;
+              return "看醫生花了 $1,000";
             },
           },
           {
-            prob: 15,
-            title: "💼 升職加薪",
-            desc: "工作表現優異，老闆賞識",
-            effect: (g) => {
-              g.money += 50000;
-              g.happy += 10;
-              return "年薪+$50,000";
-            },
+            title: "🏃 參加路跑",
+            desc: "朋友邀你參加馬拉松",
+            choices: [
+              {
+                text: "參加",
+                effect: (g) => {
+                  g.health += 15;
+                  g.happy += 10;
+                  g.stamina -= 30;
+                  return "完成比賽！身體更健康了";
+                },
+              },
+              {
+                text: "拒絕",
+                effect: (g) => {
+                  return "待在家裡休息";
+                },
+              },
+            ],
           },
           {
-            prob: 20,
-            title: "📚 意外收穫",
-            desc: "在書店發現一本改變人生的書",
-            effect: (g) => {
-              g.intel += 5;
-              g.happy += 8;
-              return "智力+5，開拓視野";
-            },
+            title: "💊 發現保健食品",
+            desc: "藥局推薦保健食品",
+            choices: [
+              {
+                text: "購買 ($5,000)",
+                effect: (g) => {
+                  g.money -= 5000;
+                  g.health += 10;
+                  g.healthDecay *= 0.9;
+                  return "長期服用改善了健康";
+                },
+              },
+              {
+                text: "不買",
+                effect: (g) => {
+                  return "省下一筆錢";
+                },
+              },
+            ],
+          },
+
+          // === 😊 快樂事件 ===
+          {
+            title: "🎮 新遊戲發售",
+            desc: "期待已久的遊戲終於上市了",
+            choices: [
+              {
+                text: "購買 ($2,000)",
+                effect: (g) => {
+                  g.money -= 2000;
+                  g.happy += 25;
+                  return "玩得超開心！";
+                },
+              },
+              {
+                text: "忍住不買",
+                effect: (g) => {
+                  g.happy -= 10;
+                  return "好想玩...";
+                },
+              },
+            ],
           },
           {
-            prob: 15,
-            title: "🏃 健身成功",
-            desc: "堅持運動，體態變好",
+            title: "🎬 朋友約看電影",
+            desc: "朋友邀你去看最新電影",
+            choices: [
+              {
+                text: "一起去 ($500)",
+                effect: (g) => {
+                  g.money -= 500;
+                  g.happy += 15;
+                  g.skills.communication += 2;
+                  return "度過愉快的時光";
+                },
+              },
+              {
+                text: "婉拒",
+                effect: (g) => {
+                  return "在家休息";
+                },
+              },
+            ],
+          },
+          {
+            title: "🎉 生日派對",
+            desc: "今天是你的生日",
             effect: (g) => {
-              g.health += 10;
+              const gifts = Math.floor(Math.random() * 20000) + 5000;
+              g.money += gifts;
+              g.happy += 30;
+              return `收到 $${gifts.toLocaleString()} 的紅包！`;
+            },
+          },
+
+          // === 🧠 學習事件 ===
+          {
+            title: "📚 發現好書",
+            desc: "在書店發現一本好書",
+            choices: [
+              {
+                text: "購買 ($800)",
+                effect: (g) => {
+                  g.money -= 800;
+                  g.intel += 5;
+                  g.happy += 10;
+                  return "獲得了新知識";
+                },
+              },
+              {
+                text: "不買",
+                effect: (g) => {
+                  return "改天再說";
+                },
+              },
+            ],
+          },
+          {
+            title: "💻 線上課程優惠",
+            desc: "看到有興趣的線上課程打折",
+            choices: [
+              {
+                text: "購買 ($3,000)",
+                effect: (g) => {
+                  g.money -= 3000;
+                  g.intel += 8;
+                  const skills = [
+                    "programming",
+                    "art",
+                    "finance",
+                    "communication",
+                  ];
+                  const skill =
+                    skills[Math.floor(Math.random() * skills.length)];
+                  g.skills[skill] += 15;
+                  return `學到新技能！`;
+                },
+              },
+              {
+                text: "放棄",
+                effect: (g) => {
+                  return "省下錢";
+                },
+              },
+            ],
+          },
+
+          // === 👥 社交事件 ===
+          {
+            title: "🎭 社交聚會",
+            desc: "被邀請參加聚會",
+            choices: [
+              {
+                text: "參加 ($1,500)",
+                effect: (g) => {
+                  g.money -= 1500;
+                  g.happy += 15;
+                  g.skills.charm += 5;
+                  g.skills.communication += 5;
+                  if (Math.random() > 0.6) {
+                    addFriend();
+                    return "認識了新朋友！";
+                  }
+                  return "度過愉快的夜晚";
+                },
+              },
+              {
+                text: "不去",
+                effect: (g) => {
+                  return "宅在家裡";
+                },
+              },
+            ],
+          },
+          {
+            title: "💼 人脈介紹",
+            desc: "朋友介紹重要人士給你認識",
+            effect: (g) => {
+              g.skills.communication += 10;
               g.skills.charm += 5;
-              return "健康+10，魅力+5";
-            },
-          },
-          {
-            prob: 10,
-            title: "💝 收到禮物",
-            desc: "朋友送你驚喜生日禮物",
-            effect: (g) => {
-              g.happy += 15;
-              return "心情大好";
+              addFriend();
+              return "建立了有用的人脈";
             },
           },
 
-          // 壞運事件
+          // === ⚠️ 危機事件 ===
           {
-            prob: 25,
-            title: "🚗 交通事故",
-            desc: "發生車禍，需要休養",
+            title: "🚗 車禍",
+            desc: "不小心發生車禍",
             effect: (g) => {
-              g.health -= 15;
+              g.health -= 20;
               g.money -= 30000;
-              g.happy -= 10;
-              return "健康-15，醫療費-$30,000";
+              g.happy -= 15;
+              return "受傷住院，花了 $30,000";
             },
           },
           {
-            prob: 20,
-            title: "🦠 生病感冒",
-            desc: "換季感冒，身體不適",
-            effect: (g) => {
-              g.health -= 8;
-              g.happy -= 5;
-              return "健康-8，臥床休息";
-            },
+            title: "📱 手機壞了",
+            desc: "手機摔壞了",
+            choices: [
+              {
+                text: "買新的 ($20,000)",
+                effect: (g) => {
+                  g.money -= 20000;
+                  g.happy += 5;
+                  return "換了新手機";
+                },
+              },
+              {
+                text: "修理 ($3,000)",
+                effect: (g) => {
+                  g.money -= 3000;
+                  return "修好了";
+                },
+              },
+              {
+                text: "湊合著用",
+                effect: (g) => {
+                  g.happy -= 10;
+                  return "用得很不方便...";
+                },
+              },
+            ],
           },
           {
-            prob: 15,
-            title: "📱 手機掉了",
-            desc: "手機不慎掉落摔壞",
-            effect: (g) => {
-              g.money -= 20000;
-              g.happy -= 8;
-              return "損失 $20,000 換新機";
-            },
-          },
-          {
-            prob: 20,
-            title: "😰 工作壓力",
-            desc: "工作量暴增，壓力山大",
-            effect: (g) => {
-              g.happy -= 12;
-              g.health -= 5;
-              return "身心俱疲";
-            },
-          },
-          {
-            prob: 15,
-            title: "💔 失戀",
-            desc: "感情出現問題",
-            effect: (g) => {
-              g.happy -= 20;
-              return "心碎了";
-            },
+            title: "🏠 房東漲租",
+            desc: "房東說要漲房租",
+            choices: [
+              {
+                text: "接受",
+                effect: (g) => {
+                  g.yearlyMoney -= 12000;
+                  return "每月多付 $1,000";
+                },
+              },
+              {
+                text: "搬家",
+                effect: (g) => {
+                  g.money -= 10000;
+                  g.stamina -= 20;
+                  return "搬家花了 $10,000";
+                },
+              },
+            ],
           },
 
-          // 中性事件
+          // === 🎁 驚喜事件 ===
           {
-            prob: 18,
-            title: "🎬 追劇",
-            desc: "迷上一部神劇，熬夜追完",
+            title: "🎰 刮刮樂",
+            desc: "路過買了刮刮樂",
             effect: (g) => {
-              g.happy += 10;
-              g.health -= 5;
-              return "快樂但缺乏睡眠";
+              g.money -= 100;
+              if (Math.random() > 0.8) {
+                const prize = Math.floor(Math.random() * 100000) + 1000;
+                g.money += prize;
+                g.happy += 30;
+                return `中了 $${prize.toLocaleString()}！`;
+              }
+              return "沒中獎";
             },
           },
           {
-            prob: 18,
-            title: "🍔 大餐",
-            desc: "和朋友聚餐吃大餐",
-            effect: (g) => {
-              g.happy += 12;
-              g.money -= 3000;
-              return "吃得很開心";
-            },
-          },
-          {
-            prob: 15,
-            title: "🎮 電玩展",
-            desc: "參加遊戲展覽",
-            effect: (g) => {
-              g.happy += 15;
-              g.money -= 2000;
-              return "買了很多周邊";
-            },
-          },
-          {
-            prob: 20,
-            title: "📖 讀書會",
-            desc: "參加讀書會分享",
-            effect: (g) => {
-              g.intel += 3;
-              g.skills.communication += 5;
-              return "收穫良多";
-            },
-          },
-          {
-            prob: 18,
-            title: "🏖️ 週末旅行",
-            desc: "短期旅遊放鬆心情",
+            title: "📦 網購驚喜",
+            desc: "收到意外的包裹",
             effect: (g) => {
               g.happy += 20;
-              g.money -= 15000;
-              return "身心充電完成";
+              return "原來是之前買的東西到了！";
             },
+          },
+          {
+            title: "☀️ 好天氣",
+            desc: "今天天氣特別好",
+            effect: (g) => {
+              g.happy += 10;
+              g.health += 5;
+              return "心情愉快！";
+            },
+          },
+
+          // === 💼 工作事件 ===
+          {
+            title: "💰 年終獎金",
+            desc: "公司發年終獎金",
+            effect: (g) => {
+              if (g.jobId === "none") return "你沒有工作";
+              const bonus = Math.floor(Math.random() * 100000) + 50000;
+              g.money += bonus;
+              g.happy += 25;
+              return `領到 $${bonus.toLocaleString()} 年終！`;
+            },
+          },
+          {
+            title: "📈 升職機會",
+            desc: "老闆提出升職",
+            effect: (g) => {
+              if (g.jobId === "none") return "你沒有工作";
+              g.incomeBonus *= 1.2;
+              g.happy += 20;
+              return "薪水增加 20%！";
+            },
+          },
+          {
+            title: "😰 工作壓力",
+            desc: "最近工作壓力很大",
+            choices: [
+              {
+                text: "咬牙撐過",
+                effect: (g) => {
+                  g.health -= 15;
+                  g.happy -= 20;
+                  g.money += 30000;
+                  return "賺了加班費但很累";
+                },
+              },
+              {
+                text: "請假休息",
+                effect: (g) => {
+                  g.money -= 10000;
+                  g.health += 10;
+                  g.happy += 15;
+                  return "身心獲得休息";
+                },
+              },
+            ],
           },
         ];
 
-        const event = events[Math.floor(Math.random() * events.length)];
-        const result = event.effect(Game);
+        // 隨機選擇事件
+        const event =
+          RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)];
 
-        log(`📢 ${event.title}：${event.desc}`);
-        log(`   └─ ${result}`);
+        if (event.choices) {
+          showEventModal(event);
+        } else if (event.effect) {
+          const result = event.effect(Game);
+          log(`${event.title}：${event.desc} - ${result}`);
+        }
 
         Game.totalEvents++;
         updateUI();
@@ -4502,6 +5542,216 @@
 
         updateUI();
       }
+      // ===== 👥 NPC 系統函數 =====
+      function generateNPC(type) {
+        const templates = NPC_TEMPLATES[type];
+        if (!templates || templates.length === 0) return null;
+
+        const template =
+          templates[Math.floor(Math.random() * templates.length)];
+        const npc = {
+          id: `npc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name: template.name,
+          type: type,
+          personality: template.personality,
+          relation: template.baseRelation,
+          gender: template.gender || (Math.random() > 0.5 ? "male" : "female"),
+          age: Game.age + (Math.floor(Math.random() * 6) - 3), // 年齡差距 -3 到 +3
+          metAt: Game.age,
+          lastInteraction: Game.age,
+        };
+
+        return npc;
+      }
+
+      function addNPC(type) {
+        const npc = generateNPC(type);
+        if (!npc) return null;
+
+        Game.npcs.push(npc);
+        Game.metNPCs.push(npc.id);
+
+        log(`👤 認識了新朋友：${npc.name}`);
+        return npc;
+      }
+
+      function getNPCsByType(type) {
+        return Game.npcs.filter((npc) => npc.type === type);
+      }
+
+      function interactWithNPC(npcId, interactionType) {
+        const npc = Game.npcs.find((n) => n.id === npcId);
+        if (!npc) return;
+
+        const interaction = NPC_INTERACTIONS[interactionType];
+        if (!interaction) return;
+
+        // 檢查關係需求
+        if (
+          interaction.requireRelation &&
+          npc.relation < interaction.requireRelation
+        ) {
+          alert(
+            `❌ 關係不夠好，需要好感度 ${interaction.requireRelation} 以上`,
+          );
+          return;
+        }
+
+        // 檢查體力
+        if (Game.stamina < interaction.cost) {
+          alert("⚡ 體力不足！");
+          return;
+        }
+
+        // 檢查金錢
+        if (
+          interaction.moneyChange < 0 &&
+          Game.money < Math.abs(interaction.moneyChange)
+        ) {
+          alert("💸 金錢不足！");
+          return;
+        }
+
+        // 執行互動
+        Game.stamina -= interaction.cost;
+        Game.money += interaction.moneyChange;
+        npc.relation = Math.max(
+          0,
+          Math.min(100, npc.relation + interaction.relationChange),
+        );
+        npc.lastInteraction = Game.age;
+
+        // 根據性格調整關係變化
+        let bonus = 0;
+        if (npc.personality === "friendly" && interactionType === "chat")
+          bonus = 3;
+        if (npc.personality === "kind" && interactionType === "help") bonus = 5;
+        if (npc.personality === "outgoing" && interactionType === "chat")
+          bonus = 2;
+
+        npc.relation += bonus;
+        npc.relation = Math.max(0, Math.min(100, npc.relation));
+
+        const changes = [];
+        if (interaction.moneyChange !== 0) {
+          changes.push(
+            `💰 ${interaction.moneyChange > 0 ? "+" : ""}$${Math.abs(interaction.moneyChange).toLocaleString()}`,
+          );
+        }
+        changes.push(
+          `💗 好感度 ${interaction.relationChange > 0 ? "+" : ""}${interaction.relationChange + bonus}`,
+        );
+
+        log(`與 ${npc.name} ${interaction.desc}`, changes);
+
+        // 檢查關係里程碑
+        if (npc.relation >= 80 && npc.type === "romantic") {
+          if (Math.random() > 0.7) {
+            showConfessionEvent(npc);
+          }
+        }
+
+        updateUI();
+        renderSocial();
+      }
+
+      function showConfessionEvent(npc) {
+        showModal(
+          "💕 心動時刻",
+          `${npc.name} 似乎對你有好感...\n要向對方告白嗎？`,
+          [
+            {
+              text: "❤️ 告白",
+              action: () => {
+                if (npc.relation >= 80) {
+                  npc.type = "lover";
+                  npc.relation = 85;
+                  log(`💕 ${npc.name} 接受了你的告白！`);
+                  showModal(
+                    "💕 戀愛開始",
+                    `恭喜！你和 ${npc.name} 開始交往了！`,
+                    [{ text: "太好了！", action: () => closeModal() }],
+                  );
+                } else {
+                  npc.relation -= 10;
+                  log(`😢 ${npc.name} 拒絕了你...`);
+                  alert("😢 對方拒絕了...");
+                }
+                closeModal();
+                updateUI();
+                renderSocial();
+              },
+            },
+            {
+              text: "不要",
+              action: () => closeModal(),
+            },
+          ],
+        );
+      }
+
+      function proposeMarriage(npcId) {
+        const npc = Game.npcs.find((n) => n.id === npcId);
+        if (!npc || npc.type !== "lover") {
+          alert("❌ 只能向戀人求婚！");
+          return;
+        }
+
+        if (npc.relation < 90) {
+          alert("❌ 感情還不夠深厚（需要好感度 90+）");
+          return;
+        }
+
+        if (Game.money < 100000) {
+          alert("💸 結婚需要至少 $100,000 準備婚禮");
+          return;
+        }
+
+        showModal("💍 求婚", `向 ${npc.name} 求婚？\n婚禮費用：$100,000`, [
+          {
+            text: "💍 求婚",
+            action: () => {
+              Game.money -= 100000;
+              npc.type = "spouse";
+              npc.relation = 95;
+
+              // 移除戀人，改成配偶
+              const index = Game.relationships.findIndex((r) => r.id === npcId);
+              if (index !== -1) {
+                Game.relationships[index].type = "spouse";
+              }
+
+              Game.happy += 50;
+              log(`💒 與 ${npc.name} 結婚了！`);
+
+              showModal(
+                "💒 結婚典禮",
+                `恭喜！你和 ${npc.name} 結為夫妻！\n獲得 +50 快樂`,
+                [{ text: "太幸福了！", action: () => closeModal() }],
+              );
+
+              closeModal();
+              updateUI();
+              renderSocial();
+            },
+          },
+          {
+            text: "再想想",
+            action: () => closeModal(),
+          },
+        ]);
+      }
+
+      function updateNPCRelations() {
+        // 每年自動衰減長時間未互動的關係
+        Game.npcs.forEach((npc) => {
+          const yearsSinceInteraction = Game.age - npc.lastInteraction;
+          if (yearsSinceInteraction > 3) {
+            npc.relation = Math.max(0, npc.relation - 2);
+          }
+        });
+      }
+
       function checkAchievements() {
         ACHIEVEMENTS.forEach((ach) => {
           if (Game.unlockedAchievements.includes(ach.id)) return;
@@ -4514,6 +5764,192 @@
         });
 
         renderAchievements();
+      }
+      // ===== 🏫 教育系統函數 =====
+      function canEnterEducation(eduId) {
+        const edu = EDUCATION_LEVELS.find((e) => e.id === eduId);
+        if (!edu) return false;
+
+        // 檢查年齡
+        if (Game.age < edu.minAge) return false;
+
+        // 檢查是否已經有更高學歷
+        const currentEduIndex = EDUCATION_LEVELS.findIndex(
+          (e) => e.id === Game.education,
+        );
+        const targetEduIndex = EDUCATION_LEVELS.findIndex(
+          (e) => e.id === eduId,
+        );
+        if (currentEduIndex >= targetEduIndex) return false;
+
+        // 檢查需求
+        if (edu.requirement) {
+          if (edu.requirement.intel && Game.intel < edu.requirement.intel) {
+            return false;
+          }
+        }
+
+        // 檢查金錢
+        if (edu.cost && Game.money < edu.cost) {
+          return false;
+        }
+
+        return true;
+      }
+
+      function enterEducation(eduId, majorId = null) {
+        const edu = EDUCATION_LEVELS.find((e) => e.id === eduId);
+        if (!edu) return;
+
+        if (!canEnterEducation(eduId)) {
+          alert("⚠️ 不符合入學條件！");
+          return;
+        }
+
+        // 扣除學費
+        if (edu.cost) {
+          Game.money -= edu.cost;
+        }
+
+        Game.isStudying = true;
+        Game.studyProgress = 0;
+
+        let eduName = edu.name;
+        if (majorId) {
+          const majors = MAJORS[eduId];
+          const major = majors?.find((m) => m.id === majorId);
+          if (major) {
+            Game.major = majorId;
+            eduName += ` - ${major.name}`;
+          }
+        }
+
+        log(`📚 開始就讀${eduName}`);
+        showModal("🎓 入學通知", `恭喜你進入${eduName}！\n努力學習吧！`, [
+          { text: "開始學習", action: () => closeModal() },
+        ]);
+
+        updateUI();
+      }
+
+      function studyProgress() {
+        if (!Game.isStudying) return;
+
+        Game.studyProgress += 10 + Game.learnBonus * 5;
+
+        if (Game.studyProgress >= 100) {
+          graduateEducation();
+        }
+      }
+
+      function graduateEducation() {
+        const currentEdu = Game.education;
+        const nextEduIndex =
+          EDUCATION_LEVELS.findIndex((e) => e.id === currentEdu) + 1;
+        const nextEdu = EDUCATION_LEVELS[nextEduIndex];
+
+        if (nextEdu) {
+          Game.education = nextEdu.id;
+          Game.isStudying = false;
+          Game.studyProgress = 0;
+
+          // 應用學歷加成
+          if (nextEdu.bonus) {
+            Object.keys(nextEdu.bonus).forEach((key) => {
+              if (key.startsWith("skills.")) {
+                const skillName = key.split(".")[1];
+                Game.skills[skillName] += nextEdu.bonus[key];
+              } else {
+                Game[key] += nextEdu.bonus[key];
+              }
+            });
+          }
+
+          // 應用主修加成
+          if (Game.major) {
+            const majors = MAJORS[nextEdu.id];
+            const major = majors?.find((m) => m.id === Game.major);
+            if (major) {
+              if (major.intel) Game.intel += major.intel;
+              if (major.skills) {
+                Object.keys(major.skills).forEach((skill) => {
+                  Game.skills[skill] += major.skills[skill];
+                });
+              }
+            }
+          }
+
+          log(`🎓 恭喜畢業！取得${nextEdu.name}學歷`);
+          showModal(
+            "🎉 畢業典禮",
+            `恭喜你完成學業！\n取得${nextEdu.name}學歷`,
+            [{ text: "太好了！", action: () => closeModal() }],
+          );
+
+          // 解鎖成就
+          if (nextEdu.id === "phd") {
+            Game.unlockedAchievements.push("scholar");
+          }
+        }
+
+        updateUI();
+      }
+
+      function showEducationMenu() {
+        let html = '<div style="padding: 20px;">';
+        html += `<h2 style="color: var(--gold); margin-bottom: 20px;">🎓 教育系統</h2>`;
+        html += `<p style="color: var(--text-dim); margin-bottom: 15px;">當前學歷：${EDUCATION_LEVELS.find((e) => e.id === Game.education)?.name || "無"}</p>`;
+
+        if (Game.isStudying) {
+          html += `<div style="margin-bottom: 20px;">`;
+          html += `<p style="color: var(--blue);">📚 學習中... ${Math.floor(Game.studyProgress)}%</p>`;
+          html += `<div style="background: #333; height: 20px; border-radius: 10px; overflow: hidden; margin-top: 10px;">`;
+          html += `<div style="width: ${Game.studyProgress}%; height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.3s;"></div>`;
+          html += `</div></div>`;
+        }
+
+        html +=
+          '<div style="display: flex; flex-direction: column; gap: 10px;">';
+
+        EDUCATION_LEVELS.forEach((edu, index) => {
+          if (index === 0) return; // 跳過 none
+
+          const canEnter = canEnterEducation(edu.id);
+          const currentEduIndex = EDUCATION_LEVELS.findIndex(
+            (e) => e.id === Game.education,
+          );
+          const isCompleted = currentEduIndex >= index;
+
+          let statusColor = isCompleted
+            ? "var(--green)"
+            : canEnter
+              ? "var(--blue)"
+              : "var(--red)";
+          let statusText = isCompleted
+            ? "✅ 已完成"
+            : canEnter
+              ? "可入學"
+              : "❌ 未達標";
+
+          html += `<div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border-left: 3px solid ${statusColor};">`;
+          html += `<div style="display: flex; justify-content: space-between; align-items: center;">`;
+          html += `<div>`;
+          html += `<div style="font-size: 1.1em; font-weight: bold; color: var(--gold);">${edu.name}</div>`;
+          html += `<div style="font-size: 0.85em; color: var(--text-dim); margin-top: 5px;">`;
+          html += `最低年齡: ${edu.minAge}歲`;
+          if (edu.requirement?.intel)
+            html += ` | 智力需求: ${edu.requirement.intel}`;
+          if (edu.cost) html += ` | 學費: $${edu.cost.toLocaleString()}`;
+          html += `</div></div>`;
+          html += `<div style="color: ${statusColor}; font-weight: bold;">${statusText}</div>`;
+          html += `</div></div>`;
+        });
+
+        html += "</div></div>";
+
+        showModal("🎓 教育系統", html, [
+          { text: "關閉", action: () => closeModal() },
+        ]);
       }
 
       function renderAchievements() {
@@ -4719,6 +6155,99 @@
 
       function renderSocial() {
         let html = "";
+
+        // === ✅ 新增 NPC 顯示 ===
+        if (Game.npcs && Game.npcs.length > 0) {
+          html += '<div style="margin-bottom: 20px;">';
+          html +=
+            '<h3 style="color: var(--gold); margin-bottom: 10px;">👥 人際關係</h3>';
+
+          Game.npcs.forEach((npc) => {
+            const relationColor =
+              npc.relation >= 80
+                ? "var(--green)"
+                : npc.relation >= 50
+                  ? "var(--blue)"
+                  : npc.relation >= 30
+                    ? "var(--orange)"
+                    : "var(--red)";
+
+            let typeIcon = "👤";
+            let typeName = "朋友";
+            if (npc.type === "romantic") {
+              typeIcon = "💕";
+              typeName = "曖昧對象";
+            }
+            if (npc.type === "lover") {
+              typeIcon = "❤️";
+              typeName = "戀人";
+            }
+            if (npc.type === "spouse") {
+              typeIcon = "💑";
+              typeName = "配偶";
+            }
+            if (npc.type === "colleague") {
+              typeIcon = "💼";
+              typeName = "同事";
+            }
+            if (npc.type === "classmate") {
+              typeIcon = "📚";
+              typeName = "同學";
+            }
+
+            html += `
+                <div class="job-card" style="cursor: default;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 1.1em; font-weight: bold; color: var(--gold);">
+                                ${typeIcon} ${npc.name}
+                            </div>
+                            <div style="font-size: 0.85em; color: var(--text-dim); margin-top: 3px;">
+                                ${typeName} | ${npc.age}歲 | 認識 ${Game.age - npc.metAt} 年
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="color: ${relationColor}; font-weight: bold;">
+                                💗 ${npc.relation}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
+                        <button class="btn-job" style="flex: 1; min-width: 80px; padding: 8px; font-size: 0.85em;" 
+                                onclick="interactWithNPC('${npc.id}', 'chat')">
+                            💬 閒聊
+                        </button>
+                        <button class="btn-job" style="flex: 1; min-width: 80px; padding: 8px; font-size: 0.85em;" 
+                                onclick="interactWithNPC('${npc.id}', 'gift')">
+                            🎁 送禮
+                        </button>
+                        ${
+                          npc.type === "romantic" || npc.type === "lover"
+                            ? `
+                            <button class="btn-buy" style="flex: 1; min-width: 80px; padding: 8px; font-size: 0.85em;" 
+                                    onclick="interactWithNPC('${npc.id}', 'date')">
+                                💕 約會
+                            </button>
+                        `
+                            : ""
+                        }
+                        ${
+                          npc.type === "lover" && npc.relation >= 90
+                            ? `
+                            <button class="btn-main" style="flex: 1; min-width: 100px; padding: 8px; font-size: 0.85em;" 
+                                    onclick="proposeMarriage('${npc.id}')">
+                                💍 求婚
+                            </button>
+                        `
+                            : ""
+                        }
+                    </div>
+                </div>
+            `;
+          });
+
+          html += "</div>";
+        }
 
         if (Game.relationships.length === 0) {
           html =
