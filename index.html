@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時事人生</title>
+    <title>時事人生 V17.0：終極版</title>
     <style>
         :root {
             --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1339,6 +1339,7 @@
         // ==========================================
         let currentJobIndex = 0;  // 當前顯示的職業索引
 	let currentOriginIndex = 0;  // 當前顯示的出身索引
+	let skillsCollapsed = false;  // 技能是否收起
         let Game = {
             name: '', origin: '', originId: '', age: 0, gender: '男',
             money: 0, health: 100, happy: 80, intel: 50,
@@ -1479,7 +1480,10 @@ function nextOrigin() {
     }
     renderOriginCard();
 }
-
+function toggleSkills() {
+    skillsCollapsed = !skillsCollapsed;
+    updateUI();
+}
 
         function startGame() {
             const name = document.getElementById('inp-name').value.trim();
@@ -1669,33 +1673,52 @@ function nextOrigin() {
             document.getElementById('talent-display').innerHTML = talentHtml;
             
             // 技能條
-            let skillHtml = '';
-            const skillNames = {
-                programming: '💻 程式',
-                art: '🎨 藝術',
-                medical: '⚕️ 醫療',
-                cooking: '🍳 烹飪',
-                finance: '💰 理財',
-                communication: '💬 溝通',
-                charm: '✨ 魅力'
-            };
-            
-            Object.keys(Game.skills).forEach(key => {
-                const val = Math.min(200, Math.floor(Game.skills[key]));
-                const percent = (val / 200) * 100;
-                skillHtml += `
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span>${skillNames[key]}</span>
-                            <span>${val}</span>
-                        </div>
-                        <div class="skill-bar-bg">
-                            <div class="skill-bar-fill" style="width: ${percent}%"></div>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('skills-container').innerHTML = skillHtml;
+           let skillHtml = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span style="font-weight: bold; color: var(--accent);">📊 技能數值</span>
+        <button onclick="toggleSkills()" 
+                style="padding: 5px 12px; font-size: 0.85em; background: rgba(255,255,255,0.1); 
+                       border: 1px solid var(--accent); border-radius: 5px; cursor: pointer;">
+            ${skillsCollapsed ? '▼ 展開' : '▲ 收起'}
+        </button>
+    </div>
+`;
+
+// 如果沒有收起，才顯示技能列表
+if (!skillsCollapsed) {
+    skillHtml += '<div id="skills-list">';
+    
+    const skillNames = {
+        programming: '程式',
+        art: '藝術',
+        medical: '醫療',
+        cooking: '烹飪',
+        finance: '理財',
+        communication: '溝通',
+        charm: '魅力'
+    };
+
+    Object.keys(Game.skills).forEach(key => {
+        const val = Math.min(200, Math.floor(Game.skills[key]));
+        const percent = (val / 200) * 100;
+        skillHtml += `
+            <div class="skill-item">
+                <div class="skill-header">
+                    <span>${skillNames[key]}</span>
+                    <span>${val}</span>
+                </div>
+                <div class="skill-bar-bg">
+                    <div class="skill-bar-fill" style="width: ${percent}%"></div>
+                </div>
+            </div>
+        `;
+    });
+    
+    skillHtml += '</div>';  // 關閉 skills-list
+}
+
+document.getElementById('skills-container').innerHTML = skillHtml;
+
             
             // 體力條
             const stamina = Math.max(0, Math.min(100, Game.stamina));
