@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時事人生模擬器 Online</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-color: #16213e;
+            --accent-color: #0f3460;
+            --text-color: #e94560;
+            --main-text: #ffffff;
+        }
+        body {
+            font-family: '微軟正黑體', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--main-text);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            background: var(--card-color);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: var(--accent-color);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #news-ticker {
+            background-color: #e94560;
+            color: white;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            animation: fadeIn 1s;
+        }
+        .log-area {
+            height: 200px;
+            overflow-y: auto;
+            background: #000;
+            border: 1px solid #333;
+            padding: 10px;
+            text-align: left;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #ddd;
+        }
+        .log-entry { margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .year-tag { color: #ffd700; font-weight: bold; }
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        button {
+            padding: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            background: var(--text-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        button:hover { opacity: 0.8; }
+        button:disabled { background: #555; cursor: not-allowed; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌍 時事人生模擬器</h1>
+    <div id="news-ticker">📰 頭條：遊戲載入中...</div>
+
+    <div class="dashboard">
+        <div class="stat-box">📅 年份: <span id="year">2025</span> (年齡: <span id="age">0</span>)</div>
+        <div class="stat-box">💰 資產: $<span id="money">0</span></div>
+        <div class="stat-box">❤️ 健康: <span id="health">100</span></div>
+        <div class="stat-box">😊 快樂: <span id="happiness">80</span></div>
+    </div>
+
+    <div class="log-area" id="game-log">
+        </div>
+
+    <div class="buttons">
+        <button onclick="nextYear('study')">📚 專注學業/進修</button>
+        <button onclick="nextYear('work')">💼 努力工作/賺錢</button>
+        <button onclick="nextYear('invest')">📈 投資市場 (風險)</button>
+        <button onclick="nextYear('relax')">🎮 躺平/旅遊</button>
+    </div>
+
+    <script>
+        // --- 1. 遊戲資料設定 ---
+        let gameState = {
+            startYear: new Date().getFullYear(), // 自動抓取今年年份
+            currentYear: new Date().getFullYear(),
+            age: 0,
+            money: 0,
+            health: 100,
+            happiness: 80,
+            alive: true
+        };
+
+        // --- 2. 時事資料庫 (你可以隨時手動更新這裡) ---
+        // 這裡模擬了未來的時事，如果你想更新遊戲，只要改這個列表即可
+        const newsDatabase = {
+            2025: "全球AI技術大爆發，許多傳統工作開始被取代。",
+            2026: "台灣半導體產業再創新高，科技新貴人數激增。",
+            2027: "極端氣候影響，糧食價格上漲，通膨嚴重。",
+            2028: "虛擬實境(VR)社交成為主流，人們減少出門。",
+            2029: "火星移民計畫啟動，招募首批志願者。",
+            2030: "全球能源危機緩解，核融合技術取得重大突破。",
+            // 超過年份後的預設訊息
+            "default": "世界持續運轉，科技與社會正在發生微妙的變化..."
+        };
+
+        function getNews(year) {
+            return newsDatabase[year] || newsDatabase["default"];
+        }
+
+        // --- 3. 遊戲邏輯 ---
+        function updateUI() {
+            document.getElementById('year').innerText = gameState.currentYear;
+            document.getElementById('age').innerText = gameState.age;
+            document.getElementById('money').innerText = gameState.money.toLocaleString();
+            document.getElementById('health').innerText = gameState.health;
+            document.getElementById('happiness').innerText = gameState.happiness;
+            
+            // 更新頭條
+            const news = getNews(gameState.currentYear);
+            document.getElementById('news-ticker').innerText = `📰 ${gameState.currentYear} 頭條：${news}`;
+        }
+
+        function addLog(message) {
+            const logArea = document.getElementById('game-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="year-tag">${gameState.age}歲 (${gameState.currentYear})</span>: ${message}`;
+            logArea.insertBefore(entry, logArea.firstChild);
+        }
+
+        function nextYear(action) {
+            if (!gameState.alive) return;
+
+            let logMsg = "";
+            let eventMsg = "";
+            
+            // 行動邏輯
+            if (action === 'study') {
+                gameState.money -= 500; // 學費
+                gameState.happiness -= 5;
+                logMsg = "你花了一年時間進修，雖然花錢又累，但感覺變聰明了。";
+            } else if (action === 'work') {
+                let salary = 30000 + (gameState.age * 500); // 年資越長賺越多
+                gameState.money += salary;
+                gameState.health -= 5;
+                gameState.happiness -= 5;
+                logMsg = `你努力工作，賺了 $${salary}，但身體有點疲憊。`;
+            } else if (action === 'invest') {
+                // 結合時事影響 (簡單模擬)
+                const news = getNews(gameState.currentYear);
+                let luck = Math.random();
+                
+                if (news.includes("上漲") || news.includes("新高") || news.includes("突破")) {
+                    luck += 0.2; // 好消息增加勝率
+                } else if (news.includes("通膨") || news.includes("危機")) {
+                    luck -= 0.2; // 壞消息減少勝率
+                }
+
+                if (luck > 0.5) {
+                    let profit = Math.floor(gameState.money * 0.2) + 5000;
+                    gameState.money += profit;
+                    gameState.happiness += 10;
+                    logMsg = `投資眼光精準！搭上時事順風車，獲利 $${profit}！`;
+                } else {
+                    let loss = Math.floor(gameState.money * 0.1) + 2000;
+                    gameState.money -= loss;
+                    gameState.happiness -= 20;
+                    logMsg = `市場動盪，你的投資虧損了 $${loss}。`;
+                }
+            } else if (action === 'relax') {
+                gameState.health += 5;
+                gameState.happiness += 10;
+                gameState.money -= 1000;
+                logMsg = "你決定給自己放個假，身心靈都得到了放鬆。";
+            }
+
+            // 隨機事件
+            if (Math.random() < 0.1) {
+                gameState.health -= 20;
+                eventMsg = " <br>⚠️ 突發：你生了一場大病，健康大幅下降！";
+            }
+
+            // 更新數值
+            gameState.age++;
+            gameState.currentYear++;
+            
+            // 檢查生存狀態
+            if (gameState.health <= 0) {
+                gameState.alive = false;
+                eventMsg += "<br>💀 你因健康惡化去世了...遊戲結束。";
+                disableButtons();
+            } else if (gameState.age >= 100) {
+                gameState.alive = false;
+                eventMsg += "<br>🕊️ 壽終正寢。";
+                disableButtons();
+            }
+
+            addLog(logMsg + eventMsg);
+            updateUI();
+        }
+
+        function disableButtons() {
+            const btns = document.querySelectorAll('button');
+            btns.forEach(btn => {
+                btn.disabled = true;
+                btn.innerText = "遊戲結束";
+            });
+        }
+
+        // 初始化
+        addLog("你出生了！準備好面對這個世界了嗎？");
+        updateUI();
+
+    </script>
+</body>
+</html>
