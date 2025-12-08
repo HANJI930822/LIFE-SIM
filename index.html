@@ -3,450 +3,2049 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時事人生 V13.1：修復版</title>
+    <title>時事人生 V16.0：完整版</title>
     <style>
-        :root { --bg: #121212; --card: #1e1e1e; --accent: #bb86fc; --text: #e0e0e0; --green: #03dac6; --red: #cf6679; --gold: #ffd700; --blue: #2196f3; }
-        body { font-family: '微軟正黑體', sans-serif; background: var(--bg); color: var(--text); max-width: 600px; margin: 0 auto; padding-bottom: 80px; user-select: none; overflow-x: hidden; }
+        :root {
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-dark: #0f0f23;
+            --card: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+            --accent: #bb86fc;
+            --accent-glow: rgba(187, 134, 252, 0.3);
+            --text: #e0e0e0;
+            --text-dim: #9e9e9e;
+            --green: #03dac6;
+            --red: #cf6679;
+            --gold: #ffd700;
+            --blue: #2196f3;
+            --orange: #ff9800;
+            --purple: #9c27b0;
+        }
         
-        /* 介面樣式 */
-        .header { background: #2c2c2c; padding: 10px 15px; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        /* 數值網格：改為 3 欄，讓數值更好看 */
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 0.9em; text-align: center; align-items: center; }
+        body {
+            font-family: '微軟正黑體', 'Noto Sans TC', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 80px;
+            user-select: none;
+            overflow-x: hidden;
+            position: relative;
+        }
         
-        .big-stat { font-size: 1.3em; font-weight: bold; color: var(--gold); grid-column: span 3; margin-bottom: 5px; transition: color 0.3s; }
-        .big-stat.debt { color: var(--red); animation: shake 0.5s; }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 300px;
+            background: var(--bg-primary);
+            z-index: -1;
+            opacity: 0.3;
+        }
         
-        .school-badge { grid-column: span 3; background: #3f51b5; color: white; padding: 5px; border-radius: 4px; margin-bottom: 5px; font-weight: bold; display: none; }
-        .status-alert { grid-column: span 3; color: white; font-weight: bold; font-size: 0.8em; padding: 5px; border-radius: 4px; display: none; margin-bottom:5px; text-align:center;}
-        .alert-red { background: #b00020; animation: pulseRed 1s infinite; }
-        .alert-orange { background: #ff9800; }
-
-        .stamina-container { grid-column: span 3; margin-top: 5px; text-align: left; }
-        .stamina-label { font-size: 0.8em; color: var(--blue); margin-bottom: 2px; display: flex; justify-content: space-between; }
-        .progress-bg { background: #444; height: 8px; border-radius: 4px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--blue); transition: width 0.3s ease; }
-        .progress-fill.low { background: var(--red); }
-
-        .card { background: var(--card); border-radius: 10px; margin: 15px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); overflow: hidden; }
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border-bottom: 2px solid var(--accent);
+        }
+        
+        .player-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+        
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+        
+        .player-details {
+            flex: 1;
+        }
+        
+        .player-name-line {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--gold);
+        }
+        
+        .player-subtitle {
+            font-size: 0.8em;
+            color: var(--text-dim);
+        }
+        
+        .big-stat {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--gold);
+            text-align: center;
+            margin: 10px 0;
+            text-shadow: 0 0 10px var(--gold);
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            font-size: 0.85em;
+            text-align: center;
+        }
+        
+        .stat-item {
+            background: rgba(255,255,255,0.05);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .status-alerts {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .status-alert {
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-align: center;
+            animation: slideIn 0.3s;
+        }
+        
+        .alert-red { background: linear-gradient(135deg, #b00020, #d32f2f); }
+        .alert-orange { background: linear-gradient(135deg, #ff9800, #fb8c00); }
+        .alert-blue { background: linear-gradient(135deg, #2196f3, #1976d2); }
+        
+        /* ===== SKILLS ===== */
+        .skills-container {
+            margin-top: 10px;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .skill-item {
+            margin-bottom: 8px;
+        }
+        
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            margin-bottom: 3px;
+        }
+        
+        .skill-bar-bg {
+            background: #333;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .skill-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--green));
+            transition: width 0.5s ease;
+        }
+        
+        /* ===== STAMINA ===== */
+        .stamina-container {
+            margin-top: 10px;
+        }
+        
+        .stamina-label {
+            font-size: 0.85em;
+            color: var(--blue);
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .progress-bg {
+            background: #444;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2196f3, #03dac6);
+            width: 100%;
+            transform-origin: left;
+            transform: scaleX(1);
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.6);
+        }
+        
+        .progress-fill.low {
+            background: linear-gradient(90deg, #cf6679, #f44336);
+        }
+        
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--card);
+            border-radius: 15px;
+            margin: 15px 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: fadeIn 0.4s;
+        }
+        
+        .card-header {
+            padding: 15px;
+            background: rgba(187, 134, 252, 0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
         .card-body { padding: 15px; }
-        .card h3 { margin-top: 0; color: var(--accent); border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
-        button { background: #333; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 1em; position: relative; overflow: hidden; }
-        button:hover { background: #444; filter: brightness(1.2); }
-        button:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+        /* ===== BUTTONS ===== */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
         
-        .btn-special { background: linear-gradient(45deg, #6200ea, #b388ff); border: 1px solid var(--accent); display:none; }
-        .btn-main { background: var(--accent); color: black; font-weight: bold; width: 100%; margin-top: 10px; font-size: 1.1em; }
-        .btn-buy { background: var(--green); color: black; font-weight: bold; }
-        .btn-risk { background: var(--red); color: white; }
-        .cost-tag { font-size: 0.7em; color: #ccc; display: block; margin-top: 2px; }
+        button {
+            background: linear-gradient(135deg, #333, #444);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95em;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
         
-        .img-banner { width: 100%; height: 150px; object-fit: cover; border-radius: 8px 8px 0 0; display: block; background: #333; }
-        .item-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 10px; background: #333; }
-
-        #scene-creation { padding: 20px; text-align: center; }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        .input-group input, .input-group select { width: 95%; padding: 10px; background: #222; border: 1px solid #444; color: white; border-radius: 5px; }
-        .origin-card { background: #222; border: 2px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 10px; cursor: pointer; text-align: left; }
-        .origin-card.selected { border-color: var(--accent); background: #2a2a2a; box-shadow: 0 0 10px rgba(187, 134, 252, 0.5); }
-        .origin-name { font-weight: bold; color: var(--gold); font-size: 1.1em; }
-        .origin-parents { font-size: 0.8em; color: #aaa; margin-top: 5px; font-style: italic; }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
         
-        #scene-game { display: none; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 50; }
-        .nav-item { color: #888; cursor: pointer; text-align: center; font-size: 0.8em; }
-        .nav-item.active { color: var(--accent); font-weight: bold; }
-        .nav-icon { display: block; font-size: 1.5em; margin-bottom: 2px; }
-        .page { display: none; animation: fadeIn 0.3s; }
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(187, 134, 252, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+        
+        .btn-main {
+            background: linear-gradient(135deg, var(--accent), #9c27b0);
+            color: white;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 1.1em;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+        
+        .btn-job {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+        }
+        
+        .btn-buy {
+            background: linear-gradient(135deg, var(--green), #00897b);
+            color: black;
+            font-weight: bold;
+        }
+        
+        .btn-risk {
+            background: linear-gradient(135deg, var(--red), #c62828);
+        }
+        
+        .cost-tag {
+            font-size: 0.7em;
+            color: #ccc;
+            display: block;
+            margin-top: 3px;
+        }
+        
+        /* ===== ORIGIN SELECTION ===== */
+        #scene-creation {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .creation-title {
+            font-size: 2em;
+            background: var(--bg-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+        
+        .origin-card {
+            background: linear-gradient(135deg, #1e1e2e, #2a2a3e);
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s;
+        }
+        
+        .origin-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+        
+        .origin-card.selected {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, #2a2a3e, #3a3a4e);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        
+        .origin-name {
+            font-weight: bold;
+            color: var(--gold);
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        
+        .origin-desc {
+            font-size: 0.9em;
+            color: var(--text-dim);
+            margin: 5px 0;
+        }
+        
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 200;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s;
+        }
+        
+        .modal-box {
+            background: var(--card);
+            width: 90%;
+            max-width: 450px;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid var(--accent);
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            animation: slideUp 0.4s;
+        }
+        
+        .modal-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+        
+        .modal-desc {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: var(--text-dim);
+        }
+        
+        .modal-btn {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 15px;
+        }
+        
+        /* ===== ACHIEVEMENT TOAST ===== */
+        .achievement-toast {
+            position: fixed;
+            top: 80px;
+            right: -400px;
+            width: 300px;
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: #000;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.5);
+            z-index: 150;
+            animation: slideInRight 0.5s forwards;
+            font-weight: bold;
+        }
+        
+        .achievement-icon {
+            font-size: 2em;
+            float: left;
+            margin-right: 10px;
+        }
+        
+        /* ===== NAV BAR ===== */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #1e1e2e, #000);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            border-top: 2px solid var(--accent);
+            z-index: 50;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+        }
+        
+        .nav-item {
+            color: #888;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.75em;
+            padding: 5px;
+            transition: all 0.3s;
+            flex: 1;
+        }
+        
+        .nav-item:hover {
+            color: var(--accent);
+        }
+        
+        .nav-item.active {
+            color: var(--accent);
+            font-weight: bold;
+        }
+        
+        .nav-icon {
+            display: block;
+            font-size: 1.8em;
+            margin-bottom: 2px;
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
         .page.active { display: block; }
         
-        /* 天賦標籤 */
-        .talent-tag { display: inline-block; background: var(--gold); color: black; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 5px; font-weight: bold; }
-        .talent-bad { background: var(--red); color: white; }
-
-        .log-box { height: 120px; overflow-y: auto; background: #111; padding: 10px; border-radius: 5px; font-size: 0.9em; color: #ccc; border: 1px solid #333; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-box { background: var(--card); width: 85%; max-width: 400px; padding: 20px; border-radius: 12px; border: 1px solid var(--accent); text-align: center; }
-        .modal-btn { width: 100%; margin-bottom: 10px; padding: 15px; border: 1px solid #444; }
-
-        @keyframes pulseRed { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 100% { transform: translateX(0); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* ===== TALENT TAGS ===== */
+        .talent-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #ffa000);
+            color: black;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.75em;
+            margin-right: 5px;
+            margin-top: 3px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(255, 215, 0, 0.3);
+        }
+        
+        .talent-bad {
+            background: linear-gradient(135deg, var(--red), #c62828);
+            color: white;
+        }
+        
+        /* ===== LOG BOX ===== */
+        .log-box {
+            height: 150px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.4);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            color: #ccc;
+            border: 1px solid rgba(255,255,255,0.1);
+            line-height: 1.6;
+        }
+        
+        .log-box::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .log-box::-webkit-scrollbar-track {
+            background: #222;
+        }
+        
+        .log-box::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+        
+        /* ===== JOB CARD ===== */
+        .job-card {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .job-card:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        
+        .job-name {
+            font-weight: bold;
+            color: var(--blue);
+            font-size: 1.1em;
+        }
+        
+        .job-salary {
+            color: var(--green);
+            font-size: 0.9em;
+        }
+        
+        .job-requirement {
+            color: var(--text-dim);
+            font-size: 0.8em;
+            margin-top: 3px;
+        }
+        
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes slideInRight {
+            from { right: -400px; }
+            to { right: 20px; }
+        }
+        
+        @keyframes slideOutRight {
+            from { right: 20px; }
+            to { right: -400px; }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* ===== ENDING SCREEN ===== */
+        .ending-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 300;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(15px);
+        }
+        
+        .ending-content {
+            text-align: center;
+            padding: 30px;
+            max-width: 500px;
+        }
+        
+        .ending-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            animation: fadeIn 1s;
+        }
+        
+        .ending-title {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+        
+        .ending-desc {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+        }
+        
+        .ending-stats {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        #scene-game { display: none; }
+        
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-dim);
+        }
+        
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 8px;
+            font-size: 1em;
+        }
     </style>
 </head>
 <body>
 
+    <!-- 創角畫面 -->
     <div id="scene-creation">
-        <h1 style="color:var(--accent)">🧬 投胎模擬器</h1>
-        <div class="card"><div class="card-body">
-            <div class="input-group"><label>姓名</label><input type="text" id="inp-name" placeholder="輸入姓名" maxlength="6"></div>
-            <div class="input-group"><label>性別</label><select id="inp-gender"><option value="男">👨 男生</option><option value="女">👩 女生</option><option value="其他">🌈 其他</option></select></div>
-        </div></div>
-        <h3 style="text-align:left;margin-left:10px;color:var(--gold)">出身背景</h3>
-        <div id="origin-list"></div>
-        <button class="btn-main" onclick="startGame()">🚀 開始人生</button>
-    </div>
-
-    <div id="scene-game">
-        <div class="header">
-            <div class="stat-grid">
-                <div class="big-stat" id="money-display">$0</div>
-                
-                <div id="school-badge" class="school-badge">🎒 小學生</div>
-                <div id="alert-debt" class="status-alert alert-red">⚠️ 負債警告！</div>
-                <div id="alert-depression" class="status-alert alert-orange">☁️ 憂鬱狀態</div>
-                <div id="alert-sick" class="status-alert alert-red">🏥 重病警告</div>
-                
-                <div style="grid-column: span 3; font-size:0.8em; color:#aaa; margin-bottom:5px; text-align:left;">
-                    <span id="player-name"></span> | 🎓 <span id="edu-level">文盲</span><br>
-                    <span id="player-origin" style="color:var(--gold)"></span>
-                    <div id="talent-display" style="margin-top:3px;"></div>
+        <h1 class="creation-title">🧬 投胎模擬器 V16.0</h1>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="input-group">
+                    <label>✏️ 姓名</label>
+                    <input type="text" id="inp-name" placeholder="輸入姓名" maxlength="8">
                 </div>
-                
-                <div>📅 <span id="year">0</span></div>
-                <div>❤️ <span id="health">100</span></div>
-                <div>😊 <span id="happy">80</span></div>
-                
-                <div>🧠 <span id="intel">0</span></div>
-                <div>✨ <span id="charm">0</span></div>
-                <div></div> <div class="stamina-container">
-                    <div class="stamina-label"><span>⚡ 體力</span><span id="stamina-text">100/100</span></div>
-                    <div class="progress-bg"><div id="stamina-bar" class="progress-fill" style="width: 100%;"></div></div>
+                <div class="input-group">
+                    <label>🚻 性別</label>
+                    <select id="inp-gender">
+                        <option value="男">👨 男生</option>
+                        <option value="女">👩 女生</option>
+                        <option value="其他">🌈 其他</option>
+                    </select>
                 </div>
             </div>
         </div>
+        
+        <h3 style="text-align:left; margin: 20px 10px 10px; color: var(--gold);">
+            🎲 選擇出身背景
+        </h3>
+        <div id="origin-list"></div>
+        
+        <button class="btn-main" onclick="startGame()">🚀 開始人生冒險</button>
+    </div>
 
+    <!-- 遊戲主畫面 -->
+    <div id="scene-game">
+        <div class="header">
+            <div class="player-info">
+                <div class="player-avatar" id="player-avatar">👶</div>
+                <div class="player-details">
+                    <div class="player-name-line">
+                        <span id="player-name">???</span>
+                        <span style="font-size: 0.8em; color: var(--text-dim);">
+                            | <span id="age-display">0</span>歲
+                        </span>
+                    </div>
+                    <div class="player-subtitle">
+                        <span id="player-origin">平凡家庭</span> • 
+                        <span id="player-job">無業</span>
+                    </div>
+                    <div id="talent-display" style="margin-top: 5px;"></div>
+                </div>
+            </div>
+            
+            <div class="big-stat" id="money-display">$0</div>
+            
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <span>❤️ 健康</span>
+                    <span class="stat-value" id="health">100</span>
+                </div>
+                <div class="stat-item">
+                    <span>😊 快樂</span>
+                    <span class="stat-value" id="happy">80</span>
+                </div>
+                <div class="stat-item">
+                    <span>🧠 智力</span>
+                    <span class="stat-value" id="intel">50</span>
+                </div>
+            </div>
+            
+            <div class="skills-container" id="skills-container"></div>
+            
+            <div class="stamina-container">
+                <div class="stamina-label">
+                    <span>⚡ 體力</span>
+                    <span id="stamina-text">100/100</span>
+                </div>
+                <div class="progress-bg">
+                    <div id="stamina-bar" class="progress-fill"></div>
+                </div>
+            </div>
+            
+            <div class="status-alerts" id="status-alerts"></div>
+        </div>
+
+        <!-- 首頁：生活 -->
         <div id="page-home" class="page active">
             <div class="card">
-                <img src="images/banner-home.jpg" class="img-banner" onerror="this.src='https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600'">
+                <div class="card-header">
+                    <span class="card-title">📅 人生階段：<span id="life-stage">嬰兒期</span></span>
+                </div>
                 <div class="card-body">
-                    <h3>📝 年度行動</h3>
-                    <div class="btn-grid">
-                        <button onclick="action('work')" id="btn-work">💼 工作</button>
-                        <button onclick="action('study')" id="btn-study">📚 進修</button>
-                        <button onclick="action('play')" id="btn-play">🎮 玩樂</button>
-                        <button onclick="action('gym')" id="btn-gym">🏋️ 健身</button>
-                        <button onclick="action('dev_app')" id="btn-dev" class="btn-special">💻 開發AI</button>
-                        <button onclick="action('stream')" id="btn-stream" class="btn-special">🤳 直播帶貨</button>
+                    <div class="btn-grid" id="action-buttons">
+                        <!-- 動態生成 -->
                     </div>
                 </div>
             </div>
+            
             <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📜 人生動態</span>
+                </div>
                 <div class="card-body">
-                    <h3>📜 人生動態</h3>
                     <div id="game-log" class="log-box"></div>
-                    <button class="btn-main" id="btn-nextyear" onclick="nextYear()">🎂 下一歲</button>
+                    <button class="btn-main" onclick="nextYear()">
+                        🎂 下一歲 (體力回滿)
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div id="page-assets" class="page"><div class="card"><div class="card-body"><h3>🏎️ 車庫</h3><div id="car-shop"></div></div></div><div class="card"><div class="card-body"><h3>🏘️ 房產</h3><div id="house-shop"></div></div></div></div>
-        <div id="page-casino" class="page"><div class="card"><div class="card-body"><h3>🎰 賭場</h3><div id="casino-area"><input type="number" id="bet-amount" placeholder="金額" style="width:90%;padding:10px;margin-bottom:10px"><div class="btn-grid"><button class="btn-risk" onclick="gamble('big')">大</button><button class="btn-risk" onclick="gamble('small')">小</button></div><p id="casino-msg"></p></div></div></div></div>
-        <div id="page-profile" class="page"><div class="card"><div class="card-body"><h3>🏆 成就</h3><div id="achievement-list"></div><button onclick="restartGame()" style="width:100%;margin-top:20px">重來</button></div></div></div>
+        <!-- 職業頁 -->
+        <div id="page-career" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">💼 職業選擇</span>
+                </div>
+                <div class="card-body">
+                    <div style="color: var(--text-dim); margin-bottom: 15px; font-size: 0.9em;">
+                        💡 選擇職業後每年自動獲得薪水，不同職業有不同加成效果
+                    </div>
+                    <div id="job-list"></div>
+                </div>
+            </div>
+        </div>
 
+        <!-- 資產頁 -->
+        <div id="page-assets" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🏎️ 車庫</span>
+                </div>
+                <div class="card-body" id="car-shop"></div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🏘️ 房產</span>
+                </div>
+                <div class="card-body" id="house-shop"></div>
+            </div>
+        </div>
+
+        <!-- 社交頁 -->
+        <div id="page-social" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">💖 人際關係</span>
+                </div>
+                <div class="card-body">
+                    <div id="npc-list"></div>
+                    <div id="find-partner-area" style="margin-top: 15px; display: none;">
+                        <button class="btn-main" onclick="findPartner()">
+                            📱 使用交友軟體 ($500)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成就頁 -->
+        <div id="page-profile" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🏆 成就系統</span>
+                </div>
+                <div class="card-body">
+                    <div id="achievement-list"></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <button class="btn-main" onclick="restartGame()">
+                        🔄 重新開始人生
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部導航 -->
         <div class="nav-bar">
-            <div class="nav-item active" onclick="nav('home')"><span class="nav-icon">🏠</span>生活</div>
-            <div class="nav-item" onclick="nav('assets')"><span class="nav-icon">🏎️</span>資產</div>
-            <div class="nav-item" onclick="nav('casino')"><span class="nav-icon">🎰</span>賭場</div>
-            <div class="nav-item" onclick="nav('profile')"><span class="nav-icon">🏆</span>成就</div>
+            <div class="nav-item active" onclick="nav('home')">
+                <span class="nav-icon">🏠</span>
+                生活
+            </div>
+            <div class="nav-item" onclick="nav('career')">
+                <span class="nav-icon">💼</span>
+                職業
+            </div>
+            <div class="nav-item" onclick="nav('assets')">
+                <span class="nav-icon">🏎️</span>
+                資產
+            </div>
+            <div class="nav-item" onclick="nav('social')">
+                <span class="nav-icon">💖</span>
+                社交
+            </div>
+            <div class="nav-item" onclick="nav('profile')">
+                <span class="nav-icon">🏆</span>
+                成就
+            </div>
         </div>
     </div>
 
-    <div id="event-modal" class="modal-overlay"><div class="modal-box"><div class="modal-title" id="ev-title"></div><div id="ev-desc" style="margin-bottom:20px;"></div><button class="modal-btn" id="btn-choice-a">A</button><button class="modal-btn" id="btn-choice-b">B</button></div></div>
+    <!-- 事件彈窗 -->
+    <div id="event-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" id="ev-title"></div>
+            <div class="modal-desc" id="ev-desc"></div>
+            <button class="modal-btn" id="btn-choice-a">A</button>
+            <button class="modal-btn" id="btn-choice-b">B</button>
+        </div>
+    </div>
+
+    <!-- 結局畫面 -->
+    <div id="ending-overlay" class="ending-overlay">
+        <div class="ending-content">
+            <div class="ending-icon" id="ending-icon">💀</div>
+            <div class="ending-title" id="ending-title">人生終結</div>
+            <div class="ending-desc" id="ending-desc"></div>
+            <div class="ending-stats" id="ending-stats"></div>
+            <button class="btn-main" onclick="restartGame()">
+                🔄 重新投胎
+            </button>
+        </div>
+    </div>
+
+    <!-- 成就提示 -->
+    <div id="achievement-toast" class="achievement-toast" style="display: none;">
+        <div class="achievement-icon">🏆</div>
+        <div>
+            <div style="font-size: 0.9em;">解鎖成就</div>
+            <div id="toast-text" style="font-size: 1.1em;"></div>
+        </div>
+    </div>
 
     <script>
         // ==========================================
-        // 🔴 1. 資料庫 (Origins, Talents, Assets, Events)
+        // 🔴 資料定義
         // ==========================================
-        const TALENTS = [
-            { id: 't1', name: '過目不忘', desc: '讀書效率+50%', type: 'good' },
-            { id: 't2', name: '天生神力', desc: '健康自然衰退減半', type: 'good' },
-            { id: 't3', name: '萬人迷', desc: '初始魅力+20，社交效果+20%', type: 'good' },
-            { id: 't4', name: '投資眼', desc: '賭博/投資勝率微幅提升', type: 'good' },
-            { id: 't5', name: '玻璃心', desc: '快樂值下降速度加倍', type: 'bad' },
-            { id: 't6', name: '病以此生', desc: '初始健康-20，容易生病', type: 'bad' },
-            { id: 't7', name: '邊緣人', desc: '初始魅力-20', type: 'bad' }
-        ];
-
-        const ORIGIN_DATA = [
-            { id: 'common', name: '平凡家庭', desc: '普普通通，幸福安康。', parents: '父:公務員 / 母:老師', money: 0, intel: 50, charm: 50, happy: 80, yearlyMoney: 500, buff: '平衡發展' },
-            { id: 'rich', name: '富二代', desc: '含著金湯匙出生。', parents: '父:集團董事 / 母:名媛', money: 500000, intel: 30, charm: 70, happy: 90, yearlyMoney: 50000, buff: '開局鉅款 + 高額零用錢' },
-            { id: 'genius', name: '寒門天才', desc: '家徒四壁，但智商驚人。', parents: '父:臨時工 / 母:清潔員', money: -10000, intel: 95, charm: 30, happy: 60, yearlyMoney: 0, buff: '智力極高，但開局負債' },
-            { id: 'mafia', name: '黑道世家', desc: '從小在刀光劍影中長大。', parents: '父:角頭老大 / 母:酒店經理', money: 100000, intel: 40, charm: 80, happy: 50, health: 120, yearlyMoney: 10000, buff: '初始健康高，魅力高' },
-            { id: 'star', name: '演藝世家', desc: '父母都是大明星。', parents: '父:影帝 / 母:歌后', money: 50000, intel: 40, charm: 100, happy: 50, yearlyMoney: 5000, buff: '魅力滿點' }
-        ];
-
-        const CAR_DATA = [
-            { id: 'toyota', name: "國產代步車", price: 600000, charm: 2, img: "images/toyota.jpg" },
-            { id: 'tesla', name: "特斯拉 Model 3", price: 1800000, charm: 10, img: "images/tesla.jpg" },
-            { id: 'porsche', name: "保時捷 911", price: 6000000, charm: 30, img: "images/porsche.jpg" },
-            { id: 'ferrari', name: "法拉利 F8", price: 15000000, charm: 60, img: "images/ferrari.jpg" }
-        ];
-        const HOUSE_DATA = [
-            { id: 'apt', name: "單身公寓", price: 3000000, happy: 2, img: "images/apartment.jpg" },
-            { id: 'mansion', name: "市中心豪宅", price: 20000000, happy: 10, img: "images/mansion.jpg" },
-            { id: 'villa', name: "私人海景別墅", price: 100000000, happy: 30, img: "images/villa.jpg" }
-        ];
-
-        const EVENT_DATA = [
-            { prob: 100, title: "忘記帶作業", desc: "慘了！昨晚打電動打太晚...", choices: [{ txt: "誠實招認 (快樂-5)", effect: (p) => { p.happy-=5; return "被唸了一頓。"; } }, { txt: "說謊 (魅力檢定)", effect: (p) => { if(p.charm>50){p.charm+=2; return "老師信了！"; } else {p.intel-=2; return "被識破罰站。"; } } }] },
-            { prob: 80, title: "營養午餐", desc: "午餐出現奇怪生物...", choices: [{ txt: "吃 (健康-10)", effect: (p) => { p.health-=10; return "拉肚子..."; } }, { txt: "倒掉", effect: (p) => { return "餓肚子上課。"; } }] },
-            { prob: 50, title: "校慶表演", desc: "推選人上台表演。", choices: [{ txt: "我來 (需魅力60)", effect: (p) => { if(p.charm>=60){p.charm+=10;p.happy+=10;return "全場歡呼！";}else{p.happy-=20;return "破音好尷尬...";} } }, { txt: "當觀眾", effect: (p) => { p.happy+=2; return "快樂看戲。"; } }] },
-            { prob: 40, title: "轉學生", desc: "來了個可愛轉學生。", choices: [{ txt: "搭訕 (需魅力50)", effect: (p) => { if(p.charm>50){p.happy+=15;return "聊得很開心！";}else{p.happy-=5;return "對方不想理你。";} } }, { txt: "借筆記 (智力+2)", effect: (p) => { p.intel+=2; return "展現學霸風範。"; } }] },
-            { prob: 30, title: "作弊風波", desc: "同學丟小抄給你...", choices: [{ txt: "用 (風險)", effect: (p) => { if(Math.random()>0.7){p.intel-=10;p.happy-=20;return "被抓到記大過！";}else{p.intel+=10;return "神不知鬼不覺滿分！";} } }, { txt: "撕掉 (魅力+5)", effect: (p) => { p.charm+=5; return "堅持誠實。"; } }] },
-            { prob: 100, title: "推銷電話", desc: "有聽過貸款嗎？", choices: [{ txt: "掛斷", effect: (p) => { return "掛斷了。"; } }, { txt: "聊天 (快樂+5)", effect: (p) => { p.happy+=5; return "浪費詐騙集團時間。"; } }] },
-            { prob: 60, title: "股票明牌", desc: "同事報明牌。", choices: [{ txt: "梭哈 (風險)", effect: (p) => { if(Math.random()>0.5){p.money+=20000;return "賺翻了！";}else{p.money-=10000;p.happy-=20;return "慘賠...";} } }, { txt: "不理會 (智力+2)", effect: (p) => { p.intel+=2; return "穩健理財。"; } }] },
-            { prob: 30, title: "慣老闆", desc: "老闆要你無薪加班。", choices: [{ txt: "回嘴 (金錢-2000, 快樂+20)", effect: (p) => { p.money-=2000;p.happy+=20;return "嗆爆老闆，爽！"; } }, { txt: "吞忍", effect: (p) => { p.happy-=5; return "社畜日常。"; } }] },
-            { prob: 20, title: "通勤地獄", desc: "捷運故障快遲到了。", choices: [{ txt: "搭計程車 ($-500)", effect: (p) => { p.money-=500; return "花錢消災。"; } }, { txt: "請假 (快樂+5)", effect: (p) => { p.happy+=5; return "去吃早午餐好了。"; } }] },
-            { prob: 50, title: "流感", desc: "喉嚨痛痛的。", choices: [{ txt: "看醫生 ($-500)", effect: (p) => { p.money-=500;p.health+=2; return "吃藥好多了。"; } }, { txt: "喝熱水 (檢定)", effect: (p) => { if(p.health>80){return "自癒了！";}else{p.health-=15;return "發高燒三天...";} } }] },
-            { prob: 20, title: "車禍", desc: "機車衝過來！", choices: [{ txt: "閃避 (健康-10)", effect: (p) => { p.health-=10; return "受了皮肉傷。"; } }, { txt: "索賠 (智力檢定)", effect: (p) => { if(p.intel>60){p.money+=3000;return "對方賠錢了。";}else{p.money-=1000;return "結果是你違規...";} } }] },
-            { prob: 5, title: "中獎發票", desc: "發現沒對的發票。", choices: [{ txt: "對獎", effect: (p) => { p.money+=40000;p.happy+=20;return "中二獎了！"; } }, { txt: "捐贈 (魅力+20)", effect: (p) => { p.charm+=20; return "做善事。"; } }] },
-            { prob: 1, title: "樂透頭獎", desc: "隨手買的彩券...", choices: [{ txt: "兌獎", effect: (p) => { p.money+=100000000;p.happy=100;return "中一億元！！"; } }, { txt: "低調", effect: (p) => { p.money+=100000000;p.intel+=10;return "冷靜領獎。"; } }] }
-        ];
-
-        // ==========================================
-        // 🔴 2. 遊戲邏輯區
-        // ==========================================
-        let Game = { 
-            name: "", origin: "", age: 0, money: 0, health: 100, happy: 80, intel: 0, charm: 0, 
-            stamina: 100, debtYears: 0, inventory: [], achievements: [],
-            schoolStatus: "", eduMultiplier: 1.0, eduLevelName: "文盲",
-            yearlyMoney: 0, talents: []
-        };
         
-        const COSTS = { work: 30, study: 20, play: 10, gym: 25, dev_app: 50, stream: 40, cram: 30, club: 20 };
-        let activeEvent = null, selectedOriginId = null;
+        const TALENTS = [
+            { id: 't1', name: '過目不忘', desc: '學習效率+50%', type: 'good', effect: (g) => { g.learnBonus = 1.5; } },
+            { id: 't2', name: '天生神力', desc: '健康衰退減半', type: 'good', effect: (g) => { g.healthDecay = 0.5; } },
+            { id: 't3', name: '萬人迷', desc: '魅力+20，社交效果+30%', type: 'good', effect: (g) => { g.skills.charm += 20; g.socialBonus = 1.3; } },
+            { id: 't4', name: '投資眼光', desc: '被動收入+20%', type: 'good', effect: (g) => { g.incomeBonus = 1.2; } },
+            { id: 't5', name: '玻璃心', desc: '快樂值下降加倍', type: 'bad', effect: (g) => { g.happyDecay = 2; } },
+            { id: 't6', name: '體弱多病', desc: '初始健康-20', type: 'bad', effect: (g) => { g.health -= 20; } },
+            { id: 't7', name: '社交恐懼', desc: '魅力-15', type: 'bad', effect: (g) => { g.skills.charm -= 15; } },
+            { id: 't8', name: '富二代心態', desc: '工作收入-30%', type: 'bad', effect: (g) => { g.workPenalty = 0.7; } }
+        ];
 
+        const ORIGINS = [
+            { id: 'common', name: '平凡家庭', desc: '父母都是普通上班族，生活安穩。', parents: '父:公務員 / 母:教師', 
+              money: 50000, intel: 50, happy: 80, yearlyMoney: 1000, buff: '平衡發展' },
+            { id: 'rich', name: '富二代', desc: '含著金湯匙出生，不愁吃穿。', parents: '父:集團董事 / 母:名媛', 
+              money: 5000000, intel: 40, happy: 90, yearlyMoney: 100000, buff: '巨額財富+被動收入' },
+            { id: 'genius', name: '寒門天才', desc: '家境清寒，但天賦異稟。', parents: '父:工人 / 母:清潔工', 
+              money: -50000, intel: 120, happy: 60, yearlyMoney: 0, buff: '超高智力但負債' },
+            { id: 'star', name: '演藝世家', desc: '父母都是娛樂圈明星。', parents: '父:影帝 / 母:歌后', 
+              money: 1000000, intel: 50, happy: 70, yearlyMoney: 50000, buff: '魅力爆表+人脈廣' },
+            { id: 'scholar', name: '書香門第', desc: '家族重視教育，書香世家。', parents: '父:大學教授 / 母:律師', 
+              money: 200000, intel: 80, happy: 75, yearlyMoney: 5000, buff: '高學習力+教育資源' }
+        ];
+
+        const JOBS = [
+            { id: 'none', name: '無業', salary: 0, requirement: {}, effect: null },
+            { id: 'clerk', name: '一般職員', salary: 35000, requirement: { intel: 40 }, 
+              effect: (g) => { g.happy -= 2; }, desc: '朝九晚五的辦公室工作' },
+            { id: 'engineer', name: '工程師', salary: 70000, requirement: { intel: 80, programming: 60 }, 
+              effect: (g) => { g.skills.programming += 2; g.happy -= 5; }, desc: '高薪但壓力大' },
+            { id: 'doctor', name: '醫生', salary: 150000, requirement: { intel: 120, medical: 80 }, 
+              effect: (g) => { g.health -= 5; g.skills.medical += 3; }, desc: '救死扶傷，收入豐厚' },
+            { id: 'artist', name: '藝術家', salary: 40000, requirement: { art: 70, charm: 60 }, 
+              effect: (g) => { g.happy += 10; g.skills.art += 3; }, desc: '收入不穩但快樂' },
+            { id: 'teacher', name: '教師', salary: 50000, requirement: { intel: 70, communication: 60 }, 
+              effect: (g) => { g.happy += 5; g.skills.communication += 2; }, desc: '穩定且有意義' },
+            { id: 'entrepreneur', name: '創業家', salary: 100000, requirement: { intel: 90, finance: 70, charm: 70 }, 
+              effect: (g) => { g.money += Math.floor(Math.random() * 100000 - 30000); g.happy -= 10; }, desc: '高風險高回報' },
+            { id: 'influencer', name: '網紅', salary: 80000, requirement: { charm: 90, communication: 70 }, 
+              effect: (g) => { g.skills.charm += 2; g.happy += 5; }, desc: '靠粉絲經濟賺錢' },
+            { id: 'scientist', name: '研究員', salary: 90000, requirement: { intel: 110 }, 
+              effect: (g) => { g.intel += 5; g.happy += 3; }, desc: '探索未知的邊界' }
+        ];
+
+        const ACHIEVEMENTS = [
+            { id: 'first_job', name: '初入職場', desc: '獲得第一份工作', check: (g) => g.jobId !== 'none' },
+            { id: 'millionaire', name: '百萬富翁', desc: '資產達到100萬', check: (g) => g.money >= 1000000 },
+            { id: 'billionaire', name: '億萬富翁', desc: '資產達到1億', check: (g) => g.money >= 100000000 },
+            { id: 'genius', name: '天才', desc: '智力達到150', check: (g) => g.intel >= 150 },
+            { id: 'charming', name: '萬人迷', desc: '魅力達到120', check: (g) => g.skills.charm >= 120 },
+            { id: 'healthy', name: '健康達人', desc: '60歲時健康仍>80', check: (g) => g.age >= 60 && g.health > 80 },
+            { id: 'happy_life', name: '快樂人生', desc: '保持快樂值>80達30年', check: (g) => g.happyYears >= 30 },
+            { id: 'social_master', name: '社交達人', desc: '擁有5個以上好友', check: (g) => g.relationships.filter(r => r.type === 'friend').length >= 5 },
+            { id: 'married', name: '執子之手', desc: '成功結婚', check: (g) => g.relationships.some(r => r.id === 'spouse') },
+            { id: 'parent', name: '為人父母', desc: '擁有子女', check: (g) => g.relationships.some(r => r.type === 'child') },
+            { id: 'house_owner', name: '有房一族', desc: '購買第一間房產', check: (g) => g.inventory.some(i => i.startsWith('house')) },
+            { id: 'car_owner', name: '有車一族', desc: '購買第一輛車', check: (g) => g.inventory.some(i => i.startsWith('car')) },
+            { id: 'skill_master', name: '全能天才', desc: '所有技能達到80', check: (g) => Object.values(g.skills).every(v => v >= 80) },
+            { id: 'elder', name: '長壽', desc: '活到80歲', check: (g) => g.age >= 80 },
+            { id: 'perfect', name: '完美人生', desc: '60歲時健康/快樂/金錢都>高標', check: (g) => g.age >= 60 && g.health > 80 && g.happy > 80 && g.money > 10000000 }
+        ];
+
+        const LIFE_STAGES = [
+            { min: 0, max: 2, name: '嬰兒期', icon: '👶' },
+            { min: 3, max: 5, name: '幼兒期', icon: '🧒' },
+            { min: 6, max: 12, name: '兒童期', icon: '👦' },
+            { min: 13, max: 17, name: '青少年', icon: '🧑' },
+            { min: 18, max: 25, name: '青年期', icon: '👨' },
+            { min: 26, max: 40, name: '壯年期', icon: '👨‍💼' },
+            { min: 41, max: 60, name: '中年期', icon: '👨‍🦳' },
+            { min: 61, max: 999, name: '老年期', icon: '👴' }
+        ];
+
+        // ==========================================
+        // 🔴 遊戲狀態
+        // ==========================================
+        
+        let Game = {
+            name: '', origin: '', age: 0, gender: '男',
+            money: 0, health: 100, happy: 80, intel: 50,
+            stamina: 100, maxStamina: 100,
+            
+            skills: {
+                programming: 0,
+                art: 0,
+                medical: 0,
+                cooking: 0,
+                finance: 0,
+                communication: 0,
+                charm: 0
+            },
+            
+            jobId: 'none',
+            jobYears: 0,
+            yearlyMoney: 0,
+            
+            inventory: [],
+            relationships: [],
+            talents: [],
+            unlockedAchievements: [],
+            
+            happyYears: 0,
+            debtYears: 0,
+            
+            // 加成係數
+            learnBonus: 1,
+            healthDecay: 1,
+            happyDecay: 1,
+            socialBonus: 1,
+            incomeBonus: 1,
+            workPenalty: 1
+        };
+
+        let activeEvent = null;
+        let selectedOriginId = null;
+
+        // ==========================================
+        // 🔴 初始化
+        // ==========================================
+        
         function initCreation() {
-            let html = ""; 
-            ORIGIN_DATA.forEach(o => {
-                html += `<div class="origin-card" onclick="selectOrigin('${o.id}', this)">
-                    <div class="origin-name">${o.name}</div>
-                    <div class="origin-parents">${o.parents}</div>
-                    <div style="font-size:0.9em;color:#aaa;margin-top:2px;">${o.desc}</div>
-                    <div style="font-size:0.8em;color:var(--green)">✨ ${o.buff} | 💰 零用錢:${o.yearlyMoney}/年</div>
-                </div>`;
+            let html = '';
+            ORIGINS.forEach(o => {
+                html += `
+                    <div class="origin-card" onclick="selectOrigin('${o.id}', this)">
+                        <div class="origin-name">${o.name}</div>
+                        <div class="origin-desc">${o.parents}</div>
+                        <div class="origin-desc">${o.desc}</div>
+                        <div style="color: var(--green); font-size: 0.85em; margin-top: 5px;">
+                            ✨ ${o.buff} | 💰 $${o.money.toLocaleString()} | 零用錢: $${o.yearlyMoney}/年
+                        </div>
+                    </div>
+                `;
             });
             document.getElementById('origin-list').innerHTML = html;
-            selectOrigin(ORIGIN_DATA[0].id, document.querySelector('.origin-card'));
+            selectOrigin(ORIGINS[0].id, document.querySelector('.origin-card'));
         }
-        function selectOrigin(id, el) { selectedOriginId = id; document.querySelectorAll('.origin-card').forEach(c => c.classList.remove('selected')); if(el) el.classList.add('selected'); }
+
+        function selectOrigin(id, el) {
+            selectedOriginId = id;
+            document.querySelectorAll('.origin-card').forEach(c => c.classList.remove('selected'));
+            if (el) el.classList.add('selected');
+        }
 
         function startGame() {
-            let name = document.getElementById('inp-name').value;
-            if(!name) return alert("請輸入名字");
-            let o = ORIGIN_DATA.find(x => x.id === selectedOriginId);
+            const name = document.getElementById('inp-name').value.trim();
+            if (!name) return alert('請輸入姓名');
             
-            let myTalents = [];
+            const origin = ORIGINS.find(o => o.id === selectedOriginId);
+            const gender = document.getElementById('inp-gender').value;
+            
+            // 隨機天賦
             let talentPool = [...TALENTS];
-            let count = Math.random() > 0.5 ? 2 : 1; 
-            for(let i=0; i<count; i++) {
-                let idx = Math.floor(Math.random() * talentPool.length);
-                myTalents.push(talentPool[idx]);
+            let selectedTalents = [];
+            const talentCount = Math.random() > 0.6 ? 2 : 1;
+            for (let i = 0; i < talentCount; i++) {
+                const idx = Math.floor(Math.random() * talentPool.length);
+                selectedTalents.push(talentPool[idx]);
                 talentPool.splice(idx, 1);
             }
-
-            Game = { 
-                ...Game, 
-                name: name, origin: o.name, money: o.money, intel: o.intel, charm: o.charm, happy: o.happy, 
-                health: o.health || 100, age: 0, yearlyMoney: o.yearlyMoney, talents: myTalents
+            
+            // 初始化遊戲狀態
+            Game = {
+                ...Game,
+                name, origin: origin.name, gender,
+                money: origin.money,
+                intel: origin.intel,
+                happy: origin.happy,
+                yearlyMoney: origin.yearlyMoney,
+                talents: selectedTalents,
+                age: 0,
+                relationships: [
+                    { id: 'dad', name: '爸爸', type: 'parent', relation: 80, role: origin.parents.split(' / ')[0] },
+                    { id: 'mom', name: '媽媽', type: 'parent', relation: 90, role: origin.parents.split(' / ')[1] }
+                ]
             };
-
-            Game.talents.forEach(t => {
-                if(t.id === 't6') Game.health -= 20;
-                if(t.id === 't7') Game.charm -= 20;
-                if(t.id === 't3') Game.charm += 20;
-            });
-
-            document.getElementById('scene-creation').style.display='none'; document.getElementById('scene-game').style.display='block';
-            document.getElementById('player-name').innerText = Game.name; document.getElementById('player-origin').innerText = Game.origin;
             
-            renderShop(); updateUI(); 
-            log(`👶 ${Game.name} 出生了！背景：${Game.origin}`);
-            log(`🧬 天賦：${Game.talents.map(t=>t.name).join(', ')}`);
+            // 應用天賦效果
+            Game.talents.forEach(t => t.effect(Game));
+            
+            document.getElementById('scene-creation').style.display = 'none';
+            document.getElementById('scene-game').style.display = 'block';
+            
+            updateUI();
+            renderJobs();
+            renderShop();
+            renderSocial();
+            renderAchievements();
+            
+            log(`👶 ${Game.name} 出生了！`);
+            log(`🎲 天賦：${Game.talents.map(t => t.name).join('、')}`);
         }
 
+        // ==========================================
+        // 🔴 UI 更新
+        // ==========================================
+        
         function updateUI() {
-            // 🔥 修復：加上對 intel 和 charm 的更新，因為現在 HTML 裡有這兩個 id 了
-            ['age', 'health', 'happy', 'intel', 'charm'].forEach(k => { 
-                let el = document.getElementById(k);
-                if(el) el.innerText = Game[k]; 
-            });
+            // 基本資訊
+            document.getElementById('player-name').textContent = Game.name;
+            document.getElementById('age-display').textContent = Game.age;
+            document.getElementById('player-origin').textContent = Game.origin;
+            document.getElementById('player-job').textContent = JOBS.find(j => j.id === Game.jobId).name;
+            document.getElementById('money-display').textContent = '$' + Game.money.toLocaleString();
             
-            document.getElementById('year').innerText = new Date().getFullYear() + Game.age;
-            let mEl = document.getElementById('money-display'); mEl.innerText = "$"+Game.money.toLocaleString();
-            document.getElementById('edu-level').innerText = Game.eduLevelName;
-
-            let tHtml = "";
+            // 數值
+            document.getElementById('health').textContent = Math.max(0, Math.floor(Game.health));
+            document.getElementById('happy').textContent = Math.max(0, Math.floor(Game.happy));
+            document.getElementById('intel').textContent = Math.floor(Game.intel);
+            
+            // 頭像
+            const stage = LIFE_STAGES.find(s => Game.age >= s.min && Game.age <= s.max);
+            document.getElementById('player-avatar').textContent = stage.icon;
+            document.getElementById('life-stage').textContent = stage.name;
+            
+            // 天賦標籤
+            let talentHtml = '';
             Game.talents.forEach(t => {
-                let colorClass = t.type === 'bad' ? 'talent-bad' : '';
-                tHtml += `<span class="talent-tag ${colorClass}" title="${t.desc}">${t.name}</span>`;
+                talentHtml += `<span class="talent-tag ${t.type === 'bad' ? 'talent-bad' : ''}" title="${t.desc}">${t.name}</span>`;
             });
-            document.getElementById('talent-display').innerHTML = tHtml;
-
-            document.getElementById('alert-debt').style.display = (Game.money < 0) ? 'block' : 'none';
-            if(Game.money < 0) { mEl.classList.add('debt'); document.getElementById('alert-debt').innerText = `⚠️ 負債！剩 ${3-Game.debtYears} 年`; } else mEl.classList.remove('debt');
-            let isDepressed = Game.happy < 20;
-            document.getElementById('alert-depression').style.display = isDepressed ? 'block' : 'none';
-            document.getElementById('alert-sick').style.display = (Game.health < 30) ? 'block' : 'none';
-
-            let badge = document.getElementById('school-badge');
-            if(Game.schoolStatus) { badge.style.display = 'block'; badge.innerText = "🎒 " + Game.schoolStatus; } else { badge.style.display = 'none'; }
-
-            let bar = document.getElementById('stamina-bar');
-            if(Game.stamina < 0) Game.stamina = 0;
-            bar.style.width = Game.stamina + "%"; document.getElementById('stamina-text').innerText = Game.stamina+"/100";
-            if(Game.stamina < 20) bar.classList.add('low'); else bar.classList.remove('low');
-
-            updateActionButtons(isDepressed);
-            document.getElementById('btn-dev').style.display = (Game.age >= 18 && Game.intel >= 80) ? 'block' : 'none';
-            document.getElementById('btn-stream').style.display = (Game.age >= 18 && Game.charm >= 80) ? 'block' : 'none';
-
-            let nextBtn = document.getElementById('btn-nextyear');
-            if(Game.stamina < 10) nextBtn.classList.add('pulse'); else nextBtn.classList.remove('pulse');
-            document.getElementById('casino-area').style.display = (Game.age < 18) ? 'none' : 'block';
+            document.getElementById('talent-display').innerHTML = talentHtml;
+            
+            // 技能條
+            let skillHtml = '';
+            const skillNames = {
+                programming: '💻 程式',
+                art: '🎨 藝術',
+                medical: '⚕️ 醫療',
+                cooking: '🍳 烹飪',
+                finance: '💰 理財',
+                communication: '💬 溝通',
+                charm: '✨ 魅力'
+            };
+            
+            Object.keys(Game.skills).forEach(key => {
+                const val = Math.min(150, Math.floor(Game.skills[key]));
+                const percent = (val / 150) * 100;
+                skillHtml += `
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span>${skillNames[key]}</span>
+                            <span>${val}</span>
+                        </div>
+                        <div class="skill-bar-bg">
+                            <div class="skill-bar-fill" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('skills-container').innerHTML = skillHtml;
+            
+            // 體力條
+            const stamina = Math.max(0, Math.min(100, Game.stamina));
+            const staminaRatio = stamina / 100;
+            document.getElementById('stamina-bar').style.transform = `scaleX(${staminaRatio})`;
+            document.getElementById('stamina-text').textContent = `${Math.floor(stamina)}/100`;
+            
+            if (stamina < 20) {
+                document.getElementById('stamina-bar').classList.add('low');
+            } else {
+                document.getElementById('stamina-bar').classList.remove('low');
+            }
+            
+            // 狀態警告
+            let alertHtml = '';
+            if (Game.money < 0) {
+                alertHtml += `<div class="status-alert alert-red">⚠️ 負債警告！剩 ${3 - Game.debtYears} 年</div>`;
+            }
+            if (Game.happy < 20) {
+                alertHtml += `<div class="status-alert alert-orange">☁️ 憂鬱狀態</div>`;
+            }
+            if (Game.health < 30) {
+                alertHtml += `<div class="status-alert alert-red">🏥 重病警告</div>`;
+            }
+            if (Game.age >= 18 && Game.jobId === 'none') {
+                alertHtml += `<div class="status-alert alert-blue">💼 尚未就業</div>`;
+            }
+            document.getElementById('status-alerts').innerHTML = alertHtml;
+            
+            // 更新行動按鈕
+            updateActionButtons();
         }
 
-        function updateActionButtons(isDepressed) {
-            let b1=document.getElementById('btn-work'), b2=document.getElementById('btn-study'), b3=document.getElementById('btn-play'), b4=document.getElementById('btn-gym');
+        function updateActionButtons() {
+            const btns = document.getElementById('action-buttons');
+            let html = '';
             
-            // 重置按鈕以清除舊的監聽器
-            let resetBtn = (btn) => { let newBtn = btn.cloneNode(true); btn.parentNode.replaceChild(newBtn, btn); return newBtn; };
-            b1 = resetBtn(b1); b2 = resetBtn(b2); b3 = resetBtn(b3); b4 = resetBtn(b4);
-
-            if(Game.age >= 6 && Game.age < 18) {
-                b1.innerHTML = `🏫 專心聽講 <span class="cost-tag">⚡ -30</span>`; b1.onclick = () => action('school_study');
-                b2.innerHTML = `📖 補習班 <span class="cost-tag">⚡ -30 / $-1000</span>`; b2.onclick = () => action('cram_school');
-                b3.innerHTML = `⚽ 參加社團 <span class="cost-tag">⚡ -20</span>`; b3.onclick = () => action('club');
-                b4.innerHTML = `🎮 偷看漫畫 <span class="cost-tag">⚡ -10</span>`; b4.onclick = () => action('play');
-            } else if (Game.age >= 18 && Game.age <= 22 && Game.schoolStatus === "大學生") {
-                b1.innerHTML = `🎓 專業課程 <span class="cost-tag">⚡ -30</span>`; b1.onclick = () => action('uni_study');
-                b2.innerHTML = `🥤 打工 <span class="cost-tag">⚡ -30 / +$</span>`; b2.onclick = () => action('part_time');
-                b3.innerHTML = `🎉 聯誼 <span class="cost-tag">⚡ -20 / $$</span>`; b3.onclick = () => action('social');
-                b4.innerHTML = `🏋️ 健身 <span class="cost-tag">⚡ -25</span>`; b4.onclick = () => action('gym');
+            const age = Game.age;
+            
+            if (age <= 2) {
+                // 嬰兒期
+                html = `
+                    <button onclick="action('cry')">😭 哭鬧<span class="cost-tag">⚡-10</span></button>
+                    <button onclick="action('sleep')">😴 睡覺<span class="cost-tag">⚡-20</span></button>
+                    <button onclick="action('play_toy')">🧸 玩玩具<span class="cost-tag">⚡-15</span></button>
+                    <button onclick="action('learn_speak')">🗣️ 牙牙學語<span class="cost-tag">⚡-25</span></button>
+                `;
+            } else if (age <= 5) {
+                // 幼兒期
+                html = `
+                    <button onclick="action('kindergarten')">🏫 上幼兒園<span class="cost-tag">⚡-20</span></button>
+                    <button onclick="action('draw')">🖍️ 畫畫<span class="cost-tag">⚡-15</span></button>
+                    <button onclick="action('watch_tv')">📺 看卡通<span class="cost-tag">⚡-10</span></button>
+                    <button onclick="action('make_friend')">👫 交朋友<span class="cost-tag">⚡-20</span></button>
+                `;
+            } else if (age <= 12) {
+                // 兒童期（小學）
+                html = `
+                    <button onclick="action('study_hard')">📖 認真讀書<span class="cost-tag">⚡-30</span></button>
+                    <button onclick="action('cram_school')">📚 補習班<span class="cost-tag">⚡-25 / $-2000</span></button>
+                    <button onclick="action('sports')">⚽ 運動<span class="cost-tag">⚡-20</span></button>
+                    <button onclick="action('play_game')">🎮 打電動<span class="cost-tag">⚡-15</span></button>
+                `;
+            } else if (age <= 17) {
+                // 青少年（中學）
+                html = `
+                    <button onclick="action('exam_prep')">📝 考試衝刺<span class="cost-tag">⚡-35</span></button>
+                    <button onclick="action('club')">🎸 社團活動<span class="cost-tag">⚡-20</span></button>
+                    <button onclick="action('date_crush')">💕 約曖昧對象<span class="cost-tag">⚡-25 / $-500</span></button>
+                    <button onclick="action('rebel')">😎 叛逆期<span class="cost-tag">⚡-15</span></button>
+                `;
             } else {
-                if(Game.age <= 5) {
-                    b1.innerHTML = `🍼 喝奶 <span class="cost-tag">⚡ -30</span>`; b1.onclick = () => action('baby_sleep');
-                    b2.innerHTML = `🗣️ 學說話 <span class="cost-tag">⚡ -20</span>`; b2.onclick = () => action('baby_learn');
-                    b3.innerHTML = `🧸 玩玩具 <span class="cost-tag">⚡ -10</span>`; b3.onclick = () => action('baby_play');
-                    b4.innerHTML = `🐢 爬行 <span class="cost-tag">⚡ -25</span>`; b4.onclick = () => action('baby_crawl');
-                } else {
-                    b1.innerHTML = `💼 工作 <span class="cost-tag">⚡ -30</span>`; b1.onclick = () => action('work');
-                    b2.innerHTML = `📚 進修 <span class="cost-tag">⚡ -20</span>`; b2.onclick = () => action('study');
-                    b3.innerHTML = `🎮 玩樂 <span class="cost-tag">⚡ -10</span>`; b3.onclick = () => action('play');
-                    b4.innerHTML = `🏋️ 健身 <span class="cost-tag">⚡ -25</span>`; b4.onclick = () => action('gym');
-                }
+                // 成人
+                html = `
+                    <button onclick="action('work')">💼 努力工作<span class="cost-tag">⚡-35</span></button>
+                    <button onclick="action('study_skill')">📚 學習技能<span class="cost-tag">⚡-25 / $-3000</span></button>
+                    <button onclick="action('socialize')">🍻 社交活動<span class="cost-tag">⚡-20 / $-2000</span></button>
+                    <button onclick="action('relax')">🎮 休閒娛樂<span class="cost-tag">⚡-15 / $-1000</span></button>
+                `;
             }
-            [b1, b2, b3, b4].forEach(btn => { if(isDepressed) btn.disabled = true; else btn.disabled = (Game.stamina < 10); });
+            
+            btns.innerHTML = html;
+            
+            // 檢查是否可用
+            const allBtns = btns.querySelectorAll('button');
+            allBtns.forEach(btn => {
+                if (Game.stamina < 10 || Game.happy < 10) {
+                    btn.disabled = true;
+                }
+            });
         }
 
         function action(type) {
-            if(Game.health <= 0) return alert("已死亡");
-            let cost = 30;
-            if(['play','baby_play'].includes(type)) cost=10; 
-            if(['gym','baby_crawl'].includes(type)) cost=25; 
-            if(['club','baby_learn','study'].includes(type)) cost=20;
-            if(type==='dev_app') cost=50; if(type==='stream') cost=40;
-
-            if(Game.stamina < cost) return alert("體力不足！");
-            Game.stamina -= cost;
-
-            let intelBonus = 0;
-            if(Game.talents.some(t => t.id === 't1')) intelBonus += 2;
-
-            // 🔥 嬰兒邏輯 (確認這段存在！)
-            if(type === 'baby_sleep') { Game.health+=2; Game.happy+=2; log("🍼 喝飽了奶睡得很香。"); }
-            else if(type === 'baby_learn') { Game.intel += (4 + intelBonus); log(`🗣️ 學說話 (智力+${4+intelBonus})`); }
-            else if(type === 'baby_play') { Game.happy+=12; log("🧸 玩玩具很開心。"); }
-            else if(type === 'baby_crawl') { Game.health+=5; log("🐢 到處爬行。"); }
-
-            // 學生
-            else if(type === 'school_study') { Game.intel += (2 + intelBonus); log(`認真聽講 (智力+${2+intelBonus})`); }
-            else if(type === 'cram_school') { if(Game.money >= 1000) { Game.money -= 1000; Game.intel += (5+intelBonus); log("補習衝刺 (智力UP)"); } else { log("沒錢補習..."); Game.stamina += cost; } }
-            else if(type === 'club') { Game.charm += 2; Game.happy += 5; log("社團活動。"); }
+            if (Game.health <= 0) return alert('已死亡');
             
-            // 大學
-            else if(type === 'uni_study') { Game.intel += (3+intelBonus); log("鑽研專業。"); }
-            else if(type === 'part_time') { Game.money += 800; Game.happy -= 5; log("打工賺了 $800"); }
-            else if(type === 'social') { Game.money -= 2000; Game.charm += 3; Game.happy += 10; log("聯誼。"); }
+            let cost = 20;
+            let effects = {};
             
-            // 成人
-            else if(type === 'work') { 
-                let base = 25000 + (Game.intel * 800);
-                let finalSalary = Math.floor(base * Game.eduMultiplier);
-                Game.money += finalSalary; Game.health -= 3; Game.happy -= 5; 
-                log(`工作賺了 $${finalSalary}`); 
+            // 根據不同行動計算效果
+            switch (type) {
+                case 'cry':
+                    cost = 10;
+                    effects = { happy: 5 };
+                    log('😭 哭了一整天，爸媽來哄你');
+                    break;
+                case 'sleep':
+                    cost = 20;
+                    effects = { health: 3, happy: 2 };
+                    log('😴 睡得很香甜');
+                    break;
+                case 'play_toy':
+                    cost = 15;
+                    effects = { happy: 8 };
+                    log('🧸 玩玩具好開心');
+                    break;
+                case 'learn_speak':
+                    cost = 25;
+                    effects = { intel: 3 * Game.learnBonus, 'skills.communication': 2 };
+                    log('🗣️ 學會說更多詞彙');
+                    break;
+                case 'kindergarten':
+                    cost = 20;
+                    effects = { intel: 2 * Game.learnBonus, 'skills.communication': 3, happy: 5 };
+                    log('🏫 在幼兒園玩得很開心');
+                    break;
+                case 'draw':
+                    cost = 15;
+                    effects = { 'skills.art': 4, happy: 5 };
+                    log('🖍️ 畫了一幅畫');
+                    break;
+                case 'watch_tv':
+                    cost = 10;
+                    effects = { happy: 10, intel: -1 };
+                    log('📺 看了一整天卡通');
+                    break;
+                case 'make_friend':
+                    cost = 20;
+                    effects = { 'skills.communication': 5, happy: 8 };
+                    log('👫 交到新朋友了');
+                    if (Math.random() > 0.7) addFriend();
+                    break;
+                case 'study_hard':
+                    cost = 30;
+                    effects = { intel: 5 * Game.learnBonus, happy: -3 };
+                    log('📖 認真讀書，成績進步');
+                    break;
+                case 'cram_school':
+                    if (Game.money < 2000) return alert('沒錢補習');
+                    cost = 25;
+                    effects = { intel: 8 * Game.learnBonus, money: -2000, happy: -5 };
+                    log('📚 補習班衝刺');
+                    break;
+                case 'sports':
+                    cost = 20;
+                    effects = { health: 5, happy: 5, 'skills.charm': 2 };
+                    log('⚽ 運動流汗真舒暢');
+                    break;
+                case 'play_game':
+                    cost = 15;
+                    effects = { happy: 12, intel: -2 };
+                    log('🎮 打電動打到忘記時間');
+                    break;
+                case 'exam_prep':
+                    cost = 35;
+                    effects = { intel: 10 * Game.learnBonus, happy: -8 };
+                    log('📝 為考試努力衝刺');
+                    break;
+                case 'club':
+                    cost = 20;
+                    effects = { 'skills.communication': 5, 'skills.charm': 3, happy: 10 };
+                    log('🎸 社團活動很有趣');
+                    break;
+                case 'date_crush':
+                    if (Game.money < 500) return alert('沒錢約會');
+                    cost = 25;
+                    effects = { money: -500, happy: 15, 'skills.charm': 5 };
+                    log('💕 和曖昧對象出去玩');
+                    break;
+                case 'rebel':
+                    cost = 15;
+                    effects = { happy: 8, intel: -3 };
+                    log('😎 叛逆期，不想聽大人的話');
+                    Game.relationships.forEach(r => {
+                        if (r.type === 'parent') r.relation -= 5;
+                    });
+                    break;
+                case 'work':
+                    cost = 35;
+                    const job = JOBS.find(j => j.id === Game.jobId);
+                    if (job && job.salary > 0) {
+                        const salary = Math.floor(job.salary * Game.incomeBonus * Game.workPenalty);
+                        effects = { money: salary, happy: -5, health: -3 };
+                        log(`💼 工作賺了 $${salary.toLocaleString()}`);
+                        if (job.effect) job.effect(Game);
+                        Game.jobYears++;
+                    } else {
+                        effects = { happy: -10 };
+                        log('💼 待業中，心情低落');
+                    }
+                    break;
+                case 'study_skill':
+                    if (Game.money < 3000) return alert('沒錢進修');
+                    cost = 25;
+                    const skillKeys = Object.keys(Game.skills);
+                    const randomSkill = skillKeys[Math.floor(Math.random() * skillKeys.length)];
+                    effects = { money: -3000, intel: 3 * Game.learnBonus };
+                    effects[`skills.${randomSkill}`] = 8 * Game.learnBonus;
+                    log(`📚 學習了新技能`);
+                    break;
+                case 'socialize':
+                    if (Game.money < 2000) return alert('沒錢社交');
+                    cost = 20;
+                    effects = { money: -2000, happy: 10, 'skills.communication': 5, 'skills.charm': 3 };
+                    log('🍻 和朋友聚餐聊天');
+                    if (Math.random() > 0.6) addFriend();
+                    break;
+                case 'relax':
+                    if (Game.money < 1000) return alert('沒錢娛樂');
+                    cost = 15;
+                    effects = { money: -1000, happy: 15 };
+                    log('🎮 放鬆休閒，充電完畢');
+                    break;
             }
-            else if(type === 'study') { Game.intel += (4+intelBonus); Game.money -= 2000; log("進修。"); }
-            else if(type === 'play') { Game.happy += 12; Game.money -= 4000; log("玩樂。"); }
-            else if(type === 'gym') { Game.health += 5; Game.charm += 2; Game.money -= 800; log("健身。"); }
             
-            // 特殊
-            else if(type === 'dev_app') { Game.stamina-=20; let s=Math.random()<(Game.intel/150); if(s){let p=100000+Game.intel*2000;Game.money+=p;log(`開發賺 $${p}`);}else{Game.happy-=10;log("開發失敗");} }
-            else if(type === 'stream') { Game.stamina-=10; let inc=Game.charm*1000+Math.random()*50000; Game.money+=Math.floor(inc); log(`直播賺 $${Math.floor(inc)}`); }
-
+            if (Game.stamina < cost) return alert('體力不足');
+            
+            Game.stamina -= cost;
+            
+            // 應用效果
+            Object.keys(effects).forEach(key => {
+                if (key.startsWith('skills.')) {
+                    const skillName = key.split('.')[1];
+                    Game.skills[skillName] = Math.max(0, Game.skills[skillName] + effects[key]);
+                } else {
+                    Game[key] = Game[key] + effects[key];
+                }
+            });
+            
             updateUI();
         }
 
+        // ==========================================
+        // 🔴 下一歲
+        // ==========================================
+        
         function nextYear() {
-            if(Game.health <= 0) return;
-            Game.age++; Game.health -= 3; Game.stamina = 100; 
+            if (Game.health <= 0) return;
             
-            if(Game.talents.some(t=>t.id==='t2')) Game.health += 1; 
-            if(Game.talents.some(t=>t.id==='t5')) Game.happy -= 5;
-
-            if(Game.age < 18 && Game.yearlyMoney > 0) { Game.money += Game.yearlyMoney; log(`🧧 領到零用錢 $${Game.yearlyMoney}`); }
-
+            Game.age++;
+            Game.stamina = 100;
+            
+            // 自然衰退
+            Game.health -= (3 * Game.healthDecay);
+            Game.happy -= (2 * Game.happyDecay);
+            
+            // 年齡相關
+            if (Game.age >= 40) Game.health -= 2;
+            if (Game.age >= 60) Game.health -= 3;
+            
+            // 零用錢
+            if (Game.age < 18 && Game.yearlyMoney > 0) {
+                Game.money += Game.yearlyMoney;
+                log(`🧧 領到零用錢 $${Game.yearlyMoney.toLocaleString()}`);
+            }
+            
+            // 工作收入
+            if (Game.jobId !== 'none') {
+                const job = JOBS.find(j => j.id === Game.jobId);
+                const salary = Math.floor(job.salary * Game.incomeBonus * Game.workPenalty * 12);
+                Game.money += salary;
+                log(`💼 年度薪資入帳 $${salary.toLocaleString()}`);
+            }
+            
+            // 被動收入（房產、投資）
+            const passiveIncome = Math.floor(Game.money * 0.03 * Game.incomeBonus);
+            if (passiveIncome > 0) {
+                Game.money += passiveIncome;
+                log(`📈 被動收入 $${passiveIncome.toLocaleString()}`);
+            }
+            
+            // 負債懲罰
+            if (Game.money < 0) {
+                Game.debtYears++;
+                if (Game.debtYears >= 3) {
+                    Game.inventory = [];
+                    Game.money = 0;
+                    Game.happy -= 50;
+                    log('💥 破產！資產被充公');
+                    Game.debtYears = 0;
+                }
+            } else {
+                Game.debtYears = 0;
+            }
+            
+            // 重病住院
+            if (Game.health < 30) {
+                Game.money -= 100000;
+                log('🏥 住院治療 -$100,000');
+            }
+            
+            // 關係衰退
+            Game.relationships.forEach(r => {
+                r.relation = Math.max(0, r.relation - 2);
+            });
+            
+            // 快樂年數統計
+            if (Game.happy > 80) Game.happyYears++;
+            
+            // 重要年齡事件
+            if (Game.age === 6) log('🎒 開始上小學了');
+            if (Game.age === 13) log('🏫 升上中學');
+            if (Game.age === 18) {
+                log('🎓 高中畢業！可以開始工作了');
+                checkAchievements();
+            }
+            if (Game.age === 30) log('🎂 邁入30歲大關');
+            if (Game.age === 40) log('⏰ 已經40歲了，時光飛逝');
+            if (Game.age === 60) log('👴 步入老年，回首人生');
+            
             log(`🎂 ${Game.age} 歲了`);
             
-            if(Game.age == 6) { Game.schoolStatus = "小學生"; log("🎒 開始上小學！"); }
-            if(Game.age == 13) { Game.schoolStatus = "中學生"; log("🏫 升上中學。"); }
-            
-            if(Game.age == 18) {
-                let score = Game.intel + (Math.random() * 20);
-                if(Game.talents.some(t=>t.id==='t1')) score += 10;
-                let result = "";
-                if(score >= 100) { Game.eduMultiplier = 1.5; Game.eduLevelName = "頂尖大學"; Game.schoolStatus = "大學生"; result = "🎉 考上頂尖大學！(薪水+50%)"; } 
-                else if(score >= 60) { Game.eduMultiplier = 1.2; Game.eduLevelName = "普通大學"; Game.schoolStatus = "大學生"; result = "👏 考上普通大學。(薪水+20%)"; } 
-                else { Game.eduMultiplier = 1.0; Game.eduLevelName = "高中畢業"; Game.schoolStatus = ""; result = "🍂 落榜了，直接工作。"; }
-                activeEvent = { choices: [{ effect: () => result }] };
-                showModal("🎓 大學放榜", `分數：${Math.floor(score)}\n\n${result}`, "確認", "確認", 0, 0);
+            // 隨機事件
+            if (Math.random() < 0.25) {
+                triggerRandomEvent();
             }
+            
+            // 檢查死亡
+            if (Game.health <= 0) {
+                Game.health = 0;
+                log('💀 生命終結');
+                showEnding();
+                return;
+            }
+            
+            // 檢查成就
+            checkAchievements();
+            
+            updateUI();
+            renderSocial();
+        }
 
-            if(Game.age == 22 && Game.schoolStatus === "大學生") { Game.schoolStatus = ""; log("🎓 大學畢業！"); }
-            if(Game.money < 0) { Game.debtYears++; if(Game.debtYears > 3) triggerDebtPunishment(); } else Game.debtYears=0;
-            if(Game.health < 30) { Game.money -= 50000; log("🏥 住院 -$50000"); }
-            Game.inventory.forEach(id => { let c=CAR_DATA.find(x=>x.id==id);if(c)Game.charm+=1; let h=HOUSE_DATA.find(x=>x.id==id);if(h)Game.happy+=2; });
-            
-            if(Math.random() < 0.3) {
-                let totalWeight = 0;
-                EVENT_DATA.forEach(evt => totalWeight += (evt.prob || 10));
-                let randomVal = Math.floor(Math.random() * totalWeight);
-                for(let i = 0; i < EVENT_DATA.length; i++) {
-                    let evt = EVENT_DATA[i];
-                    let weight = evt.prob || 10;
-                    if(randomVal < weight) { activeEvent = evt; break; }
-                    randomVal -= weight;
+        // ==========================================
+        // 🔴 隨機事件
+        // ==========================================
+        
+        function triggerRandomEvent() {
+            const events = [
+                {
+                    title: '中獎了',
+                    desc: '你在路邊撿到一張發票，竟然中了獎！',
+                    choices: [
+                        { txt: '領獎', effect: (g) => { g.money += 50000; return '領到5萬元'; } },
+                        { txt: '捐出去', effect: (g) => { g.skills.charm += 10; g.happy += 10; return '做善事心情好'; } }
+                    ]
+                },
+                {
+                    title: '遇到詐騙',
+                    desc: '有人打電話說你中獎了，要先匯款手續費...',
+                    choices: [
+                        { txt: '匯款', effect: (g) => { g.money -= 20000; g.happy -= 20; return '被騙了...'; } },
+                        { txt: '掛斷', effect: (g) => { g.intel += 5; return '聰明地避開詐騙'; } }
+                    ]
+                },
+                {
+                    title: '朋友借錢',
+                    desc: '好友向你借10萬，說急用...',
+                    choices: [
+                        { txt: '借', effect: (g) => { 
+                            if (g.money >= 100000) {
+                                g.money -= 100000;
+                                return '借了10萬';
+                            } else {
+                                return '沒那麼多錢';
+                            }
+                        }},
+                        { txt: '拒絕', effect: (g) => { g.happy -= 10; return '拒絕了朋友'; } }
+                    ]
+                },
+                {
+                    title: '健康檢查',
+                    desc: '公司安排健康檢查',
+                    choices: [
+                        { txt: '去檢查', effect: (g) => { 
+                            if (g.health < 60) {
+                                g.happy -= 15;
+                                return '發現一些小毛病...';
+                            } else {
+                                g.happy += 10;
+                                return '身體很健康！';
+                            }
+                        }},
+                        { txt: '太忙不去', effect: (g) => { return '忙碌的一天'; } }
+                    ]
+                },
+                {
+                    title: '投資機會',
+                    desc: '有人推薦你投資一個項目',
+                    choices: [
+                        { txt: '投資5萬', effect: (g) => {
+                            if (g.money < 50000) return '錢不夠';
+                            g.money -= 50000;
+                            if (Math.random() > 0.5) {
+                                g.money += 150000;
+                                return '賺了10萬！';
+                            } else {
+                                g.happy -= 20;
+                                return '血本無歸...';
+                            }
+                        }},
+                        { txt: '不投資', effect: (g) => { g.skills.finance += 3; return '謹慎理財'; } }
+                    ]
                 }
-                showModal(activeEvent.title, activeEvent.desc, activeEvent.choices[0].txt, activeEvent.choices[1].txt, 0, 1);
-            }
-            if(Game.health <= 0) { Game.health = 0; log("💀 死亡"); }
+            ];
+            
+            const evt = events[Math.floor(Math.random() * events.length)];
+            activeEvent = evt;
+            showModal(evt.title, evt.desc, evt.choices[0].txt, evt.choices[1].txt, 0, 1);
+        }
+
+        function showModal(title, desc, btn1, btn2, idx1, idx2) {
+            document.getElementById('ev-title').textContent = title;
+            document.getElementById('ev-desc').textContent = desc;
+            
+            const btnA = document.getElementById('btn-choice-a');
+            const btnB = document.getElementById('btn-choice-b');
+            
+            btnA.textContent = btn1;
+            btnB.textContent = btn2;
+            
+            btnA.onclick = () => resolveEvent(idx1);
+            btnB.onclick = () => resolveEvent(idx2);
+            
+            document.getElementById('event-modal').style.display = 'flex';
+        }
+
+        function resolveEvent(idx) {
+            const result = activeEvent.choices[idx].effect(Game);
+            log(`⚡ ${result}`);
+            document.getElementById('event-modal').style.display = 'none';
             updateUI();
         }
 
-        function showModal(t, d, b1, b2, i1, i2) { document.getElementById('ev-title').innerText=t; document.getElementById('ev-desc').innerText=d; let ba=document.getElementById('btn-choice-a'), bb=document.getElementById('btn-choice-b'); ba.onclick=()=>resolveEvent(i1); bb.onclick=()=>resolveEvent(i2); ba.innerText=b1; bb.innerText=b2; document.getElementById('event-modal').style.display='flex'; }
-        function resolveEvent(i) { let r=activeEvent.choices[i].effect(Game); log(`⚡ ${r}`); document.getElementById('event-modal').style.display='none'; updateUI(); }
-        function triggerDebtPunishment() { Game.inventory=[]; Game.money=0; Game.happy-=50; activeEvent={choices:[{effect:()=>"資產充公"}]}; showModal("破產", "期限已到，強制還款", "認命", "認命", 0, 0); }
-        function renderShop() { let ch="", hh=""; CAR_DATA.forEach(c=>ch+=renderItem(c,'car')); HOUSE_DATA.forEach(h=>hh+=renderItem(h,'house')); document.getElementById('car-shop').innerHTML=ch; document.getElementById('house-shop').innerHTML=hh; }
-        function renderItem(i,t) { return `<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #333;"><div style="display:flex;"><img src="${i.img}" class="item-img" onerror="this.style.display='none'"><div><b>${i.name}</b><br><span style="color:#888;font-size:0.8em">${t=='car'?'魅力+'+i.charm:'快樂+'+i.happy}</span></div></div><button class="btn-buy" onclick="buy('${t}','${i.id}')">$${i.price/10000}萬</button></div>`; }
-        function buy(t,id) { let i = t=='car'?CAR_DATA.find(x=>x.id==id):HOUSE_DATA.find(x=>x.id==id); if(Game.inventory.includes(id))return alert("已擁有"); if(Game.money>=i.price){Game.money-=i.price;Game.inventory.push(id);log(`購買 ${i.name}`);updateUI();}else alert("錢不夠"); }
-        function gamble(c) { let v=parseInt(document.getElementById('bet-amount').value); if(!v)return; if(Game.stamina<5)return alert("體力不足"); Game.stamina-=5; let d=Math.floor(Math.random()*10), r=d>=5?'big':'small'; if(c==r){Game.money+=v;log(`贏 $${v}`);}else{Game.money-=v;log(`輸 $${v}`);} updateUI(); }
-        function nav(p){ document.querySelectorAll('.page').forEach(e=>e.classList.remove('active')); document.getElementById('page-'+p).classList.add('active'); }
-        function restartGame(){ location.reload(); }
+        // ==========================================
+        // 🔴 職業系統
+        // ==========================================
+        
+        function renderJobs() {
+            let html = '';
+            
+            JOBS.forEach(job => {
+                if (job.id === 'none') return;
+                
+                let canApply = true;
+                let reqText = '';
+                
+                if (job.requirement) {
+                    Object.keys(job.requirement).forEach(key => {
+                        const required = job.requirement[key];
+                        const current = key === 'intel' ? Game.intel : Game.skills[key];
+                        
+                        if (current < required) canApply = false;
+                        
+                        reqText += `${key === 'intel' ? '🧠' : '📊'} ${key}: ${required} `;
+                    });
+                }
+                
+                const isCurrentJob = Game.jobId === job.id;
+                
+                html += `
+                    <div class="job-card ${isCurrentJob ? 'selected' : ''}" onclick="${canApply ? `selectJob('${job.id}')` : ''}">
+                        <div class="job-name">${job.name} ${isCurrentJob ? '(當前)' : ''}</div>
+                        <div class="job-salary">💰 月薪: $${job.salary.toLocaleString()}</div>
+                        <div class="job-requirement">${reqText}</div>
+                        <div style="font-size: 0.85em; color: var(--text-dim); margin-top: 3px;">
+                            ${job.desc}
+                        </div>
+                        ${!canApply ? '<div style="color: var(--red); font-size: 0.8em; margin-top: 3px;">❌ 條件不符</div>' : ''}
+                    </div>
+                `;
+            });
+            
+            document.getElementById('job-list').innerHTML = html;
+        }
 
-        initCreation();
-    </script>
-</body>
-</html>
+        function selectJob(jobId) {
+            if (Game.age < 18) return alert('未滿18歲無法工作');
+            
+            Game.jobId = jobId;
+            Game.jobYears = 0;
+            
+            const job = JOBS.find(j => j.id === jobId);
+            log(`💼 開始從事 ${job.name}`);
+            
+            checkAchievements();
+            updateUI();
+            renderJobs();
+        }
+
+        // ==========================================
+        // 🔴 社交系統
+        // ==========================================
+        
+        function renderSocial() {
+            let html = '';
+            
+            Game.relationships.forEach(npc => {
+                const emoji = npc.type === 'parent' ? (npc.id === 'dad' ? '👨' : '👩') :
+                              npc.type === 'partner' ? '💕' :
+                              npc.type === 'spouse' ? '💍' :
+                              npc.type === 'child' ? '👶' : '👥';
+                
+                html += `
+                    <div class="job-card" style="cursor: default;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="font-size: 2em;">${emoji}</div>
+                            <div style="flex: 1;">
+                                <div class="job-name">${npc.name}</div>
+                                <div style="font-size: 0.85em; color: var(--text-dim);">
+                                    ${npc.role} | 親密度: ${Math.floor(npc.relation)}/100
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; display: flex; gap: 5px;">
+                            ${npc.type === 'parent' ? `
+                                <button class="btn-mini" onclick="socialAction('${npc.id}', 'chat')" style="padding: 5px 10px; font-size: 0.8em;">聊天 ⚡-5</button>
+                                <button class="btn-mini" onclick="socialAction('${npc.id}', 'ask_money')" style="padding: 5px 10px; font-size: 0.8em;">要零用錢 ⚡-10</button>
+                            ` : ''}
+                            ${npc.type === 'partner' ? `
+                                <button class="btn-mini" onclick="socialAction('${npc.id}', 'date')" style="padding: 5px 10px; font-size: 0.8em;">約會 $-2000</button>
+                                <button class="btn-mini" onclick="socialAction('${npc.id}', 'propose')" style="padding: 5px 10px; font-size: 0.8em;">求婚</button>
+                            ` : ''}
+                            ${npc.type === 'spouse' ? `
+                                <button class="btn-mini" onclick="socialAction('${npc.id}', 'date')" style="padding: 5px 10px; font-size: 0.8em;">約會 $-2000</button>
+                                <button class="btn-mini" onclick="socialAction('${npc.id}', 'have_child')" style="padding: 5px 10px; font-size: 0.8em;">生小孩</button>
+                            ` : ''}
+                            ${npc.type === 'friend' ? `
+                                <button class="btn-mini" onclick="socialAction('${npc.id}', 'chat')" style="padding: 5px 10px; font-size: 0.8em;">聚會 ⚡-10</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('npc-list').innerHTML = html;
+            
+            const hasPartner = Game.relationships.some(r => r.type === 'partner' || r.type === 'spouse');
+            document.getElementById('find-partner-area').style.display = (Game.age >= 18 && !hasPartner) ? 'block' : 'none';
+        }
+
+        function socialAction(id, type) {
+            const npc = Game.relationships.find(r => r.id === id);
+            if (!npc) return;
+            
+            if (type === 'chat') {
+                if (Game.stamina < 5) return alert('體力不足');
+                Game.stamina -= 5;
+                npc.relation = Math.min(100, npc.relation + 5 * Game.socialBonus);
+                Game.happy += 5;
+                log(`和 ${npc.name} 聊天，關係更好了`);
+            } else if (type === 'ask_money') {
+                if (Game.stamina < 10) return alert('體力不足');
+                Game.stamina -= 10;
+                
+                if (npc.relation > 50) {
+                    const amount = Math.floor(Math.random() * 5000) + 2000;
+                    Game.money += amount;
+                    npc.relation -= 5;
+                    log(`向 ${npc.name} 要到了 $${amount}`);
+                } else {
+                    npc.relation -= 10;
+                    Game.happy -= 10;
+                    log(`${npc.name} 拒絕給錢，還罵了你`);
+                }
+            } else if (type === 'date') {
+                if (Game.money < 2000) return alert('沒錢約會');
+                Game.money -= 2000;
+                Game.stamina -= 15;
+                npc.relation = Math.min(100, npc.relation + 10 * Game.socialBonus);
+                Game.happy += 15;
+                log(`和 ${npc.name} 甜蜜約會`);
+            } else if (type === 'propose') {
+                if (npc.relation < 90) return alert('親密度不夠（需要90）');
+                if (Game.money < 100000) return alert('需要10萬買戒指');
+                
+                Game.money -= 100000;
+                npc.type = 'spouse';
+                npc.role = '配偶';
+                Game.happy += 50;
+                log(`🎉 和 ${npc.name} 結婚了！`);
+                checkAchievements();
+            } else if (type === 'have_child') {
+                if (npc.relation < 80) return alert('關係不夠好');
+                
+                const childName = ['小明', '小華', '小美', '小強'][Math.floor(Math.random() * 4)];
+                Game.relationships.push({
+                    id: 'child_' + Date.now(),
+                    name: childName,
+                    type: 'child',
+                    relation: 100,
+                    role: '子女'
+                });
+                
+                Game.happy += 30;
+                Game.money -= 50000;
+                log(`👶 ${childName} 出生了！`);
+                checkAchievements();
+            }
+            
+            updateUI();
+            renderSocial();
+        }
+
+        function findPartner() {
+            if (Game.money < 500) return alert('沒錢使用交友軟體');
+            
+            Game.money -= 500;
+            const chance = (Game.skills.charm / 150) * 0.8 + 0.2;
+            
+            if (Math.random() < chance) {
+                const names = ['小美', '阿豪', '雅婷', '志明', 'Emily', 'Jack'];
+                const name = names[Math.floor(Math.random() * names.length)];
+                
+                Game.relationships.push({
+                    id: 'partner_' + Date.now(),
+                    name: name,
+                    type: 'partner',
+                    relation: 50,
+                    role: '伴侶'
+                });
+                
+                log(`💖 配對成功！和 ${name} 開始交往`);
+            } else {
+                Game.happy -= 10;
+                log('💔 沒有配對成功...');
+            }
+            
+            updateUI();
+            renderSocial();
+        }
+
+        function addFriend() {
+            const names = ['小李', '小王', '小陳', '小林', 'Amy', 'David'];
+            const name = names[Math.floor(Math.random() * names.length)];
+            
+            Game.relationships.push({
+                id: 'friend_' + Date.now(),
+                name: name,
+                type: 'friend',
+                relation: 60,
+                role: '朋友'
+            });
+            
+            log(`👥 和 ${name} 成為朋友`);
+            checkAchievements();
+        }
+
+        // ==========================================
+        // 🔴 商店系統
+        // ==========================================
+        
+        const CARS = [
+            { id: 'car1', name: '國產車', price: 500000, charm: 3 },
+            { id: 'car2', name: '進口車', price: 1500000, charm: 10 },
+            { id: 'car3', name: '超跑', price: 8000000, charm: 30 }
+        ];
+        
+        const HOUSES = [
+            { id: 'house1', name: '套房', price: 3000000, happy: 5, passive: 5000 },
+            { id: 'house2', name: '公寓', price: 8000000, happy: 15, passive: 15000 },
+            { id: 'house3', name: '別墅', price: 50000000, happy: 40, passive: 80000 }
+        ];
+
+        function renderShop() {
+            let carHtml = '';
+            CARS.forEach(car => {
+                const owned = Game.inventory.includes(car.id);
+                carHtml += `
+                    <div class="job-card">
+                        <div class="job-name">${car.name} ${owned ? '(已擁有)' : ''}</div>
+                        <div class="job-salary">✨ 魅力 +${car.charm}</div>
+                        <div style="margin-top: 8px;">
+                            <button class="btn-buy" onclick="buyItem('${car.id}')" ${owned ? 'disabled' : ''}>
+                                購買 $${(car.price / 10000).toFixed(0)}萬
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            let houseHtml = '';
+            HOUSES.forEach(house => {
+                const owned = Game.inventory.includes(house.id);
+                houseHtml += `
+                    <div class="job-card">
+                        <div class="job-name">${house.name} ${owned ? '(已擁有)' : ''}</div>
+                        <div class="job-salary">😊 快樂 +${house.happy} | 💰 被動收入 +${house.passive}/年</div>
+                        <div style="margin-top: 8px;">
+                            <button class="btn-buy" onclick="buyItem('${house.id}')" ${owned ? 'disabled' : ''}>
+                                購買 $${(house.price / 10000).toFixed(0)}萬
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('car-shop').innerHTML = carHtml;
+            document.getElementById('house-shop').innerHTML = houseHtml;
+        }
+
+        function buyItem(id) {
+            const car = CARS.find(c => c.id === id);
+            const house = HOUSES.find(h => h.id === id);
+            const item = car || house;
+            
+            if (!item) return;
+            if (Game.inventory.includes(id)) return alert('已擁有');
+            if (Game.money < item.price) return alert('錢不夠');
+            
+            Game.money -= item.price;
+            Game.inventory.push(id);
+            
+            if (car) {
+                Game.skills.charm += car.charm;
+                log(`🏎️ 購買了 ${car.name}`);
+            } else {
+                Game.happy += house.happy;
+                log(`🏘️ 購買了 ${house.name}`);
+            }
+            
+            checkAchievements();
+            updateUI();
+            renderShop();
+        }
+
+        // ==========================================
+        // 🔴 成就系統
+        // ==========================================
+        
+        function checkAchievements() {
+            ACHIEVEMENTS.forEach(ach => {
+                if (Game.unlockedAchievements.includes(ach.id)) return;
+                
+                if (ach.check(Game)) {
+                    Game.unlockedAchievements.push(ach.id);
+                    showAchievementToast(ach.name);
+                    log(`🏆 解鎖成就：${ach.name}`);
+                }
+            });
+            
+            renderAchievements();
+        }
+
+        function renderAchievements() {
+            let html = '';
+            
+            ACHIEVEMENTS.forEach(ach => {
+                const unlocked = Game.unlockedAchievements.includes(ach.id);
+                
+                html += `
+                    <div class="job-card" style="opacity: ${unlocked ? 1 : 0.4};">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="font-size: 2em;">${unlocked ? '🏆' : '🔒'}</div>
+                            <div>
+                                <div class="job-name">${ach.name}</div>
+                                <div style="font-size: 0.85em; color: var(--text-dim);">${ach.desc}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('achievement-list').innerHTML = html;
+        }
+
+        function showAchievementToast(name) {
+            const toast = document.getElementById('achievement-toast');
+            document.getElementById('toast-text').textContent = name;
+            
+            toast.style.display = 'block';
+            toast.style.animation = 'slideInRight 0.5s forwards';
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.5s forwards';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 500);
+            }, 3000);
+        }
+
+        // ==========================================
+        // 🔴 結局系統
+        // ==========================================
+        
+        function showEnding() {
+            const endings = [
+                { 
+                    id: 'rich', 
+                    icon: '💰', 
+                    title: '富豪結局', 
+                    desc: '你成為了億萬富翁，過著奢華的生活。金錢雖然不能買到一切，但確實讓人生少了很多煩惱。',
+                    check: (g) => g.money >= 100000000
+                },
+                {
+                    id: 'scholar',
+                    icon: '🎓',
+                    title: '學者結局',
+                    desc: '你成為了受人尊敬的學者，用知識改變了世界。智慧是永恆的財富。',
+                    check: (g) => g.intel >= 150
+                },
+                {
+                    id: 'social',
+                    icon: '💖',
+                    title: '社交達人',
+                    desc: '你擁有無數朋友和良好的人際關係，在社交圈如魚得水。人脈就是資產。',
+                    check: (g) => g.relationships.length >= 10
+                },
+                {
+                    id: 'family',
+                    icon: '👨‍👩‍👧‍👦',
+                    title: '幸福家庭',
+                    desc: '你擁有美滿的家庭，妻子/丈夫和孩子們都很愛你。平凡的幸福才是最珍貴的。',
+                    check: (g) => g.relationships.some(r => r.type === 'spouse') && g.relationships.some(r => r.type === 'child')
+                },
+                {
+                    id: 'healthy',
+                    icon: '💪',
+                    title: '健康長壽',
+                    desc: '你活到了高齡，而且身體依然硬朗。健康是人生最大的財富。',
+                    check: (g) => g.age >= 80 && g.health > 60
+                },
+                {
+                    id: 'lonely',
+                    icon: '💔',
+                    title: '孤獨終老',
+                    desc: '你一生都在追逐某些東西，卻忽略了身邊的人。最後孤獨地離開人世。',
+                    check: (g) => g.relationships.every(r => r.relation < 20)
+                },
+                {
+                    id: 'poor',
+                    icon: '😢',
+                    title: '困頓一生',
+                    desc: '你的人生充滿了艱辛和困難，始終無法擺脫貧困。但你依然努力活著。',
+                    check: (g) => g.money < 0
+                },
+                {
+                    id: 'average',
+                    icon: '🍃',
+                    title: '平凡人生',
+                    desc: '你過著普通平凡的生活，沒有大起大落。平淡也是一種幸福。',
+                    check: (g) => true // 預設結局
+                }
+            ];
+            
+            let finalEnding = endings[endings.length - 1]; // 預設
+            
+            for (let ending of endings) {
+                if (ending.check(Game)) {
+                    finalEnding = ending;
+                    break;
+                }
+            }
+            
+            document.getElementById('ending-icon').textContent = finalEnding.icon;
+            document.getElementById('ending-title').textContent = finalEnding.title;
+            document.getElementById('ending-desc').textContent = finalEnding.desc;
+            
+            document.getElementById('ending-stats').innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left;">
+                    <div>👤 姓名: ${Game.name}</div>
+                    <div>🎂 享年: ${Game.age}歲</div>
+                    <div>💰 資產: $${Game.money.toLocaleString()}</div>
+                    <div>🧠 智力: ${Math.floor(Game.intel)}</div>
+                    <div>💼 職業: ${JOBS.find(j => j.id === Game.jobId).name}</div>
+                    <div>👥 關係: ${Game.relationships.length}人</div>
+                    <div>🏆 成就: ${Game.unlockedAchievements.length}/${ACHIEVEMENTS.length}</div>
+                    <div>⭐ 評價: ${calculateScore()}/100</div>
+                </div>
+            `;
+            
+            document.getElementById('ending-overlay').style.display = 'flex';
+        }
+
+        function calculateScore() {
+            let score = 0;
+            
+            score += Math.min(20, Game.money / 5000000
