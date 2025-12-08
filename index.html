@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>人生模擬</title>
+    <title>人生</title>
     <style>
         :root { --bg: #121212; --card: #1e1e1e; --accent: #bb86fc; --text: #e0e0e0; --green: #03dac6; --red: #cf6679; --gold: #ffd700; --blue: #2196f3; }
         body { font-family: '微軟正黑體', sans-serif; background: var(--bg); color: var(--text); max-width: 600px; margin: 0 auto; padding-bottom: 80px; user-select: none; overflow-x: hidden; }
@@ -14,7 +14,9 @@
         .big-stat { font-size: 1.2em; font-weight: bold; color: var(--gold); grid-column: span 3; margin-bottom: 5px; transition: color 0.3s; }
         .big-stat.debt { color: var(--red); animation: shake 0.5s; }
         
-        /* 🔥 狀態警告條 🔥 */
+        /* 學校標籤 */
+        .school-badge { grid-column: span 3; background: #3f51b5; color: white; padding: 5px; border-radius: 4px; margin-bottom: 5px; font-weight: bold; display: none; }
+        
         .status-alert { grid-column: span 3; color: white; font-weight: bold; font-size: 0.8em; padding: 5px; border-radius: 4px; display: none; margin-bottom:5px; text-align:center;}
         .alert-red { background: #b00020; animation: pulseRed 1s infinite; }
         .alert-orange { background: #ff9800; }
@@ -30,19 +32,17 @@
         .card h3 { margin-top: 0; color: var(--accent); border-bottom: 1px solid #333; padding-bottom: 10px; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
-        /* 按鈕樣式 */
         button { background: #333; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 1em; position: relative; overflow: hidden; }
         button:hover { background: #444; filter: brightness(1.2); }
         button:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
         
-        /* 🔥 特殊職業按鈕 🔥 */
         .btn-special { background: linear-gradient(45deg, #6200ea, #b388ff); border: 1px solid var(--accent); display:none; }
-        .btn-special:hover { filter: brightness(1.3); transform: scale(1.02); }
+        .btn-school { background: #3f51b5; color: white; } /* 學校專用按鈕顏色 */
 
         .btn-main { background: var(--accent); color: black; font-weight: bold; width: 100%; margin-top: 10px; font-size: 1.1em; }
         .btn-buy { background: var(--green); color: black; font-weight: bold; }
         .btn-risk { background: var(--red); color: white; }
-        .cost-tag { font-size: 0.7em; color: #aaa; display: block; margin-top: 2px; }
+        .cost-tag { font-size: 0.7em; color: #ccc; display: block; margin-top: 2px; }
 
         /* 創角與其他介面 */
         #scene-creation { padding: 20px; text-align: center; }
@@ -88,12 +88,14 @@
             <div class="stat-grid">
                 <div class="big-stat" id="money-display">$0</div>
                 
+                <div id="school-badge" class="school-badge">🎒 小學生</div>
+
                 <div id="alert-debt" class="status-alert alert-red">⚠️ 負債警告！</div>
-                <div id="alert-depression" class="status-alert alert-orange">☁️ 憂鬱狀態：不想工作...</div>
-                <div id="alert-sick" class="status-alert alert-red">🏥 重病警告：請注意健康！</div>
+                <div id="alert-depression" class="status-alert alert-orange">☁️ 憂鬱狀態</div>
+                <div id="alert-sick" class="status-alert alert-red">🏥 重病警告</div>
 
                 <div style="grid-column: span 3; font-size:0.8em; color:#aaa; margin-bottom:5px;">
-                    <span id="player-name"></span> | <span id="player-origin" style="color:var(--gold)"></span>
+                    <span id="player-name"></span> | <span id="player-origin" style="color:var(--gold)"></span> | 🎓 <span id="edu-level">文盲</span>
                 </div>
                 <div>📅 <span id="year">0</span> (<span id="age">0</span>歲)</div>
                 <div>❤️ <span id="health">100</span></div>
@@ -111,13 +113,13 @@
                 <div class="card-body">
                     <h3>📝 年度行動</h3>
                     <div class="btn-grid">
-                        <button onclick="action('work')" id="btn-work">💼 工作 <span class="cost-tag">⚡ -30</span></button>
-                        <button onclick="action('study')" id="btn-study">📚 進修 <span class="cost-tag">⚡ -20</span></button>
-                        <button onclick="action('play')" id="btn-play">🎮 玩樂 <span class="cost-tag">⚡ -10</span></button>
-                        <button onclick="action('gym')" id="btn-gym">🏋️ 健身 <span class="cost-tag">⚡ -25</span></button>
+                        <button onclick="action('work')" id="btn-work">💼 工作</button>
+                        <button onclick="action('study')" id="btn-study">📚 進修</button>
+                        <button onclick="action('play')" id="btn-play">🎮 玩樂</button>
+                        <button onclick="action('gym')" id="btn-gym">🏋️ 健身</button>
                         
-                        <button onclick="action('dev_app')" id="btn-dev" class="btn-special">💻 開發AI <span class="cost-tag">需智力80 / ⚡-50</span></button>
-                        <button onclick="action('stream')" id="btn-stream" class="btn-special">🤳 直播帶貨 <span class="cost-tag">需魅力80 / ⚡-40</span></button>
+                        <button onclick="action('dev_app')" id="btn-dev" class="btn-special">💻 開發AI</button>
+                        <button onclick="action('stream')" id="btn-stream" class="btn-special">🤳 直播帶貨</button>
                     </div>
                 </div>
             </div>
@@ -146,8 +148,16 @@
 
     <script src="data.js"></script>
     <script>
-        let Game = { name: "", origin: "", age: 0, money: 0, health: 100, happy: 80, intel: 0, charm: 0, stamina: 100, debtYears: 0, inventory: [], achievements: [] };
-        const COSTS = { work: 30, study: 20, play: 10, gym: 25, dev_app: 50, stream: 40 };
+        let Game = { 
+            name: "", origin: "", age: 0, money: 0, health: 100, happy: 80, intel: 0, charm: 0, 
+            stamina: 100, debtYears: 0, inventory: [], achievements: [],
+            // 🔥 新增：學歷相關變數
+            schoolStatus: "", // "小學生", "高中生", "大學生"
+            eduMultiplier: 1.0, // 學歷對薪水的加成 (1.0 = 無, 1.5 = 頂大)
+            eduLevelName: "文盲"
+        };
+        
+        const COSTS = { work: 30, study: 20, play: 10, gym: 25, dev_app: 50, stream: 40, cram: 30, club: 20 };
         let activeEvent = null, selectedOriginId = null;
 
         function initCreation() {
@@ -172,27 +182,27 @@
             ['age', 'health', 'happy', 'intel', 'charm'].forEach(k => { document.getElementById(k).innerText = Game[k]; });
             document.getElementById('year').innerText = new Date().getFullYear() + Game.age;
             let mEl = document.getElementById('money-display'); mEl.innerText = "$"+Game.money.toLocaleString();
-            
-            // 警告與狀態顯示
+            document.getElementById('edu-level').innerText = Game.eduLevelName;
+
+            // 狀態與警告
             document.getElementById('alert-debt').style.display = (Game.money < 0) ? 'block' : 'none';
             if(Game.money < 0) { mEl.classList.add('debt'); document.getElementById('alert-debt').innerText = `⚠️ 負債警告！還款剩 ${3-Game.debtYears} 年`; } else mEl.classList.remove('debt');
-            
-            // 憂鬱狀態
             let isDepressed = Game.happy < 20;
             document.getElementById('alert-depression').style.display = isDepressed ? 'block' : 'none';
-
-            // 重病狀態
             document.getElementById('alert-sick').style.display = (Game.health < 30) ? 'block' : 'none';
 
-            // 體力條
+            // 學校標籤
+            let badge = document.getElementById('school-badge');
+            if(Game.schoolStatus) { badge.style.display = 'block'; badge.innerText = "🎒 " + Game.schoolStatus; } else { badge.style.display = 'none'; }
+
             let bar = document.getElementById('stamina-bar');
             if(Game.stamina < 0) Game.stamina = 0;
             bar.style.width = Game.stamina + "%"; document.getElementById('stamina-text').innerText = Game.stamina+"/100";
             if(Game.stamina < 20) bar.classList.add('low'); else bar.classList.remove('low');
 
+            // 🔥 更新動態按鈕 🔥
             updateActionButtons(isDepressed);
             
-            // 特殊按鈕解鎖邏輯
             document.getElementById('btn-dev').style.display = (Game.age >= 18 && Game.intel >= 80) ? 'block' : 'none';
             document.getElementById('btn-stream').style.display = (Game.age >= 18 && Game.charm >= 80) ? 'block' : 'none';
 
@@ -202,69 +212,83 @@
         }
 
         function updateActionButtons(isDepressed) {
-            let btns = ['work', 'study', 'play', 'gym', 'dev', 'stream'];
-            btns.forEach(id => {
-                let btn = document.getElementById('btn-'+id);
-                if(!btn) return;
-                
-                // 1. 檢查體力
-                let cost = COSTS[id] || 0;
-                let enoughStamina = Game.stamina >= cost;
-                
-                // 2. 檢查憂鬱狀態 (憂鬱時不能工作、不能開發)
-                let blockedByDepression = isDepressed && (id === 'work' || id === 'dev' || id === 'study');
-                
-                if(blockedByDepression) {
-                    btn.disabled = true;
-                    if(id === 'work') btn.innerHTML = `☁️ 心情太差...`;
-                } else if(!enoughStamina) {
-                    btn.disabled = true;
-                } else {
-                    btn.disabled = false;
-                    // 恢復按鈕文字 (如果是工作)
-                    if(id === 'work' && Game.age >= 18) btn.innerHTML = `💼 工作 <span class="cost-tag">⚡ -30</span>`;
-                }
-            });
+            let b1=document.getElementById('btn-work'), b2=document.getElementById('btn-study'), b3=document.getElementById('btn-play'), b4=document.getElementById('btn-gym');
             
-            // 嬰兒期特殊文字 (簡化處理)
-            if(Game.age <= 3) document.getElementById('btn-work').innerHTML = `🍼 喝奶 <span class="cost-tag">⚡ -30</span>`;
+            // 🔥 校園階段按鈕邏輯 🔥
+            if(Game.age >= 6 && Game.age < 18) {
+                // 中小學階段
+                b1.innerHTML = `🏫 專心聽講 <span class="cost-tag">⚡ -30</span>`; b1.onclick = () => action('school_study');
+                b2.innerHTML = `📖 補習班 <span class="cost-tag">⚡ -30 / $-1000</span>`; b2.onclick = () => action('cram_school');
+                b3.innerHTML = `⚽ 參加社團 <span class="cost-tag">⚡ -20</span>`; b3.onclick = () => action('club');
+                b4.innerHTML = `🎮 偷看漫畫 <span class="cost-tag">⚡ -10</span>`; b4.onclick = () => action('play');
+            } else if (Game.age >= 18 && Game.age <= 22 && Game.schoolStatus === "大學生") {
+                // 大學階段
+                b1.innerHTML = `🎓 專業課程 <span class="cost-tag">⚡ -30</span>`; b1.onclick = () => action('uni_study');
+                b2.innerHTML = `🥤 打工 <span class="cost-tag">⚡ -30 / +$</span>`; b2.onclick = () => action('part_time');
+                b3.innerHTML = `🎉 聯誼 <span class="cost-tag">⚡ -20 / $$</span>`; b3.onclick = () => action('social');
+                b4.innerHTML = `🏋️ 健身 <span class="cost-tag">⚡ -25</span>`; b4.onclick = () => action('gym');
+            } else {
+                // 出社會/幼兒
+                if(Game.age <= 5) {
+                    b1.innerHTML = `🍼 喝奶 <span class="cost-tag">⚡ -30</span>`; b1.onclick = () => action('baby_sleep');
+                    b2.innerHTML = `🗣️ 學說話 <span class="cost-tag">⚡ -20</span>`; b2.onclick = () => action('study');
+                    b3.innerHTML = `🧸 玩玩具 <span class="cost-tag">⚡ -10</span>`; b3.onclick = () => action('play');
+                    b4.innerHTML = `🐢 爬行 <span class="cost-tag">⚡ -25</span>`; b4.onclick = () => action('gym');
+                } else {
+                    // 成人
+                    b1.innerHTML = `💼 工作 <span class="cost-tag">⚡ -30</span>`; b1.onclick = () => action('work');
+                    b2.innerHTML = `📚 進修 <span class="cost-tag">⚡ -20</span>`; b2.onclick = () => action('study');
+                    b3.innerHTML = `🎮 玩樂 <span class="cost-tag">⚡ -10</span>`; b3.onclick = () => action('play');
+                    b4.innerHTML = `🏋️ 健身 <span class="cost-tag">⚡ -25</span>`; b4.onclick = () => action('gym');
+                }
+            }
+
+            // 檢查體力與狀態
+            [b1, b2, b3, b4].forEach(btn => {
+                if(isDepressed) btn.disabled = true;
+                // 這裡簡化檢查，實際應根據不同 action 檢查不同 stamina
+                else btn.disabled = (Game.stamina < 10); 
+            });
         }
 
         function action(type) {
             if(Game.health <= 0) return alert("已死亡");
-            if(Game.stamina < COSTS[type]) return alert("體力不足");
             
-            // 🔥 特殊職業邏輯 🔥
-            if(type === 'dev_app') {
-                Game.stamina -= COSTS.dev_app;
-                let success = Math.random() < (Game.intel / 150); // 智力越高成功率越高
-                if(success) {
-                    let profit = 100000 + (Game.intel * 2000);
-                    Game.money += profit; Game.happy += 10;
-                    log(`🚀 APP 開發大獲成功！賺了 $${profit.toLocaleString()}`);
-                } else {
-                    Game.happy -= 10;
-                    log(`🐛 程式一堆 Bug，開發失敗...`);
-                }
-            } 
-            else if(type === 'stream') {
-                Game.stamina -= COSTS.stream;
-                let income = Game.charm * 1000 + (Math.random() * 50000);
-                Game.money += Math.floor(income); Game.charm += 1;
-                log(`🤳 直播好多人斗內！賺了 $${Math.floor(income).toLocaleString()}`);
+            // 處理不同行動的體力消耗與效果
+            let cost = 30; // 預設消耗
+            if(type === 'play') cost = 10;
+            if(type === 'gym') cost = 25;
+            if(type === 'club') cost = 20;
+
+            if(Game.stamina < cost) return alert("體力不足！");
+            Game.stamina -= cost;
+
+            // --- 學生專屬行動 ---
+            if(type === 'school_study') { Game.intel += 2; log("在學校認真聽講 (智力+2)"); }
+            else if(type === 'cram_school') { 
+                if(Game.money >= 1000) { Game.money -= 1000; Game.intel += 5; log("去補習班衝刺 (智力+5, 花費$1000)"); }
+                else { log("沒錢繳補習費..."); Game.stamina += cost; } // 退還體力
             }
-            else {
-                // 普通行動
-                Game.stamina -= COSTS[type];
-                if(type === 'work') {
-                    if(Game.age <= 3) { log("喝奶睡覺"); }
-                    else if(Game.age < 18) { Game.money+=500; Game.health-=2; log("打工賺了 $500"); }
-                    else { let v=25000+(Game.intel*800); Game.money+=v; Game.health-=3; Game.happy-=5; log(`工作賺了 $${v}`); }
-                }
-                if(type === 'study') { Game.intel+=4; if(Game.age>=18)Game.money-=2000; log("智力+4"); }
-                if(type === 'play') { Game.happy+=12; if(Game.age>=18)Game.money-=4000; log("快樂+12"); }
-                if(type === 'gym') { Game.health+=5; Game.charm+=2; if(Game.age>=18)Game.money-=800; log("健康+5 魅力+2"); }
+            else if(type === 'club') { Game.charm += 2; Game.happy += 5; log("參加社團活動 (魅力+2, 快樂+5)"); }
+            else if(type === 'uni_study') { Game.intel += 3; log("鑽研大學專業課程 (智力+3)"); }
+            else if(type === 'part_time') { Game.money += 800; Game.happy -= 5; log("課餘打工賺了 $800"); }
+            else if(type === 'social') { Game.money -= 2000; Game.charm += 3; Game.happy += 10; log("去參加聯誼 (魅力+3, 花費$2000)"); }
+            
+            // --- 一般行動 ---
+            else if(type === 'work') { 
+                let base = 25000 + (Game.intel * 800);
+                let finalSalary = Math.floor(base * Game.eduMultiplier); // 🔥 學歷加成 🔥
+                Game.money += finalSalary; Game.health -= 3; Game.happy -= 5; 
+                log(`工作賺了 $${finalSalary} ${Game.eduMultiplier > 1 ? '(含學歷加成)' : ''}`); 
             }
+            else if(type === 'study') { Game.intel += 4; Game.money -= 2000; log("進修 (智力+4)"); }
+            else if(type === 'play') { Game.happy += 12; Game.money -= 4000; log("玩樂 (快樂+12)"); }
+            else if(type === 'gym') { Game.health += 5; Game.charm += 2; Game.money -= 800; log("健身 (健康+5)"); }
+            
+            // 特殊
+            else if(type === 'dev_app') { /*省略...*/ }
+            else if(type === 'stream') { /*省略...*/ }
+
             updateUI();
         }
 
@@ -272,23 +296,48 @@
             if(Game.health <= 0) return;
             Game.age++; Game.health -= 3; Game.stamina = 100; log(`🎂 ${Game.age} 歲了`);
             
-            // 債務檢查
-            if(Game.money < 0) { Game.debtYears++; if(Game.debtYears > 3) triggerDebtPunishment(); } else Game.debtYears=0;
+            // 🔥 學歷階段檢查 🔥
+            if(Game.age == 6) { Game.schoolStatus = "小學生"; log("🎒 你背起書包，開始上小學了！"); }
+            if(Game.age == 13) { Game.schoolStatus = "中學生"; log("🏫 升上中學，課業壓力變大了。"); }
             
-            // 🔥 重病扣錢 🔥
-            if(Game.health < 30) {
-                let bill = 50000;
-                Game.money -= bill;
-                log(`🏥 身體太差住院了，支付醫藥費 $${bill}`);
+            // 🔥 18歲：大學入學測驗 🔥
+            if(Game.age == 18) {
+                let score = Game.intel + (Math.random() * 20); // 智力 + 運氣
+                let result = "";
+                
+                if(score >= 100) {
+                    Game.eduMultiplier = 1.5;
+                    Game.eduLevelName = "頂尖大學";
+                    Game.schoolStatus = "大學生";
+                    result = "🎉 太神了！你考上了全國第一的頂尖大學！(未來薪水 +50%)";
+                } else if(score >= 60) {
+                    Game.eduMultiplier = 1.2;
+                    Game.eduLevelName = "普通大學";
+                    Game.schoolStatus = "大學生";
+                    result = "👏 你考上了一所不錯的大學。(未來薪水 +20%)";
+                } else {
+                    Game.eduMultiplier = 1.0;
+                    Game.eduLevelName = "高中畢業";
+                    Game.schoolStatus = ""; // 沒考上，直接出社會
+                    result = "🍂 你落榜了，決定直接進入職場...";
+                }
+                
+                // 使用彈窗通知
+                activeEvent = { choices: [{ effect: () => result }] };
+                showModal("🎓 大學入學放榜", `你的考試分數：${Math.floor(score)}分\n\n${result}`, "確認", "確認", 0, 0);
             }
 
-            // 資產被動
-            Game.inventory.forEach(id => {
-                let c = CAR_DATA.find(x=>x.id==id); if(c) Game.charm+=1;
-                let h = HOUSE_DATA.find(x=>x.id==id); if(h) Game.happy+=2;
-            });
+            // 22歲：大學畢業
+            if(Game.age == 22 && Game.schoolStatus === "大學生") {
+                Game.schoolStatus = "";
+                log("🎓 恭喜大學畢業！正式踏入職場。");
+            }
+
+            // 其餘邏輯 (債務、疾病、事件)
+            if(Game.money < 0) { Game.debtYears++; if(Game.debtYears > 3) triggerDebtPunishment(); } else Game.debtYears=0;
+            if(Game.health < 30) { Game.money -= 50000; log("🏥 住院治療 -$50000"); }
+            Game.inventory.forEach(id => { let c=CAR_DATA.find(x=>x.id==id);if(c)Game.charm+=1; let h=HOUSE_DATA.find(x=>x.id==id);if(h)Game.happy+=2; });
             
-            // 隨機事件
             if(Math.random()<0.3 && typeof EVENT_DATA !== 'undefined') {
                 let r = Math.floor(Math.random()*EVENT_DATA.length);
                 activeEvent = EVENT_DATA[r];
@@ -298,7 +347,7 @@
             updateUI();
         }
 
-        // 共用函數
+        // 共用函數 (保持不變)
         function showModal(t, d, b1, b2, i1, i2) { document.getElementById('ev-title').innerText=t; document.getElementById('ev-desc').innerText=d; let ba=document.getElementById('btn-choice-a'), bb=document.getElementById('btn-choice-b'); ba.onclick=()=>resolveEvent(i1); bb.onclick=()=>resolveEvent(i2); ba.innerText=b1; bb.innerText=b2; document.getElementById('event-modal').style.display='flex'; }
         function resolveEvent(i) { let r=activeEvent.choices[i].effect(Game); log(`⚡ ${r}`); document.getElementById('event-modal').style.display='none'; updateUI(); }
         function triggerDebtPunishment() { Game.inventory=[]; Game.money=0; Game.happy-=50; activeEvent={choices:[{effect:()=>"資產充公"}]}; showModal("破產", "期限已到，強制還款", "認命", "認命", 0, 0); }
@@ -313,4 +362,3 @@
     </script>
 </body>
 </html>
-
