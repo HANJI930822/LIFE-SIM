@@ -338,9 +338,33 @@
             if(Game.health < 30) { Game.money -= 50000; log("🏥 住院治療 -$50000"); }
             Game.inventory.forEach(id => { let c=CAR_DATA.find(x=>x.id==id);if(c)Game.charm+=1; let h=HOUSE_DATA.find(x=>x.id==id);if(h)Game.happy+=2; });
             
-            if(Math.random()<0.3 && typeof EVENT_DATA !== 'undefined') {
-                let r = Math.floor(Math.random()*EVENT_DATA.length);
-                activeEvent = EVENT_DATA[r];
+            // 30% 機率觸發隨機事件
+            if(Math.random() < 0.3 && typeof EVENT_DATA !== 'undefined') {
+                
+                // --- 🔥 權重隨機演算法 (Weighted Random) ---
+                // 1. 計算總權重 (Total Weight)
+                let totalWeight = 0;
+                EVENT_DATA.forEach(evt => {
+                    // 如果沒寫 prob，預設為 10
+                    totalWeight += (evt.prob || 10);
+                });
+
+                // 2. 隨機取出一個權重值
+                let randomVal = Math.floor(Math.random() * totalWeight);
+
+                // 3. 找出對應的事件
+                for(let i = 0; i < EVENT_DATA.length; i++) {
+                    let evt = EVENT_DATA[i];
+                    let weight = evt.prob || 10;
+                    
+                    if(randomVal < weight) {
+                        activeEvent = evt;
+                        break;
+                    }
+                    randomVal -= weight;
+                }
+                // -------------------------------------------
+
                 showModal(activeEvent.title, activeEvent.desc, activeEvent.choices[0].txt, activeEvent.choices[1].txt, 0, 1);
             }
             if(Game.health <= 0) { Game.health = 0; log("💀 死亡"); }
@@ -362,3 +386,4 @@
     </script>
 </body>
 </html>
+
