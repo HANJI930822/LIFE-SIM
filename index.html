@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時事人生 V13.0：天賦與家世</title>
+    <title>時事人生 V13.1：修復版</title>
     <style>
         :root { --bg: #121212; --card: #1e1e1e; --accent: #bb86fc; --text: #e0e0e0; --green: #03dac6; --red: #cf6679; --gold: #ffd700; --blue: #2196f3; }
         body { font-family: '微軟正黑體', sans-serif; background: var(--bg); color: var(--text); max-width: 600px; margin: 0 auto; padding-bottom: 80px; user-select: none; overflow-x: hidden; }
         
         /* 介面樣式 */
         .header { background: #2c2c2c; padding: 10px 15px; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,0.6); }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; font-size: 0.9em; text-align: center; }
-        .big-stat { font-size: 1.2em; font-weight: bold; color: var(--gold); grid-column: span 3; margin-bottom: 5px; transition: color 0.3s; }
+        
+        /* 數值網格：改為 3 欄，讓數值更好看 */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 0.9em; text-align: center; align-items: center; }
+        
+        .big-stat { font-size: 1.3em; font-weight: bold; color: var(--gold); grid-column: span 3; margin-bottom: 5px; transition: color 0.3s; }
         .big-stat.debt { color: var(--red); animation: shake 0.5s; }
         
         .school-badge { grid-column: span 3; background: #3f51b5; color: white; padding: 5px; border-radius: 4px; margin-bottom: 5px; font-weight: bold; display: none; }
         .status-alert { grid-column: span 3; color: white; font-weight: bold; font-size: 0.8em; padding: 5px; border-radius: 4px; display: none; margin-bottom:5px; text-align:center;}
         .alert-red { background: #b00020; animation: pulseRed 1s infinite; }
         .alert-orange { background: #ff9800; }
-
-        /* 天賦標籤樣式 */
-        .talent-tag { display: inline-block; background: var(--gold); color: black; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 5px; font-weight: bold; }
-        .talent-bad { background: var(--red); color: white; }
 
         .stamina-container { grid-column: span 3; margin-top: 5px; text-align: left; }
         .stamina-label { font-size: 0.8em; color: var(--blue); margin-bottom: 2px; display: flex; justify-content: space-between; }
@@ -63,6 +62,10 @@
         .page { display: none; animation: fadeIn 0.3s; }
         .page.active { display: block; }
         
+        /* 天賦標籤 */
+        .talent-tag { display: inline-block; background: var(--gold); color: black; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 5px; font-weight: bold; }
+        .talent-bad { background: var(--red); color: white; }
+
         .log-box { height: 120px; overflow-y: auto; background: #111; padding: 10px; border-radius: 5px; font-size: 0.9em; color: #ccc; border: 1px solid #333; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-box { background: var(--card); width: 85%; max-width: 400px; padding: 20px; border-radius: 12px; border: 1px solid var(--accent); text-align: center; }
@@ -77,14 +80,11 @@
 
     <div id="scene-creation">
         <h1 style="color:var(--accent)">🧬 投胎模擬器</h1>
-        <p style="color:#888; font-size:0.9em">請選擇你的起跑點...</p>
-        
         <div class="card"><div class="card-body">
             <div class="input-group"><label>姓名</label><input type="text" id="inp-name" placeholder="輸入姓名" maxlength="6"></div>
             <div class="input-group"><label>性別</label><select id="inp-gender"><option value="男">👨 男生</option><option value="女">👩 女生</option><option value="其他">🌈 其他</option></select></div>
         </div></div>
-        
-        <h3 style="text-align:left;margin-left:10px;color:var(--gold)">選擇出身背景</h3>
+        <h3 style="text-align:left;margin-left:10px;color:var(--gold)">出身背景</h3>
         <div id="origin-list"></div>
         <button class="btn-main" onclick="startGame()">🚀 開始人生</button>
     </div>
@@ -93,21 +93,25 @@
         <div class="header">
             <div class="stat-grid">
                 <div class="big-stat" id="money-display">$0</div>
+                
                 <div id="school-badge" class="school-badge">🎒 小學生</div>
                 <div id="alert-debt" class="status-alert alert-red">⚠️ 負債警告！</div>
                 <div id="alert-depression" class="status-alert alert-orange">☁️ 憂鬱狀態</div>
                 <div id="alert-sick" class="status-alert alert-red">🏥 重病警告</div>
                 
                 <div style="grid-column: span 3; font-size:0.8em; color:#aaa; margin-bottom:5px; text-align:left;">
-                    <span id="player-name"></span> | 🎓 <span id="edu-level">文盲</span>
-                    <br>
+                    <span id="player-name"></span> | 🎓 <span id="edu-level">文盲</span><br>
                     <span id="player-origin" style="color:var(--gold)"></span>
-                    <div id="talent-display" style="margin-top:2px;"></div> </div>
+                    <div id="talent-display" style="margin-top:3px;"></div>
+                </div>
                 
-                <div>📅 <span id="year">0</span> (<span id="age">0</span>歲)</div>
+                <div>📅 <span id="year">0</span></div>
                 <div>❤️ <span id="health">100</span></div>
                 <div>😊 <span id="happy">80</span></div>
-                <div class="stamina-container">
+                
+                <div>🧠 <span id="intel">0</span></div>
+                <div>✨ <span id="charm">0</span></div>
+                <div></div> <div class="stamina-container">
                     <div class="stamina-label"><span>⚡ 體力</span><span id="stamina-text">100/100</span></div>
                     <div class="progress-bg"><div id="stamina-bar" class="progress-fill" style="width: 100%;"></div></div>
                 </div>
@@ -154,10 +158,8 @@
 
     <script>
         // ==========================================
-        // 🔴 1. 豐富的資料庫 (出身、天賦、事件)
+        // 🔴 1. 資料庫 (Origins, Talents, Assets, Events)
         // ==========================================
-        
-        // 🔥 新增：天賦庫 (Talents)
         const TALENTS = [
             { id: 't1', name: '過目不忘', desc: '讀書效率+50%', type: 'good' },
             { id: 't2', name: '天生神力', desc: '健康自然衰退減半', type: 'good' },
@@ -168,48 +170,12 @@
             { id: 't7', name: '邊緣人', desc: '初始魅力-20', type: 'bad' }
         ];
 
-        // 🔥 更新：出身背景 (含父母職業與年零用錢)
         const ORIGIN_DATA = [
-            { 
-                id: 'common', name: '平凡家庭', 
-                desc: '普通的小康家庭，生活安穩。', 
-                parents: '父:公務員 / 母:老師',
-                money: 0, intel: 50, charm: 50, happy: 80, 
-                yearlyMoney: 500, // 每年零用錢
-                buff: '平衡發展' 
-            },
-            { 
-                id: 'rich', name: '富二代', 
-                desc: '住在豪宅，出門有司機接送。', 
-                parents: '父:集團董事 / 母:名媛',
-                money: 500000, intel: 30, charm: 70, happy: 90, 
-                yearlyMoney: 50000, 
-                buff: '開局鉅款 + 高額零用錢' 
-            },
-            { 
-                id: 'genius', name: '寒門天才', 
-                desc: '家境清寒，但智商驚人。', 
-                parents: '父:臨時工 / 母:清潔員',
-                money: -10000, intel: 95, charm: 30, happy: 60, 
-                yearlyMoney: 0, 
-                buff: '智力極高，但開局負債' 
-            },
-            { 
-                id: 'mafia', name: '黑道世家', 
-                desc: '從小在刀光劍影中長大。', 
-                parents: '父:角頭老大 / 母:酒店經理',
-                money: 100000, intel: 40, charm: 80, happy: 50, health: 120,
-                yearlyMoney: 10000, 
-                buff: '初始健康高，魅力高' 
-            },
-            { 
-                id: 'star', name: '演藝世家', 
-                desc: '父母都是大明星，從小就有鏡頭恐懼症？', 
-                parents: '父:影帝 / 母:歌后',
-                money: 50000, intel: 40, charm: 100, happy: 50, 
-                yearlyMoney: 5000, 
-                buff: '魅力滿點' 
-            }
+            { id: 'common', name: '平凡家庭', desc: '普普通通，幸福安康。', parents: '父:公務員 / 母:老師', money: 0, intel: 50, charm: 50, happy: 80, yearlyMoney: 500, buff: '平衡發展' },
+            { id: 'rich', name: '富二代', desc: '含著金湯匙出生。', parents: '父:集團董事 / 母:名媛', money: 500000, intel: 30, charm: 70, happy: 90, yearlyMoney: 50000, buff: '開局鉅款 + 高額零用錢' },
+            { id: 'genius', name: '寒門天才', desc: '家徒四壁，但智商驚人。', parents: '父:臨時工 / 母:清潔員', money: -10000, intel: 95, charm: 30, happy: 60, yearlyMoney: 0, buff: '智力極高，但開局負債' },
+            { id: 'mafia', name: '黑道世家', desc: '從小在刀光劍影中長大。', parents: '父:角頭老大 / 母:酒店經理', money: 100000, intel: 40, charm: 80, happy: 50, health: 120, yearlyMoney: 10000, buff: '初始健康高，魅力高' },
+            { id: 'star', name: '演藝世家', desc: '父母都是大明星。', parents: '父:影帝 / 母:歌后', money: 50000, intel: 40, charm: 100, happy: 50, yearlyMoney: 5000, buff: '魅力滿點' }
         ];
 
         const CAR_DATA = [
@@ -225,18 +191,15 @@
         ];
 
         const EVENT_DATA = [
-            // 🏫 校園
             { prob: 100, title: "忘記帶作業", desc: "慘了！昨晚打電動打太晚...", choices: [{ txt: "誠實招認 (快樂-5)", effect: (p) => { p.happy-=5; return "被唸了一頓。"; } }, { txt: "說謊 (魅力檢定)", effect: (p) => { if(p.charm>50){p.charm+=2; return "老師信了！"; } else {p.intel-=2; return "被識破罰站。"; } } }] },
             { prob: 80, title: "營養午餐", desc: "午餐出現奇怪生物...", choices: [{ txt: "吃 (健康-10)", effect: (p) => { p.health-=10; return "拉肚子..."; } }, { txt: "倒掉", effect: (p) => { return "餓肚子上課。"; } }] },
             { prob: 50, title: "校慶表演", desc: "推選人上台表演。", choices: [{ txt: "我來 (需魅力60)", effect: (p) => { if(p.charm>=60){p.charm+=10;p.happy+=10;return "全場歡呼！";}else{p.happy-=20;return "破音好尷尬...";} } }, { txt: "當觀眾", effect: (p) => { p.happy+=2; return "快樂看戲。"; } }] },
             { prob: 40, title: "轉學生", desc: "來了個可愛轉學生。", choices: [{ txt: "搭訕 (需魅力50)", effect: (p) => { if(p.charm>50){p.happy+=15;return "聊得很開心！";}else{p.happy-=5;return "對方不想理你。";} } }, { txt: "借筆記 (智力+2)", effect: (p) => { p.intel+=2; return "展現學霸風範。"; } }] },
             { prob: 30, title: "作弊風波", desc: "同學丟小抄給你...", choices: [{ txt: "用 (風險)", effect: (p) => { if(Math.random()>0.7){p.intel-=10;p.happy-=20;return "被抓到記大過！";}else{p.intel+=10;return "神不知鬼不覺滿分！";} } }, { txt: "撕掉 (魅力+5)", effect: (p) => { p.charm+=5; return "堅持誠實。"; } }] },
-            // 💼 職場/成人
             { prob: 100, title: "推銷電話", desc: "有聽過貸款嗎？", choices: [{ txt: "掛斷", effect: (p) => { return "掛斷了。"; } }, { txt: "聊天 (快樂+5)", effect: (p) => { p.happy+=5; return "浪費詐騙集團時間。"; } }] },
             { prob: 60, title: "股票明牌", desc: "同事報明牌。", choices: [{ txt: "梭哈 (風險)", effect: (p) => { if(Math.random()>0.5){p.money+=20000;return "賺翻了！";}else{p.money-=10000;p.happy-=20;return "慘賠...";} } }, { txt: "不理會 (智力+2)", effect: (p) => { p.intel+=2; return "穩健理財。"; } }] },
             { prob: 30, title: "慣老闆", desc: "老闆要你無薪加班。", choices: [{ txt: "回嘴 (金錢-2000, 快樂+20)", effect: (p) => { p.money-=2000;p.happy+=20;return "嗆爆老闆，爽！"; } }, { txt: "吞忍", effect: (p) => { p.happy-=5; return "社畜日常。"; } }] },
             { prob: 20, title: "通勤地獄", desc: "捷運故障快遲到了。", choices: [{ txt: "搭計程車 ($-500)", effect: (p) => { p.money-=500; return "花錢消災。"; } }, { txt: "請假 (快樂+5)", effect: (p) => { p.happy+=5; return "去吃早午餐好了。"; } }] },
-            // ❤️ 健康與其他
             { prob: 50, title: "流感", desc: "喉嚨痛痛的。", choices: [{ txt: "看醫生 ($-500)", effect: (p) => { p.money-=500;p.health+=2; return "吃藥好多了。"; } }, { txt: "喝熱水 (檢定)", effect: (p) => { if(p.health>80){return "自癒了！";}else{p.health-=15;return "發高燒三天...";} } }] },
             { prob: 20, title: "車禍", desc: "機車衝過來！", choices: [{ txt: "閃避 (健康-10)", effect: (p) => { p.health-=10; return "受了皮肉傷。"; } }, { txt: "索賠 (智力檢定)", effect: (p) => { if(p.intel>60){p.money+=3000;return "對方賠錢了。";}else{p.money-=1000;return "結果是你違規...";} } }] },
             { prob: 5, title: "中獎發票", desc: "發現沒對的發票。", choices: [{ txt: "對獎", effect: (p) => { p.money+=40000;p.happy+=20;return "中二獎了！"; } }, { txt: "捐贈 (魅力+20)", effect: (p) => { p.charm+=20; return "做善事。"; } }] },
@@ -250,8 +213,7 @@
             name: "", origin: "", age: 0, money: 0, health: 100, happy: 80, intel: 0, charm: 0, 
             stamina: 100, debtYears: 0, inventory: [], achievements: [],
             schoolStatus: "", eduMultiplier: 1.0, eduLevelName: "文盲",
-            yearlyMoney: 0, // 🔥 零用錢
-            talents: [] // 🔥 獲得的天賦
+            yearlyMoney: 0, talents: []
         };
         
         const COSTS = { work: 30, study: 20, play: 10, gym: 25, dev_app: 50, stream: 40, cram: 30, club: 20 };
@@ -260,12 +222,11 @@
         function initCreation() {
             let html = ""; 
             ORIGIN_DATA.forEach(o => {
-                html += `
-                <div class="origin-card" onclick="selectOrigin('${o.id}', this)">
+                html += `<div class="origin-card" onclick="selectOrigin('${o.id}', this)">
                     <div class="origin-name">${o.name}</div>
                     <div class="origin-parents">${o.parents}</div>
                     <div style="font-size:0.9em;color:#aaa;margin-top:2px;">${o.desc}</div>
-                    <div style="font-size:0.8em;color:var(--green)">✨ ${o.buff} | 💰 年收:${o.yearlyMoney}</div>
+                    <div style="font-size:0.8em;color:var(--green)">✨ ${o.buff} | 💰 零用錢:${o.yearlyMoney}/年</div>
                 </div>`;
             });
             document.getElementById('origin-list').innerHTML = html;
@@ -278,31 +239,25 @@
             if(!name) return alert("請輸入名字");
             let o = ORIGIN_DATA.find(x => x.id === selectedOriginId);
             
-            // 🔥 隨機抽取 1~2 個天賦
             let myTalents = [];
-            let talentPool = [...TALENTS]; // 複製一份
-            let count = Math.random() > 0.5 ? 2 : 1; // 50%機率得2個
+            let talentPool = [...TALENTS];
+            let count = Math.random() > 0.5 ? 2 : 1; 
             for(let i=0; i<count; i++) {
                 let idx = Math.floor(Math.random() * talentPool.length);
                 myTalents.push(talentPool[idx]);
-                talentPool.splice(idx, 1); // 避免重複
+                talentPool.splice(idx, 1);
             }
 
-            // 初始化數值
             Game = { 
                 ...Game, 
                 name: name, origin: o.name, money: o.money, intel: o.intel, charm: o.charm, happy: o.happy, 
-                health: o.health || 100, // 有些出身可能血量不同
-                age: 0, 
-                yearlyMoney: o.yearlyMoney,
-                talents: myTalents
+                health: o.health || 100, age: 0, yearlyMoney: o.yearlyMoney, talents: myTalents
             };
 
-            // 應用天賦初始效果
             Game.talents.forEach(t => {
-                if(t.id === 't6') Game.health -= 20; // 病弱
-                if(t.id === 't7') Game.charm -= 20; // 邊緣人
-                if(t.id === 't3') Game.charm += 20; // 萬人迷
+                if(t.id === 't6') Game.health -= 20;
+                if(t.id === 't7') Game.charm -= 20;
+                if(t.id === 't3') Game.charm += 20;
             });
 
             document.getElementById('scene-creation').style.display='none'; document.getElementById('scene-game').style.display='block';
@@ -314,12 +269,16 @@
         }
 
         function updateUI() {
-            ['age', 'health', 'happy', 'intel', 'charm'].forEach(k => { document.getElementById(k).innerText = Game[k]; });
+            // 🔥 修復：加上對 intel 和 charm 的更新，因為現在 HTML 裡有這兩個 id 了
+            ['age', 'health', 'happy', 'intel', 'charm'].forEach(k => { 
+                let el = document.getElementById(k);
+                if(el) el.innerText = Game[k]; 
+            });
+            
             document.getElementById('year').innerText = new Date().getFullYear() + Game.age;
             let mEl = document.getElementById('money-display'); mEl.innerText = "$"+Game.money.toLocaleString();
             document.getElementById('edu-level').innerText = Game.eduLevelName;
 
-            // 顯示天賦
             let tHtml = "";
             Game.talents.forEach(t => {
                 let colorClass = t.type === 'bad' ? 'talent-bad' : '';
@@ -327,7 +286,6 @@
             });
             document.getElementById('talent-display').innerHTML = tHtml;
 
-            // 狀態與警告
             document.getElementById('alert-debt').style.display = (Game.money < 0) ? 'block' : 'none';
             if(Game.money < 0) { mEl.classList.add('debt'); document.getElementById('alert-debt').innerText = `⚠️ 負債！剩 ${3-Game.debtYears} 年`; } else mEl.classList.remove('debt');
             let isDepressed = Game.happy < 20;
@@ -354,6 +312,7 @@
         function updateActionButtons(isDepressed) {
             let b1=document.getElementById('btn-work'), b2=document.getElementById('btn-study'), b3=document.getElementById('btn-play'), b4=document.getElementById('btn-gym');
             
+            // 重置按鈕以清除舊的監聽器
             let resetBtn = (btn) => { let newBtn = btn.cloneNode(true); btn.parentNode.replaceChild(newBtn, btn); return newBtn; };
             b1 = resetBtn(b1); b2 = resetBtn(b2); b3 = resetBtn(b3); b4 = resetBtn(b4);
 
@@ -394,11 +353,10 @@
             if(Game.stamina < cost) return alert("體力不足！");
             Game.stamina -= cost;
 
-            // 天賦影響
             let intelBonus = 0;
-            if(Game.talents.some(t => t.id === 't1')) intelBonus += 2; // 過目不忘
+            if(Game.talents.some(t => t.id === 't1')) intelBonus += 2;
 
-            // 嬰兒
+            // 🔥 嬰兒邏輯 (確認這段存在！)
             if(type === 'baby_sleep') { Game.health+=2; Game.happy+=2; log("🍼 喝飽了奶睡得很香。"); }
             else if(type === 'baby_learn') { Game.intel += (4 + intelBonus); log(`🗣️ 學說話 (智力+${4+intelBonus})`); }
             else if(type === 'baby_play') { Game.happy+=12; log("🧸 玩玩具很開心。"); }
@@ -436,15 +394,10 @@
             if(Game.health <= 0) return;
             Game.age++; Game.health -= 3; Game.stamina = 100; 
             
-            // 天賦影響：天生神力 / 玻璃心
             if(Game.talents.some(t=>t.id==='t2')) Game.health += 1; 
             if(Game.talents.some(t=>t.id==='t5')) Game.happy -= 5;
 
-            // 🔥 發放零用錢 (18歲前)
-            if(Game.age < 18 && Game.yearlyMoney > 0) {
-                Game.money += Game.yearlyMoney;
-                log(`🧧 領到零用錢 $${Game.yearlyMoney}`);
-            }
+            if(Game.age < 18 && Game.yearlyMoney > 0) { Game.money += Game.yearlyMoney; log(`🧧 領到零用錢 $${Game.yearlyMoney}`); }
 
             log(`🎂 ${Game.age} 歲了`);
             
@@ -453,8 +406,7 @@
             
             if(Game.age == 18) {
                 let score = Game.intel + (Math.random() * 20);
-                if(Game.talents.some(t=>t.id==='t1')) score += 10; // 天賦加分
-
+                if(Game.talents.some(t=>t.id==='t1')) score += 10;
                 let result = "";
                 if(score >= 100) { Game.eduMultiplier = 1.5; Game.eduLevelName = "頂尖大學"; Game.schoolStatus = "大學生"; result = "🎉 考上頂尖大學！(薪水+50%)"; } 
                 else if(score >= 60) { Game.eduMultiplier = 1.2; Game.eduLevelName = "普通大學"; Game.schoolStatus = "大學生"; result = "👏 考上普通大學。(薪水+20%)"; } 
@@ -468,7 +420,6 @@
             if(Game.health < 30) { Game.money -= 50000; log("🏥 住院 -$50000"); }
             Game.inventory.forEach(id => { let c=CAR_DATA.find(x=>x.id==id);if(c)Game.charm+=1; let h=HOUSE_DATA.find(x=>x.id==id);if(h)Game.happy+=2; });
             
-            // 🔥 權重隨機事件 🔥
             if(Math.random() < 0.3) {
                 let totalWeight = 0;
                 EVENT_DATA.forEach(evt => totalWeight += (evt.prob || 10));
