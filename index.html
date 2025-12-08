@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時事人生 V5.0：富豪圖鑑</title>
+    <style>
+        :root { --bg: #121212; --card: #1e1e1e; --accent: #bb86fc; --text: #e0e0e0; --green: #03dac6; --red: #cf6679; --gold: #ffd700; }
+        body { font-family: '微軟正黑體', sans-serif; background: var(--bg); color: var(--text); max-width: 600px; margin: 0 auto; padding-bottom: 80px; user-select: none; }
+        
+        /* 頂部狀態列 */
+        .header { background: #2c2c2c; padding: 10px 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; font-size: 0.9em; text-align: center; }
+        .big-stat { font-size: 1.2em; font-weight: bold; color: var(--gold); grid-column: span 3; margin-bottom: 5px; }
+        
+        /* 圖片容器 */
+        .img-banner { width: 100%; height: 150px; object-fit: cover; border-radius: 8px 8px 0 0; display: block; }
+        .item-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 10px; }
+
+        /* 卡片與列表 */
+        .card { background: var(--card); border-radius: 10px; margin: 15px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); overflow: hidden; }
+        .card-body { padding: 15px; }
+        .card h3 { margin-top: 0; color: var(--accent); border-bottom: 1px solid #333; padding-bottom: 10px; }
+
+        /* 按鈕與互動 */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { background: #333; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 1em; }
+        button:hover { background: #444; filter: brightness(1.2); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-buy { background: var(--green); color: black; font-weight: bold; }
+        .btn-risk { background: var(--red); color: white; }
+
+        /* 底部導航 */
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; }
+        .nav-item { color: #888; cursor: pointer; text-align: center; font-size: 0.8em; }
+        .nav-item.active { color: var(--accent); font-weight: bold; }
+        .nav-icon { display: block; font-size: 1.5em; margin-bottom: 2px; }
+
+        /* 頁面切換 */
+        .page { display: none; animation: fadeIn 0.3s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 紀錄區 */
+        .log-box { height: 120px; overflow-y: auto; background: #111; padding: 10px; border-radius: 5px; font-size: 0.9em; color: #ccc; }
+        .log-new { color: var(--gold); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="stat-grid">
+            <div class="big-stat" id="money-display">$0</div>
+            <div>📅 <span id="year">2025</span> (<span id="age">0</span>歲)</div>
+            <div>❤️ <span id="health">100</span></div>
+            <div>😊 <span id="happy">80</span></div>
+        </div>
+    </div>
+
+    <div id="page-home" class="page active">
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80" class="img-banner">
+            <div class="card-body">
+                <h3>📝 年度行動</h3>
+                <div class="btn-grid">
+                    <button onclick="action('work')">💼 工作賺錢</button>
+                    <button onclick="action('study')">📚 進修智力</button>
+                    <button onclick="action('play')">🎮 玩樂放鬆</button>
+                    <button onclick="action('gym')">🏋️ 健身運動</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h3>📜 人生跑馬燈</h3>
+                <div id="game-log" class="log-box"></div>
+                <button onclick="nextYear()" style="width:100%; margin-top:10px; background:var(--accent); color:black; font-weight:bold;">🎂 下一歲 (結算)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-assets" class="page">
+        <div class="card">
+            <div class="card-body">
+                <h3>🏎️ 豪車展售中心</h3>
+                <div id="car-shop"></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h3>🏘️ 房產仲介</h3>
+                <div id="house-shop"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-casino" class="page">
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=600&q=80" class="img-banner">
+            <div class="card-body">
+                <h3>🎰 皇家賭場</h3>
+                <p>規則：比大小。贏了翻倍，輸了沒收。</p>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <input type="number" id="bet-amount" placeholder="下注金額" style="width:100%; padding:10px; border-radius:5px; border:none;">
+                </div>
+                <div class="btn-grid">
+                    <button class="btn-risk" onclick="gamble('big')">🎲 押大 (5-9)</button>
+                    <button class="btn-risk" onclick="gamble('small')">🎲 押小 (0-4)</button>
+                </div>
+                <p id="casino-msg" style="text-align:center; color:var(--gold); margin-top:10px; height:20px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-profile" class="page">
+        <div class="card">
+            <div class="card-body">
+                <h3>🏆 成就獎盃</h3>
+                <div id="achievement-list"></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h3>📊 詳細資料</h3>
+                <p>職業: <span id="job-title">無業</span></p>
+                <p>智力: <span id="intel">0</span></p>
+                <p>魅力: <span id="charm">0</span></p>
+                <button onclick="restartGame()" style="width:100%; background:#444; margin-top:10px;">🔄 刪除存檔重新開始</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="nav('home')"><span class="nav-icon">🏠</span>生活</div>
+        <div class="nav-item" onclick="nav('assets')"><span class="nav-icon">🏎️</span>資產</div>
+        <div class="nav-item" onclick="nav('casino')"><span class="nav-icon">🎰</span>賭場</div>
+        <div class="nav-item" onclick="nav('profile')"><span class="nav-icon">🏆</span>成就</div>
+    </div>
+
+    <script>
+        // --- 遊戲數據庫 ---
+        const Cars = [
+            { id: 'toyota', name: "國產代步車", price: 600000, charm: 2, img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=100" },
+            { id: 'tesla', name: "特斯拉 Model 3", price: 1800000, charm: 10, img: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=100" },
+            { id: 'porsche', name: "保時捷 911", price: 6000000, charm: 30, img: "https://images.unsplash.com/photo-1503376763036-066120622c74?w=100" },
+            { id: 'ferrari', name: "法拉利 F8", price: 15000000, charm: 60, img: "https://images.unsplash.com/photo-1583121274602-3e2820c698d2?w=100" }
+        ];
+
+        const Houses = [
+            { id: 'apt', name: "單身公寓", price: 3000000, happy: 2, img: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=100" },
+            { id: 'mansion', name: "市中心豪宅", price: 20000000, happy: 10, img: "https://images.unsplash.com/photo-1600596542815-22b5c03295b6?w=100" },
+            { id: 'villa', name: "私人海景別墅", price: 100000000, happy: 30, img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=100" }
+        ];
+
+        let Game = {
+            age: 18, money: 5000, health: 100, happy: 80, intel: 40, charm: 30,
+            inventory: [], // 存放買過的東西 ID
+            achievements: []
+        };
+
+        // --- 核心功能 ---
+        function init() {
+            renderShop();
+            updateUI();
+            log("歡迎來到 V5.0 富豪圖鑑！你的目標是收集所有豪車。");
+        }
+
+        function nav(page) {
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function updateUI() {
+            ['age', 'health', 'happy', 'intel', 'charm'].forEach(k => {
+                let el = document.getElementById(k);
+                if(el) el.innerText = Game[k];
+            });
+            document.getElementById('money-display').innerText = "$" + Game.money.toLocaleString();
+            
+            checkAchievements();
+        }
+
+        function log(msg) {
+            let box = document.getElementById('game-log');
+            box.innerHTML = `<div style="margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:2px;"><span style="color:#888">[${Game.age}歲]</span> ${msg}</div>` + box.innerHTML;
+        }
+
+        // --- 遊戲行動 ---
+        function action(type) {
+            if(Game.health <= 0) return alert("你已經掛了...");
+
+            if(type === 'work') {
+                let base = 25000 + (Game.intel * 500);
+                Game.money += base;
+                Game.health -= 3;
+                Game.happy -= 5;
+                log(`💼 工作賺了 $${base.toLocaleString()}`);
+            } else if(type === 'study') {
+                Game.intel += 3;
+                Game.money -= 1000;
+                log("📚 進修課程，智力 +3 (花費 $1,000)");
+            } else if(type === 'play') {
+                Game.happy += 10;
+                Game.money -= 3000;
+                log("🎮 盡情玩樂，快樂 +10 (花費 $3,000)");
+            } else if(type === 'gym') {
+                Game.health += 4;
+                Game.charm += 2;
+                Game.money -= 500;
+                log("🏋️ 健身鍛煉，健康+4 魅力+2");
+            }
+            limitStat();
+            updateUI();
+        }
+
+        function nextYear() {
+            if(Game.health <= 0) return;
+
+            Game.age++;
+            // 自然消耗
+            Game.health -= 2;
+            Game.happy -= 2;
+            
+            // 資產加成
+            let carBonus = 0;
+            let houseBonus = 0;
+            Game.inventory.forEach(id => {
+                let car = Cars.find(c => c.id === id);
+                if(car) carBonus += car.charm;
+                let house = Houses.find(h => h.id === id);
+                if(house) houseBonus += house.happy;
+            });
+
+            if(carBonus > 0) log(`🏎️ 你的豪車讓你倍感自信 (魅力 +${carBonus})`);
+            if(houseBonus > 0) log(`🏠 住在豪宅裡真舒服 (快樂 +${houseBonus})`);
+            
+            Game.charm += carBonus;
+            Game.happy += houseBonus;
+
+            // 隨機事件
+            if(Math.random() < 0.1) {
+                let lost = Math.floor(Game.money * 0.1);
+                Game.money -= lost;
+                log(`📉 遇到詐騙集團，損失了 $${lost.toLocaleString()}`);
+            }
+
+            if(Game.age >= 100) log("🎂 恭喜你活到了 100 歲！人瑞成就達成！");
+            if(Game.health <= 0) log("💀 你的生命走到了盡頭...");
+
+            limitStat();
+            updateUI();
+        }
+
+        // --- 商店系統 ---
+        function renderShop() {
+            let carHtml = "";
+            Cars.forEach(c => {
+                carHtml += `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px;">
+                    <div style="display:flex; align-items:center;">
+                        <img src="${c.img}" class="item-img">
+                        <div>
+                            <div style="font-weight:bold">${c.name}</div>
+                            <div style="font-size:0.8em; color:#888">魅力 +${c.charm}</div>
+                        </div>
+                    </div>
+                    <button class="btn-buy" onclick="buy('car', '${c.id}')">$${c.price/10000}萬</button>
+                </div>`;
+            });
+            document.getElementById('car-shop').innerHTML = carHtml;
+
+            let houseHtml = "";
+            Houses.forEach(h => {
+                houseHtml += `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px;">
+                    <div style="display:flex; align-items:center;">
+                        <img src="${h.img}" class="item-img">
+                        <div>
+                            <div style="font-weight:bold">${h.name}</div>
+                            <div style="font-size:0.8em; color:#888">快樂 +${h.happy}/年</div>
+                        </div>
+                    </div>
+                    <button class="btn-buy" onclick="buy('house', '${h.id}')">$${h.price/10000}萬</button>
+                </div>`;
+            });
+            document.getElementById('house-shop').innerHTML = houseHtml;
+        }
+
+        function buy(type, id) {
+            let item = type === 'car' ? Cars.find(c => c.id === id) : Houses.find(h => h.id === id);
+            if(Game.inventory.includes(id)) return alert("你已經擁有這個了！");
+            
+            if(Game.money >= item.price) {
+                Game.money -= item.price;
+                Game.inventory.push(id);
+                log(`🎉 恭喜入手！你買下了 ${item.name}`);
+                updateUI();
+            } else {
+                alert("現金不足！");
+            }
+        }
+
+        // --- 賭場系統 ---
+        function gamble(choice) {
+            let input = document.getElementById('bet-amount');
+            let amount = parseInt(input.value);
+            if(!amount || amount <= 0) return alert("請輸入有效金額");
+            if(amount > Game.money) return alert("你的錢不夠！");
+
+            let dice = Math.floor(Math.random() * 10); // 0-9
+            let result = dice >= 5 ? 'big' : 'small';
+            let msg = document.getElementById('casino-msg');
+
+            if(choice === result) {
+                Game.money += amount;
+                msg.innerText = `🎲 開出 ${dice} (${result})！你贏了 $${amount}`;
+                msg.style.color = "#03dac6";
+                log(`🎰 賭場大勝！贏得 $${amount}`);
+            } else {
+                Game.money -= amount;
+                msg.innerText = `🎲 開出 ${dice} (${result})！你輸了...`;
+                msg.style.color = "#cf6679";
+                log(`💸 賭場失利，輸掉 $${amount}`);
+            }
+            updateUI();
+        }
+
+        // --- 成就系統 ---
+        function checkAchievements() {
+            const list = [
+                { id: 'rich', name: "第一桶金", desc: "資產超過 100 萬", check: () => Game.money >= 1000000 },
+                { id: 'tycoon', name: "億萬富翁", desc: "資產超過 1 億", check: () => Game.money >= 100000000 },
+                { id: 'old', name: "長命百歲", desc: "活到 100 歲", check: () => Game.age >= 100 },
+                { id: 'car_king', name: "車神", desc: "擁有法拉利", check: () => Game.inventory.includes('ferrari') }
+            ];
+
+            let html = "";
+            list.forEach(ach => {
+                let unlocked = Game.achievements.includes(ach.id) || ach.check();
+                if(unlocked && !Game.achievements.includes(ach.id)) {
+                    Game.achievements.push(ach.id);
+                    alert(`🏆 解鎖成就：${ach.name}！`);
+                }
+                
+                html += `
+                <div style="background:${unlocked ? '#333' : '#111'}; color:${unlocked ? '#ffd700' : '#555'}; padding:8px; margin-bottom:5px; border-radius:5px;">
+                    <b>${unlocked ? '🏆' : '🔒'} ${ach.name}</b>
+                    <div style="font-size:0.8em">${ach.desc}</div>
+                </div>`;
+            });
+            document.getElementById('achievement-list').innerHTML = html;
+        }
+
+        function limitStat() {
+            Game.health = Math.min(100, Math.max(0, Game.health));
+            Game.happy = Math.min(100, Math.max(0, Game.happy));
+            Game.charm = Math.min(100, Game.charm);
+            Game.intel = Math.min(100, Game.intel);
+        }
+
+        function restartGame() {
+            if(confirm("確定要刪除進度重來嗎？")) location.reload();
+        }
+
+        init();
+    </script>
+</body>
+</html>
