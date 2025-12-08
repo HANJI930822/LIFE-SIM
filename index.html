@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時事人生 V17.0：終極版</title>
+    <title>時事人生</title>
     <style>
         :root {
             --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -149,86 +149,73 @@
         .alert-blue { background: linear-gradient(135deg, #2196f3, #1976d2); color: #fff; }
         
         /* ===== SKILLS ===== */
-.skills-container {
-    margin-top: 10px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.skills-header {
-    padding: 10px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(187, 134, 252, 0.1);
-    transition: all 0.3s;
-    user-select: none;
-}
-
-.skills-header:hover {
-    background: rgba(187, 134, 252, 0.2);
-}
-
-.skills-header:active {
-    transform: scale(0.98);
-}
-
-.skills-title {
-    font-size: 0.9em;
-    font-weight: bold;
-    color: var(--accent);
-}
-
-.skills-toggle {
-    font-size: 1.2em;
-    transition: transform 0.3s;
-    color: var(--accent);
-}
-
-.skills-toggle.collapsed {
-    transform: rotate(-90deg);
-}
-
-.skills-body {
-    padding: 10px;
-    max-height: 500px;
-    overflow: hidden;
-    transition: max-height 0.4s ease, padding 0.3s ease;
-}
-
-.skills-body.collapsed {
-    max-height: 0;
-    padding: 0 10px;
-}
-
-.skill-item {
-    margin-bottom: 8px;
-}
-
-.skill-header {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8em;
-    margin-bottom: 3px;
-    color: var(--text);
-}
-
-.skill-bar-bg {
-    background: #333;
-    height: 6px;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.skill-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--blue), var(--green));
-    transition: width 0.5s ease;
-}
-
+        .skills-container {
+            margin-top: 10px;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .skill-item {
+            margin-bottom: 8px;
+        }
+        
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            margin-bottom: 3px;
+            color: var(--text);
+        }
+        
+        .skill-bar-bg {
+            background: #333;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .skill-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--green));
+            transition: width 0.5s ease;
+        }
+        
+        /* ===== STAMINA ===== */
+        .stamina-container {
+            margin-top: 10px;
+        }
+        
+        .stamina-label {
+            font-size: 0.85em;
+            color: var(--blue);
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .progress-bg {
+            background: #444;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2196f3, #03dac6);
+            width: 100%;
+            transform-origin: left;
+            transform: scaleX(1);
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.6);
+        }
+        
+        .progress-fill.low {
+            background: linear-gradient(90deg, #cf6679, #f44336);
+        }
+        
         /* ===== CARDS ===== */
         .card {
             background: var(--card);
@@ -359,166 +346,136 @@
             pointer-events: none; /* 不擋住按鈕點擊 */
         }
         
-        /* ===== ORIGIN CAROUSEL 輪播式出身選擇 ===== */
-.origin-carousel {
-    position: relative;
-    padding: 20px 50px;
-    min-height: 320px;
-}
-
-.origin-card-wrapper {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-}
-
-.origin-card {
-    background: linear-gradient(135deg, #2a2a3e, #3a3a4e);
-    border: 2px solid rgba(255,255,255,0.2);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: left;
-    transition: all 0.3s;
-    position: relative;
-    z-index: 10;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    animation: fadeIn 0.4s;
-    min-height: 280px;
-}
-
-.origin-card.selected {
-    border-color: var(--accent);
-    background: linear-gradient(135deg, #3a3a5e, #4a4a6e);
-    box-shadow: 0 0 25px var(--accent-glow);
-}
-
-.origin-card.selected::before {
-    content: '✓ 已選擇';
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: var(--accent);
-    color: #fff;
-    padding: 5px 12px;
-    border-radius: 15px;
-    font-size: 0.8em;
-    font-weight: bold;
-    z-index: 20;
-    pointer-events: none;
-}
-
-.origin-name {
-    font-weight: bold;
-    color: var(--gold);
-    font-size: 1.4em;
-    margin-bottom: 8px;
-    padding-right: 80px;
-}
-
-.origin-desc {
-    font-size: 0.95em;
-    color: var(--text-dim);
-    margin: 8px 0;
-    line-height: 1.5;
-}
-
-.origin-parents {
-    font-size: 0.9em;
-    color: #888;
-    margin: 8px 0;
-    font-style: italic;
-    background: rgba(255,255,255,0.05);
-    padding: 5px 10px;
-    border-radius: 5px;
-    display: inline-block;
-}
-
-.origin-stats {
-    color: var(--green);
-    font-size: 0.9em;
-    margin-top: 12px;
-    line-height: 1.8;
-    background: rgba(3, 218, 198, 0.1);
-    padding: 10px;
-    border-radius: 8px;
-    border-left: 3px solid var(--green);
-}
-
-/* 左右切換按鈕 */
-.carousel-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--accent), #9c27b0);
-    border: none;
-    border-radius: 50%;
-    color: white;
-    font-size: 1.5em;
-    cursor: pointer;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 15px rgba(187, 134, 252, 0.4);
-    transition: all 0.3s;
-    pointer-events: auto;
-}
-
-.carousel-btn:hover {
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 6px 20px rgba(187, 134, 252, 0.6);
-}
-
-.carousel-btn:active {
-    transform: translateY(-50%) scale(0.95);
-}
-
-.carousel-btn.prev {
-    left: 0;
-}
-
-.carousel-btn.next {
-    right: 0;
-}
-
-/* 指示器 */
-.carousel-indicator {
-    text-align: center;
-    margin-top: 15px;
-    font-size: 0.9em;
-    color: var(--text-dim);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-}
-
-.indicator-dots {
-    display: flex;
-    gap: 6px;
-}
-
-.indicator-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.3);
-    transition: all 0.3s;
-}
-
-.indicator-dot.active {
-    background: var(--accent);
-    width: 24px;
-    border-radius: 4px;
-}
-
-.origin-counter {
-    font-weight: bold;
-    color: var(--accent);
-}
-
+        /* ===== ORIGIN SELECTION ===== */
+        #scene-creation {
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .creation-title {
+            font-size: 2em;
+            background: var(--bg-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .origin-card {
+            background: linear-gradient(135deg, #2a2a3e, #3a3a4e);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s;
+            position: relative;
+            z-index: 10; /* 確保可點擊 */
+            pointer-events: auto;
+        }
+        
+        .origin-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(187, 134, 252, 0.3);
+            border-color: rgba(187, 134, 252, 0.5);
+        }
+        
+        .origin-card.selected {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, #3a3a5e, #4a4a6e);
+            box-shadow: 0 0 25px var(--accent-glow);
+        }
+        
+        .origin-card.selected::before {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            z-index: 20;
+            pointer-events: none;
+        }
+        
+        .origin-name {
+            font-weight: bold;
+            color: var(--gold);
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        
+        .origin-desc {
+            font-size: 0.9em;
+            color: var(--text-dim);
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+        
+        .origin-parents {
+            font-size: 0.85em;
+            color: #888;
+            margin: 5px 0;
+            font-style: italic;
+        }
+        
+        .origin-stats {
+            color: var(--green);
+            font-size: 0.85em;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+        
+        /* ===== INPUT GROUPS ===== */
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text);
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+        
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: var(--text);
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            position: relative;
+            z-index: 10;
+            pointer-events: auto;
+        }
+        
+        .input-group input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+        
         /* ===== MODAL ===== */
         .modal-overlay {
             position: fixed;
@@ -745,44 +702,41 @@
             -webkit-tap-highlight-color: rgba(187, 134, 252, 0.3);
             touch-action: manipulation;
         }
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
     </style>
 </head>
 <body>
 
     <!-- 創角畫面 -->
-   <div id="scene-creation">
-    <h1 class="creation-title">🧬 投胎模擬器 V17.0</h1>
-    
-    <div class="card">
-        <div class="card-body">
-            <div class="input-group">
-                <label>✏️ 姓名</label>
-                <input type="text" id="inp-name" placeholder="輸入姓名" maxlength="8" value="測試玩家">
-            </div>
-            <div class="input-group">
-                <label>🚻 性別</label>
-                <select id="inp-gender">
-                    <option value="男">👨 男生</option>
-                    <option value="女">👩 女生</option>
-                    <option value="其他">🌈 其他</option>
-                </select>
+    <div id="scene-creation">
+        <h1 class="creation-title">🧬 投胎模擬器 V17.0</h1>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="input-group">
+                    <label>✏️ 姓名</label>
+                    <input type="text" id="inp-name" placeholder="輸入姓名" maxlength="8" value="測試玩家">
+                </div>
+                <div class="input-group">
+                    <label>🚻 性別</label>
+                    <select id="inp-gender">
+                        <option value="男">👨 男生</option>
+                        <option value="女">👩 女生</option>
+                        <option value="其他">🌈 其他</option>
+                    </select>
+                </div>
             </div>
         </div>
+        
+        <h3 class="section-title">🎲 選擇出身背景 (點擊卡片選擇)</h3>
+        <div id="origin-list"></div>
+        
+        <button class="btn-main" onclick="startGame()">🚀 開始人生冒險</button>
     </div>
-    
-    <h3 class="section-title">🎲 選擇出身背景</h3>
-    <div class="origin-carousel">
-        <button class="carousel-btn prev" onclick="changeOrigin(-1)">‹</button>
-        <div class="origin-card-wrapper" id="origin-display"></div>
-        <button class="carousel-btn next" onclick="changeOrigin(1)">›</button>
-    </div>
-    <div class="carousel-indicator">
-        <span class="origin-counter"><span id="current-origin">1</span> / <span id="total-origins">18</span></span>
-        <div class="indicator-dots" id="indicator-dots"></div>
-    </div>
-    
-    <button class="btn-main" onclick="startGame()">🚀 開始人生冒險</button>
-</div>
 
     <!-- 遊戲主畫面 -->
     <div id="scene-game">
@@ -1124,8 +1078,105 @@
                 parents: '父:角頭老大 / 母:酒店經理', 
                 money: 500000, intel: 45, happy: 60, yearlyMoney: 20000, 
                 buff: '🗡️ 魅力+20，健康+15，但風險高'
-            }
-        ];
+            },
+    
+    { 
+        id: 'royal', name: '皇室貴族', 
+        desc: '遙遠國度的皇室後裔，流落民間但血統高貴。從小受貴族禮儀教育。', 
+        parents: '父:流亡王子 / 母:伯爵千金', 
+        money: 10000000, intel: 70, happy: 60, yearlyMoney: 200000, 
+        buff: '👑 初始1000萬 + 超高魅力 + 社交圈特殊',
+        special: 'royal' // 特殊標記
+    },
+    { 
+        id: 'hacker', name: '駭客世家', 
+        desc: '父母都是頂尖資安專家，家裡三台伺服器24小時運轉。從小接觸暗網。', 
+        parents: '父:白帽駭客 / 母:資安專家', 
+        money: 300000, intel: 100, happy: 65, yearlyMoney: 8000, 
+        buff: '💻 程式設計+50 + 駭客技能解鎖',
+        special: 'hacker'
+    },
+    { 
+        id: 'detective', name: '偵探世家', 
+        desc: '祖父是名偵探，父親是刑警，從小耳濡目染破案技巧與推理能力。', 
+        parents: '父:刑警 / 母:法醫', 
+        money: 180000, intel: 90, happy: 70, yearlyMoney: 4000, 
+        buff: '🔍 智力+40 + 觀察力超群',
+        special: 'detective'
+    },
+    { 
+        id: 'chef_family', name: '米其林世家', 
+        desc: '家族經營米其林三星餐廳，從小在廚房長大，對美食有極致追求。', 
+        parents: '父:主廚 / 母:甜點師', 
+        money: 500000, intel: 60, happy: 85, yearlyMoney: 12000, 
+        buff: '🍳 烹飪+60 + 藝術+20 + 餐飲人脈',
+        special: 'chef'
+    },
+    { 
+        id: 'monk', name: '寺廟修行', 
+        desc: '在深山古寺長大，自幼跟隨師父修行，遠離紅塵喧囂。', 
+        parents: '師父:住持', 
+        money: 5000, intel: 75, happy: 90, yearlyMoney: 0, 
+        buff: '🙏 健康+25 + 快樂+10 + 心境平和',
+        special: 'monk'
+    },
+    { 
+        id: 'circus', name: '馬戲團家族', 
+        desc: '父母都是馬戲團表演者，從小學習雜技與表演，四處巡迴演出。', 
+        parents: '父:空中飛人 / 母:魔術師', 
+        money: 50000, intel: 50, happy: 80, yearlyMoney: 2000, 
+        buff: '🎪 魅力+25 + 健康+10 + 表演技巧',
+        special: 'circus'
+    },
+    { 
+        id: 'diplomat', name: '外交官家庭', 
+        desc: '父親是駐外大使，從小在各國使館長大，精通多國語言。', 
+        parents: '父:外交官 / 母:翻譯官', 
+        money: 1200000, intel: 85, happy: 75, yearlyMoney: 25000, 
+        buff: '🌍 溝通+35 + 國際視野 + 語言天賦',
+        special: 'diplomat'
+    },
+    { 
+        id: 'esports', name: '電競世家', 
+        desc: '父母都是退役電競選手，現經營電競戰隊。家裡就是訓練基地。', 
+        parents: '父:前世界冠軍 / 母:戰隊教練', 
+        money: 600000, intel: 65, happy: 85, yearlyMoney: 15000, 
+        buff: '🎮 反應力超群 + 遊戲產業人脈',
+        special: 'esports'
+    },
+    { 
+        id: 'spy', name: '情報員後代', 
+        desc: '父親的真實身份是特務，母親是密碼專家。家族歷史充滿謎團。', 
+        parents: '父:情報員 / 母:密碼專家', 
+        money: 800000, intel: 95, happy: 60, yearlyMoney: 20000, 
+        buff: '🕵️ 智力+45 + 隱密技能 + 危險感知',
+        special: 'spy'
+    },
+    { 
+        id: 'archaeologist', name: '考古學家族', 
+        desc: '父母都是考古學家，從小跟著去世界各地挖掘古文明遺跡。', 
+        parents: '父:考古教授 / 母:博物館館長', 
+        money: 250000, intel: 88, happy: 78, yearlyMoney: 6000, 
+        buff: '🏺 智力+38 + 歷史知識豐富',
+        special: 'archaeologist'
+    },
+    { 
+        id: 'fashion', name: '時尚名門', 
+        desc: '家族經營精品時尚品牌，從小參加時裝週，走在潮流尖端。', 
+        parents: '父:時尚設計師 / 母:名模', 
+        money: 3000000, intel: 60, happy: 80, yearlyMoney: 50000, 
+        buff: '👗 魅力+35 + 藝術+25 + 時尚圈人脈',
+        special: 'fashion'
+    },
+    { 
+        id: 'scientist_family', name: '諾貝爾世家', 
+        desc: '祖父是諾貝爾獎得主，父母都是頂尖科學家，家族基因優異。', 
+        parents: '父:物理學家 / 母:化學家', 
+        money: 1500000, intel: 130, happy: 70, yearlyMoney: 30000, 
+        buff: '🔬 智力+80 + 科研資源無限',
+        special: 'scientist'
+    }
+];
 
         const JOBS = [
             { id: 'none', name: '無業', salary: 0, requirement: {}, effect: null, desc: '待業中' },
@@ -1170,8 +1221,36 @@
             { id: 'police', name: '警察', salary: 65000, requirement: { health: 70, communication: 50 }, 
               effect: (g) => { g.health -= 3; g.happy -= 5; }, desc: '維護社會治安，但有職業風險' },
             { id: 'designer', name: '設計師', salary: 70000, requirement: { art: 80, programming: 40 }, 
-              effect: (g) => { g.skills.art += 3; g.happy += 3; }, desc: '發揮創意，工作自由度高' }
-        ];
+              effect: (g) => { g.skills.art += 3; g.happy += 3; }, desc: '發揮創意，工作自由度高' },
+{ id: 'hacker_pro', name: '職業駭客', salary: 250000, requirement: { intel: 100, programming: 100 }, 
+  originRequired: 'hacker', // 只有駭客世家能選
+  effect: (g) => { g.skills.programming += 5; g.money += Math.floor(Math.random() * 500000); }, 
+  desc: '暗網接案，收入極高但有風險' },
+
+{ id: 'royal_advisor', name: '皇室顧問', salary: 300000, requirement: { intel: 110, communication: 90 }, 
+  originRequired: 'royal',
+  effect: (g) => { g.skills.charm += 3; g.happy += 10; }, 
+  desc: '為皇室提供諮詢服務' },
+
+{ id: 'esports_player', name: '電競選手', salary: 150000, requirement: { intel: 70 }, 
+  originRequired: 'esports',
+  effect: (g) => { 
+      if(g.age > 28) { g.happy -= 15; log('⚠️ 年齡漸長，競技狀態下滑'); }
+      g.happy += 15; 
+  }, 
+  desc: '職業電競，25歲前黃金期' },
+
+{ id: 'spy_agent', name: '特務', salary: 200000, requirement: { intel: 100, health: 80 }, 
+  originRequired: 'spy',
+  effect: (g) => { g.health -= 8; g.money += Math.floor(Math.random() * 300000); }, 
+  desc: '執行危險任務，高風險高回報' },
+
+{ id: 'michelin_chef', name: '米其林主廚', salary: 180000, requirement: { cooking: 100, art: 60 }, 
+  originRequired: 'chef_family',
+  effect: (g) => { g.skills.cooking += 5; g.skills.art += 2; g.happy += 8; }, 
+  desc: '【米其林世家限定】頂級料理人' }
+];
+
 
         const ACHIEVEMENTS = [
             { id: 'first_job', name: '初入職場', desc: '獲得第一份工作', icon: '💼', check: (g) => g.jobId !== 'none' },
@@ -1193,7 +1272,29 @@
             { id: 'perfect', name: '完美人生', desc: '60歲時健康/快樂/金錢都>高標', icon: '👑', check: (g) => g.age >= 60 && g.health > 80 && g.happy > 80 && g.money > 10000000 },
             { id: 'workaholic', name: '工作狂', desc: '在同一職位工作超過20年', icon: '📊', check: (g) => g.jobYears >= 20 },
             { id: 'debt_free', name: '無債一身輕', desc: '從負債狀態翻身到資產100萬', icon: '🎯', check: (g) => g.hasBeenInDebt && g.money >= 1000000 },
-            { id: 'rags_to_riches', name: '屌絲逆襲', desc: '從貧困出身成為億萬富翁', icon: '🚀', check: (g) => ['genius', 'single_parent', 'orphan', 'farmer'].includes(g.originId) && g.money >= 100000000 }
+            { id: 'rags_to_riches', name: '屌絲逆襲', desc: '從貧困出身成為億萬富翁', icon: '🚀', check: (g) => ['genius', 'single_parent', 'orphan', 'farmer'].includes(g.originId) && g.money >= 100000000 },
+    
+    { id: 'royal_glory', name: '王者歸來', desc: '【皇室貴族】資產達10億', icon: '👑', 
+      check: (g) => g.originId === 'royal' && g.money >= 1000000000 },
+    
+    { id: 'hacker_legend', name: '暗網傳說', desc: '【駭客世家】程式設計達180', icon: '💻', 
+      check: (g) => g.originId === 'hacker' && g.skills.programming >= 180 },
+    
+    { id: 'monk_enlightenment', name: '得道高僧', desc: '【寺廟修行】80歲時快樂>90', icon: '🙏', 
+      check: (g) => g.originId === 'monk' && g.age >= 80 && g.happy > 90 },
+    
+    { id: 'mafia_boss', name: '黑道教父', desc: '【黑道世家】魅力150+資產5000萬', icon: '🗡️', 
+      check: (g) => g.originId === 'mafia' && g.skills.charm >= 150 && g.money >= 50000000 },
+    
+    { id: 'esports_champion', name: '電競冠軍', desc: '【電競世家】30歲前資產3000萬', icon: '🎮', 
+      check: (g) => g.originId === 'esports' && g.age <= 30 && g.money >= 30000000 },
+    
+    { id: 'spy_master', name: '諜報大師', desc: '【情報員後代】智力150+健康80', icon: '🕵️', 
+      check: (g) => g.originId === 'spy' && g.intel >= 150 && g.health >= 80 },
+    
+    { id: 'fashion_icon', name: '時尚教主', desc: '【時尚名門】魅力160+資產5000萬', icon: '👗', 
+      check: (g) => g.originId === 'fashion' && g.skills.charm >= 160 && g.money >= 50000000 }
+
         ];
 
         const LIFE_STAGES = [
@@ -1236,7 +1337,8 @@
         // ==========================================
         // 🔴 遊戲狀態
         // ==========================================
-        let currentOriginIndex = 0;
+        let currentJobIndex = 0;  // 當前顯示的職業索引
+	let currentOriginIndex = 0;  // 當前顯示的出身索引
         let Game = {
             name: '', origin: '', originId: '', age: 0, gender: '男',
             money: 0, health: 100, happy: 80, intel: 50,
@@ -1284,156 +1386,100 @@
         // ==========================================
         // 🔴 初始化
         // ==========================================
-
-function initCreation() {
-    console.log('initCreation 開始執行');
-    console.log('ORIGINS 數量:', ORIGINS.length);
-    
-    // 設定總數
-    const totalElement = document.getElementById('total-origins');
-    if (totalElement) {
-        totalElement.textContent = ORIGINS.length;
-    }
-    
-    // 生成指示器點點
-    let dotsHtml = '';
-    ORIGINS.forEach((_, index) => {
-        dotsHtml += `<div class="indicator-dot ${index === 0 ? 'active' : ''}" onclick="goToOrigin(${index})"></div>`;
-    });
-    
-    const dotsElement = document.getElementById('indicator-dots');
-    if (dotsElement) {
-        dotsElement.innerHTML = dotsHtml;
-    }
-    
-    // 顯示第一個出身
+        
+        function initCreation() {
     renderOriginCard();
-    
-    // 鍵盤左右鍵支援
-    document.addEventListener('keydown', function(e) {
-        const creationScene = document.getElementById('scene-creation');
-        if (creationScene && creationScene.style.display !== 'none') {
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                changeOrigin(-1);
-            }
-            if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                changeOrigin(1);
-            }
-        }
-    });
-    
-    console.log('initCreation 執行完成');
 }
 
 function renderOriginCard() {
-    console.log('renderOriginCard 執行，當前索引:', currentOriginIndex);
+    // 確保索引在範圍內
+    if (currentOriginIndex >= ORIGINS.length) currentOriginIndex = 0;
+    if (currentOriginIndex < 0) currentOriginIndex = ORIGINS.length - 1;
     
-    const origin = ORIGINS[currentOriginIndex];
-    if (!origin) {
-        console.error('找不到 origin，索引:', currentOriginIndex);
-        return;
-    }
+    const o = ORIGINS[currentOriginIndex];
     
-    selectedOriginId = origin.id;
-    console.log('選擇的出身:', origin.name);
-    
-    const html = `
-        <div class="origin-card selected" data-origin-id="${origin.id}">
-            <div class="origin-name">${origin.name}</div>
-            <div class="origin-parents">👨‍👩‍👧 ${origin.parents}</div>
-            <div class="origin-desc">${origin.desc}</div>
-            <div class="origin-stats">
-                💰 初始資金: $${origin.money.toLocaleString()}<br>
-                🧠 智力: ${origin.intel} | 😊 快樂: ${origin.happy}<br>
-                📅 年零用錢: $${origin.yearlyMoney.toLocaleString()}<br>
-                ✨ ${origin.buff}
+    let html = `
+        <div style="position: relative; min-height: 400px;">
+            <!-- 左箭頭 -->
+            <button onclick="prevOrigin()" 
+                    style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); 
+                           width: 60px; height: 60px; border-radius: 50%; font-size: 2em; 
+                           background: linear-gradient(135deg, #444, #555); z-index: 100; 
+                           border: 3px solid var(--accent); box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                ◀
+            </button>
+            
+            <!-- 右箭頭 -->
+            <button onclick="nextOrigin()" 
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); 
+                           width: 60px; height: 60px; border-radius: 50%; font-size: 2em; 
+                           background: linear-gradient(135deg, #444, #555); z-index: 100; 
+                           border: 3px solid var(--accent); box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                ▶
+            </button>
+            
+            <!-- 出身卡片 -->
+            <div style="padding: 0 80px;">
+                <div class="origin-card selected" onclick="selectOrigin('${o.id}')" data-origin-id="${o.id}"
+                     style="transform: scale(1.02); box-shadow: 0 10px 30px rgba(187, 134, 252, 0.4);">
+                    <div class="origin-name" style="font-size: 1.8em; text-align: center; margin-bottom: 10px;">
+                        ${o.name}
+                    </div>
+                    <div class="origin-parents" style="text-align: center; font-size: 1em; margin-bottom: 10px;">
+                        👨‍👩‍👦 ${o.parents}
+                    </div>
+                    <div class="origin-desc" style="line-height: 1.6; margin: 15px 0; font-size: 0.95em;">
+                        ${o.desc}
+                    </div>
+                    <div class="origin-stats" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+                        <div style="margin-bottom: 8px;">💰 初始資金: <span style="color: var(--gold); font-weight: bold;">$${o.money.toLocaleString()}</span></div>
+                        <div style="margin-bottom: 8px;">🧠 智力: ${o.intel} | 😊 快樂: ${o.happy}</div>
+                        <div style="margin-bottom: 8px;">📅 年收入: $${o.yearlyMoney.toLocaleString()}</div>
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); color: var(--green);">
+                            ✨ ${o.buff}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 指示器 -->
+                <div style="text-align: center; margin-top: 20px; color: var(--text-dim);">
+                    <div style="font-size: 1.1em; margin-bottom: 5px;">
+                        出身 ${currentOriginIndex + 1} / ${ORIGINS.length}
+                    </div>
+                    <div style="font-size: 0.9em;">
+                        💡 左右切換查看更多出身背景
+                    </div>
+                </div>
             </div>
         </div>
     `;
     
-    const displayElement = document.getElementById('origin-display');
-    if (displayElement) {
-        displayElement.innerHTML = html;
-        console.log('卡片已渲染');
-    } else {
-        console.error('找不到 origin-display 元素');
-    }
+    document.getElementById('origin-list').innerHTML = html;
     
-    const currentElement = document.getElementById('current-origin');
-    if (currentElement) {
-        currentElement.textContent = currentOriginIndex + 1;
-    }
-    
-    // 更新指示器
-    document.querySelectorAll('.indicator-dot').forEach((dot, index) => {
-        if (index === currentOriginIndex) {
-            dot.classList.add('active');
-        } else {
-            dot.classList.remove('active');
-        }
-    });
+    // 自動選中當前出身
+    selectOrigin(o.id);
 }
 
-function changeOrigin(direction) {
-    console.log('切換出身，方向:', direction);
-    currentOriginIndex += direction;
-    
-    // 循環
-    if (currentOriginIndex < 0) {
-        currentOriginIndex = ORIGINS.length - 1;
-    } else if (currentOriginIndex >= ORIGINS.length) {
-        currentOriginIndex = 0;
-    }
-    
-    console.log('新索引:', currentOriginIndex);
-    renderOriginCard();
-}
-
-function goToOrigin(index) {
-    console.log('跳轉到出身:', index);
-    currentOriginIndex = index;
-    renderOriginCard();
-}
-
-function selectOrigin(id) {
-    // 保留這個函數以防其他地方調用
-    selectedOriginId = id;
-    console.log('selectOrigin 被調用，id:', id);
-}
-
-function changeOrigin(direction) {
-    currentOriginIndex += direction;
-    
-    // 循環
-    if (currentOriginIndex < 0) {
-        currentOriginIndex = ORIGINS.length - 1;
-    } else if (currentOriginIndex >= ORIGINS.length) {
-        currentOriginIndex = 0;
-    }
-    
-    renderOriginCard();
-}
-
-function goToOrigin(index) {
-    currentOriginIndex = index;
-    renderOriginCard();
-}
-
-function selectOrigin(id) {
-    // 保留這個函數以防其他地方調用
-    selectedOriginId = id;
-}
 
         function selectOrigin(id) {
             selectedOriginId = id;
-            document.querySelectorAll('.origin-card').forEach(c => c.classList.remove('selected'));
-            const selectedCard = document.querySelector(`[data-origin-id="${id}"]`);
-            if (selectedCard) {
-                selectedCard.classList.add('selected');
-            }
         }
+	function prevOrigin() {
+    currentOriginIndex--;
+    if (currentOriginIndex < 0) {
+        currentOriginIndex = ORIGINS.length - 1;
+    }
+    renderOriginCard();
+}
+
+function nextOrigin() {
+    currentOriginIndex++;
+    if (currentOriginIndex >= ORIGINS.length) {
+        currentOriginIndex = 0;
+    }
+    renderOriginCard();
+}
+
 
         function startGame() {
             const name = document.getElementById('inp-name').value.trim();
@@ -1496,7 +1542,76 @@ function selectOrigin(id) {
             if (origin.id === 'temple') { Game.skills.communication += 15; Game.happy += 5; }
             if (origin.id === 'mafia') { Game.skills.charm += 20; Game.health += 15; }
             if (origin.id === 'star') Game.skills.charm += 30;
-            
+            switch(origin.id) {
+    case 'royal':
+        Game.relationships.push({ 
+            id: 'butler', name: '管家阿爾弗雷德', type: 'servant', 
+            relation: 80, role: '忠誠管家' 
+        });
+        Game.skills.charm += 30;
+        break;
+    case 'mafia':
+        Game.relationships.push({ 
+            id: 'bodyguard', name: '保鑣阿強', type: 'subordinate', 
+            relation: 70, role: '貼身保鑣' 
+        });
+        break;
+    case 'hacker':
+        Game.relationships.push({ 
+            id: 'mentor', name: '駭客導師 Ghost', type: 'mentor', 
+            relation: 85, role: '技術導師' 
+        });
+        Game.skills.programming += 50;
+        break;
+    case 'monk':
+        Game.relationships.push({ 
+            id: 'master', name: '師父玄空', type: 'master', 
+            relation: 95, role: '授業恩師' 
+        });
+        Game.health += 25;
+        Game.happy += 10;
+        break;
+    case 'spy':
+        Game.relationships.push({ 
+            id: 'handler', name: '接頭人 Mr. Smith', type: 'contact', 
+            relation: 60, role: '神秘接頭人' 
+        });
+        break;
+    case 'chef_family':
+        Game.relationships.push({ 
+            id: 'sous_chef', name: '副主廚老李', type: 'colleague', 
+            relation: 75, role: '廚房夥伴' 
+        });
+        Game.skills.cooking += 60;
+        Game.skills.art += 20;
+        break;
+    case 'detective':
+        Game.relationships.push({ 
+            id: 'partner', name: '搭檔老王', type: 'partner', 
+            relation: 80, role: '最佳拍檔' 
+        });
+        break;
+    case 'esports':
+        Game.relationships.push({ 
+            id: 'coach', name: '教練', type: 'coach', 
+            relation: 75, role: '戰隊教練' 
+        });
+        break;
+    case 'fashion':
+        Game.relationships.push({ 
+            id: 'stylist', name: '造型師', type: 'stylist', 
+            relation: 70, role: '御用造型師' 
+        });
+        Game.skills.charm += 35;
+        Game.skills.art += 25;
+        break;
+    case 'scientist_family':
+        Game.relationships.push({ 
+            id: 'lab_assistant', name: '實驗助理', type: 'assistant', 
+            relation: 75, role: '研究助理' 
+        });
+        break;
+}
             // 應用天賦效果
             Game.talents.forEach(t => t.effect(Game));
             
@@ -1553,47 +1668,34 @@ function selectOrigin(id) {
             });
             document.getElementById('talent-display').innerHTML = talentHtml;
             
-           // 技能條（在 updateUI 函數內）
-let skillHtml = '';
-const skillNames = {
-    programming: '💻 程式',
-    art: '🎨 藝術',
-    medical: '⚕️ 醫療',
-    cooking: '🍳 烹飪',
-    finance: '💰 理財',
-    communication: '💬 溝通',
-    charm: '✨ 魅力'
-};
-
-Object.keys(Game.skills).forEach(key => {
-    const val = Math.min(200, Math.floor(Game.skills[key]));
-    const percent = (val / 200) * 100;
-    skillHtml += `
-        <div class="skill-item">
-            <div class="skill-header">
-                <span>${skillNames[key]}</span>
-                <span>${val}</span>
-            </div>
-            <div class="skill-bar-bg">
-                <div class="skill-bar-fill" style="width: ${percent}%"></div>
-            </div>
-        </div>
-    `;
-});
-
-// 檢查是否有保存的折疊狀態
-const isCollapsed = localStorage.getItem('skillsCollapsed') === 'true';
-const collapsedClass = isCollapsed ? 'collapsed' : '';
-
-document.getElementById('skills-container').innerHTML = `
-    <div class="skills-header" onclick="toggleSkills()">
-        <div class="skills-title">📊 技能面板</div>
-        <div class="skills-toggle ${collapsedClass}">▼</div>
-    </div>
-    <div class="skills-body ${collapsedClass}">
-        ${skillHtml}
-    </div>
-`;
+            // 技能條
+            let skillHtml = '';
+            const skillNames = {
+                programming: '💻 程式',
+                art: '🎨 藝術',
+                medical: '⚕️ 醫療',
+                cooking: '🍳 烹飪',
+                finance: '💰 理財',
+                communication: '💬 溝通',
+                charm: '✨ 魅力'
+            };
+            
+            Object.keys(Game.skills).forEach(key => {
+                const val = Math.min(200, Math.floor(Game.skills[key]));
+                const percent = (val / 200) * 100;
+                skillHtml += `
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span>${skillNames[key]}</span>
+                            <span>${val}</span>
+                        </div>
+                        <div class="skill-bar-bg">
+                            <div class="skill-bar-fill" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('skills-container').innerHTML = skillHtml;
             
             // 體力條
             const stamina = Math.max(0, Math.min(100, Game.stamina));
@@ -1913,7 +2015,9 @@ document.getElementById('skills-container').innerHTML = `
             
             log(`🎂 ${Game.age} 歲了`);
             
-                       
+            if (Math.random() < 0.15) {
+   		 triggerOriginEvent();
+	    }           
             // 隨機事件 25% 機率
             if (Math.random() < 0.25) {
                 triggerRandomEvent();
@@ -1931,6 +2035,120 @@ document.getElementById('skills-container').innerHTML = `
             renderSocial();
             renderStats();
         }
+
+if (Math.random() < 0.15) { // 15% 機率觸發專屬事件
+    triggerOriginEvent();
+}
+
+// 新增函數
+function triggerOriginEvent() {
+    const originEvents = {
+        'rich': [
+            { title: '🏢 家族企業危機', desc: '父親公司遭惡意收購', 
+              choices: [
+                { txt: '投資500萬救公司', cost: 5000000, effect: (g) => { 
+                    if(g.money >= 5000000) { g.money -= 5000000; g.money += 10000000; return '成功拯救，賺回1000萬'; }
+                    return '資金不足'; 
+                }},
+                { txt: '袖手旁觀', effect: (g) => { g.yearlyMoney = 0; g.happy -= 20; return '家族企業倒閉'; }}
+              ]
+            },
+            { title: '💎 繼承遺產', desc: '遠房親戚留下遺產', 
+              effect: (g) => { g.money += 3000000; return '獲得300萬遺產'; }}
+        ],
+        'genius': [
+            { title: '🎓 獎學金機會', desc: '頂尖大學提供全額獎學金', 
+              effect: (g) => { g.intel += 20; g.money += 500000; return '智力+20 並獲得50萬獎學金'; }}
+        ],
+        'mafia': [
+            { title: '🗡️ 幫派鬥爭', desc: '敵對幫派找上門來', 
+              choices: [
+                { txt: '正面對決', effect: (g) => { 
+                    if(Math.random() > 0.5) { g.money += 1000000; g.health -= 20; return '打贏了，搶到100萬'; }
+                    else { g.health -= 40; g.money -= 500000; return '重傷住院'; }
+                }},
+                { txt: '談判和解', effect: (g) => { g.money -= 300000; g.skills.communication += 10; return '花30萬擺平'; }}
+              ]
+            }
+        ],
+        'hacker': [
+            { title: '💻 暗網委託', desc: '收到高額駭客任務委託', 
+              choices: [
+                { txt: '接受任務', effect: (g) => { 
+                    if(g.skills.programming > 80) { g.money += 2000000; return '任務成功，賺200萬'; }
+                    else { g.happy -= 15; return '技術不足，失敗'; }
+                }},
+                { txt: '拒絕', effect: (g) => { g.happy += 5; return '保持道德底線'; }}
+              ]
+            }
+        ],
+        'royal': [
+            { title: '👑 皇室召見', desc: '遠房皇室親戚邀請參加宴會', 
+              effect: (g) => { g.skills.charm += 15; g.money += 500000; return '社交圈大增'; }}
+        ],
+        'monk': [
+            { title: '🙏 頓悟時刻', desc: '修行時突然開悟', 
+              effect: (g) => { g.happy += 30; g.intel += 10; g.health += 15; return '身心靈提升'; }}
+        ],
+        'esports': [
+            { title: '🎮 戰隊邀請', desc: '職業戰隊想簽約你', 
+              choices: [
+                { txt: '簽約', effect: (g) => { g.jobId = 'esports_player'; g.money += 800000; return '成為職業選手'; }},
+                { txt: '拒絕', effect: (g) => { return '專注本業'; }}
+              ]
+            }
+        ],
+        'spy': [
+            { title: '🕵️ 機密任務', desc: '父親希望你協助情報工作', 
+              effect: (g) => { 
+                  if(g.intel > 90) { g.money += 1500000; g.health -= 10; return '任務成功但有風險'; }
+                  else { g.happy -= 10; return '能力不足'; }
+              }}
+        ]
+    };
+    
+    const originId = Game.originId;
+    const events = originEvents[originId];
+    
+    if (events && events.length > 0) {
+        const event = events[Math.floor(Math.random() * events.length)];
+        
+        if (event.choices) {
+            showOriginEventModal(event);
+        } else if (event.effect) {
+            const result = event.effect(Game);
+            log(`🎭 【${Game.origin}專屬】${event.title}：${result}`);
+            Game.totalEvents++;
+        }
+    }
+}
+
+function showOriginEventModal(event) {
+    document.getElementById('ev-title').textContent = `【${Game.origin}】${event.title}`;
+    document.getElementById('ev-desc').textContent = event.desc;
+    
+    const btnA = document.getElementById('btn-choice-a');
+    const btnB = document.getElementById('btn-choice-b');
+    
+    btnA.textContent = event.choices[0].txt;
+    btnB.textContent = event.choices[1].txt;
+    
+    btnA.onclick = () => {
+        const result = event.choices[0].effect(Game);
+        log(`   └─ 選擇：${event.choices[0].txt} → ${result}`);
+        closeModal();
+        updateUI();
+    };
+    
+    btnB.onclick = () => {
+        const result = event.choices[1].effect(Game);
+        log(`   └─ 選擇：${event.choices[1].txt} → ${result}`);
+        closeModal();
+        updateUI();
+    };
+    
+    document.getElementById('event-modal').style.display = 'flex';
+}
 
         // ==========================================
         // 🔴 隨機事件系統
@@ -2113,46 +2331,120 @@ document.getElementById('skills-container').innerHTML = `
             }, 3000);
         }
 
-        function renderJobs() {
-            let html = '';
+       function renderJobs() {
+    // 過濾可用職業（排除 none 和出身限定職業）
+    const availableJobs = JOBS.filter(job => {
+        if (job.id === 'none') return false;
+        if (job.originRequired && job.originRequired !== Game.originId) return false;
+        return true;
+    });
+    
+    if (availableJobs.length === 0) {
+        document.getElementById('job-list').innerHTML = '<div style="text-align: center; color: var(--text-dim); padding: 30px;">暫無可用職業</div>';
+        return;
+    }
+    
+    // 確保索引不超出範圍
+    if (currentJobIndex >= availableJobs.length) currentJobIndex = 0;
+    if (currentJobIndex < 0) currentJobIndex = availableJobs.length - 1;
+    
+    const job = availableJobs[currentJobIndex];
+    
+    // 檢查是否符合條件
+    let canApply = true;
+    let reqText = '';
+    
+    if (job.requirement) {
+        Object.keys(job.requirement).forEach(key => {
+            const required = job.requirement[key];
+            const current = key === 'intel' ? Game.intel : (key === 'health' ? Game.health : Game.skills[key] || 0);
             
-            JOBS.forEach(job => {
-                if (job.id === 'none') return;
-                
-                let canApply = true;
-                let reqText = '';
-                
-                if (job.requirement) {
-                    Object.keys(job.requirement).forEach(key => {
-                        const required = job.requirement[key];
-                        const current = key === 'intel' ? Game.intel : (key === 'health' ? Game.health : Game.skills[key] || 0);
-                        
-                        if (current < required) canApply = false;
-                        
-                        const emoji = key === 'intel' ? '🧠' : key === 'health' ? '❤️' : '📊';
-                        reqText += `${emoji} ${key}: ${required} `;
-                    });
-                }
-                
-                const isCurrentJob = Game.jobId === job.id;
-                
-                html += `
-                    <div class="job-card ${isCurrentJob ? 'selected' : ''}" 
-                         ${canApply && !isCurrentJob ? `onclick="selectJob('${job.id}')"` : ''} 
-                         style="${!canApply || isCurrentJob ? 'cursor: default;' : ''}">
-                        <div class="job-name">${job.name} ${isCurrentJob ? '✓ (當前)' : ''}</div>
-                        <div class="job-salary">💰 月薪: $${job.salary.toLocaleString()}</div>
-                        <div class="job-requirement">${reqText}</div>
-                        <div style="font-size: 0.85em; color: var(--text-dim); margin-top: 3px;">
+            if (current < required) canApply = false;
+            
+            const emoji = key === 'intel' ? '🧠' : key === 'health' ? '❤️' : '📊';
+            const status = current >= required ? '✅' : '❌';
+            reqText += `<div style="margin: 3px 0;">${status} ${emoji} ${key}: ${current}/${required}</div>`;
+        });
+    } else {
+        reqText = '<div style="color: var(--green);">✅ 無特殊要求</div>';
+    }
+    
+    const isCurrentJob = Game.jobId === job.id;
+    
+    let html = `
+        <div style="position: relative; min-height: 350px;">
+            <!-- 左右切換按鈕 -->
+            <button onclick="prevJob()" 
+                    style="position: absolute; left: -10px; top: 50%; transform: translateY(-50%); 
+                           width: 50px; height: 50px; border-radius: 50%; font-size: 1.5em; 
+                           background: linear-gradient(135deg, #444, #555); z-index: 10;">
+                ◀
+            </button>
+            
+            <button onclick="nextJob()" 
+                    style="position: absolute; right: -10px; top: 50%; transform: translateY(-50%); 
+                           width: 50px; height: 50px; border-radius: 50%; font-size: 1.5em; 
+                           background: linear-gradient(135deg, #444, #555); z-index: 10;">
+                ▶
+            </button>
+            
+            <!-- 職業卡片 -->
+            <div style="padding: 0 60px;">
+                <div class="job-card" style="background: linear-gradient(135deg, #2a2a3e, #3a3a4e); 
+                     border: 3px solid ${isCurrentJob ? 'var(--gold)' : canApply ? 'var(--blue)' : 'var(--red)'}; 
+                     padding: 25px; cursor: ${canApply && !isCurrentJob ? 'pointer' : 'default'};" 
+                     ${canApply && !isCurrentJob ? `onclick="selectJob('${job.id}')"` : ''}>
+                     
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <div style="font-size: 2em; margin-bottom: 5px;">💼</div>
+                        <div class="job-name" style="font-size: 1.5em; color: var(--gold);">
+                            ${job.name} ${isCurrentJob ? '✓ 當前職業' : ''}
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="font-size: 1.2em; color: var(--green); margin-bottom: 10px;">
+                            💰 月薪: $${job.salary.toLocaleString()}
+                        </div>
+                        <div style="color: var(--text-dim); font-size: 0.95em; line-height: 1.5;">
                             ${job.desc}
                         </div>
-                        ${!canApply ? '<div style="color: var(--red); font-size: 0.8em; margin-top: 3px;">❌ 條件不符</div>' : ''}
                     </div>
-                `;
-            });
-            
-            document.getElementById('job-list').innerHTML = html;
-        }
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+                        <div style="font-weight: bold; margin-bottom: 8px; color: var(--accent);">
+                            📋 任職條件：
+                        </div>
+                        ${reqText}
+                    </div>
+                    
+                    ${!canApply && !isCurrentJob ? 
+                        '<div style="text-align: center; margin-top: 15px; padding: 12px; background: var(--red); border-radius: 8px; font-weight: bold;">❌ 條件不符，無法應徵</div>' : 
+                        ''}
+                    
+                    ${canApply && !isCurrentJob ? 
+                        '<div style="text-align: center; margin-top: 15px; padding: 12px; background: var(--green); color: black; border-radius: 8px; font-weight: bold; animation: pulse 2s infinite;">👆 點擊卡片應徵此職業</div>' : 
+                        ''}
+                    
+                    ${isCurrentJob ? 
+                        '<div style="text-align: center; margin-top: 15px; padding: 12px; background: var(--gold); color: black; border-radius: 8px; font-weight: bold;">✅ 這是你目前的工作</div>' : 
+                        ''}
+                </div>
+                
+                <!-- 頁碼指示器 -->
+                <div style="text-align: center; margin-top: 15px; color: var(--text-dim); font-size: 0.9em;">
+                    職業 ${currentJobIndex + 1} / ${availableJobs.length}
+                    <div style="margin-top: 8px; font-size: 0.85em;">
+                        💡 左右切換查看更多職業
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('job-list').innerHTML = html;
+}
+
 
         function selectJob(jobId) {
             if (Game.age < 18) return alert('未滿18歲無法工作');
@@ -2201,6 +2493,36 @@ document.getElementById('skills-container').innerHTML = `
             const hasPartner = Game.relationships.some(r => r.type === 'partner' || r.type === 'spouse');
             document.getElementById('find-partner-area').style.display = (Game.age >= 18 && !hasPartner) ? 'block' : 'none';
         }
+	function prevJob() {
+    currentJobIndex--;
+    const availableJobs = JOBS.filter(job => {
+        if (job.id === 'none') return false;
+        if (job.originRequired && job.originRequired !== Game.originId) return false;
+        return true;
+    });
+    
+    if (currentJobIndex < 0) {
+        currentJobIndex = availableJobs.length - 1;
+    }
+    
+    renderJobs();
+}
+
+function nextJob() {
+    currentJobIndex++;
+    const availableJobs = JOBS.filter(job => {
+        if (job.id === 'none') return false;
+        if (job.originRequired && job.originRequired !== Game.originId) return false;
+        return true;
+    });
+    
+    if (currentJobIndex >= availableJobs.length) {
+        currentJobIndex = 0;
+    }
+    
+    renderJobs();
+}
+
 
         function findPartner() {
             if (Game.money < 500) return alert('沒錢使用交友軟體');
@@ -2375,21 +2697,26 @@ document.getElementById('skills-container').innerHTML = `
             document.getElementById('stats-panel').innerHTML = html;
         }
 
-        function nav(page, event) {
-            event.preventDefault();
-            event.stopPropagation();
-            
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + page).classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            
-            // 更新特定頁面的資料
-            if (page === 'profile') {
-                renderStats();
-            }
-        }
+function nav(page, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    
+    // 更新特定頁面的資料
+    if (page === 'profile') {
+        renderStats();
+    }
+    
+    // ✅ 新增：切換到職業頁時刷新
+    if (page === 'career') {
+        renderJobs();
+    }
+}
 
         function closeModal() {
             document.getElementById('event-modal').style.display = 'none';
@@ -2398,36 +2725,305 @@ document.getElementById('skills-container').innerHTML = `
         function restartGame() {
             location.reload();
         }
-        // ==========================================
-// 🔴 技能面板折疊功能
+// ==========================================
+// 🔴 出身專屬事件系統
 // ==========================================
 
-function toggleSkills() {
-    const body = document.querySelector('.skills-body');
-    const toggle = document.querySelector('.skills-toggle');
+function triggerOriginEvent() {
+    const originEvents = {
+        'rich': [
+            { title: '🏢 家族企業危機', desc: '父親公司遭惡意收購，需要緊急資金援助', 
+              choices: [
+                { txt: '投資500萬救公司', effect: (g) => { 
+                    if(g.money >= 5000000) { 
+                        g.money -= 5000000; 
+                        g.money += 10000000; 
+                        return '成功拯救企業，公司價值翻倍！賺回1000萬'; 
+                    }
+                    return '資金不足，無法投資'; 
+                }},
+                { txt: '袖手旁觀', effect: (g) => { 
+                    g.yearlyMoney = 0; 
+                    g.happy -= 20; 
+                    return '家族企業倒閉，失去零用錢來源'; 
+                }}
+              ]
+            },
+            { title: '💎 繼承遺產', desc: '遠房親戚突然過世，留下一筆遺產給你', 
+              effect: (g) => { g.money += 3000000; g.happy += 10; return '獲得300萬遺產'; }}
+        ],
+        'genius': [
+            { title: '🎓 獎學金機會', desc: '頂尖大學因你優異成績提供全額獎學金', 
+              effect: (g) => { g.intel += 20; g.money += 500000; return '智力+20，獲得50萬獎學金'; }},
+            { title: '🔬 研究突破', desc: '你的研究獲得重大突破', 
+              effect: (g) => { g.intel += 15; g.money += 200000; g.happy += 15; return '學術聲譽大增'; }}
+        ],
+        'mafia': [
+            { title: '🗡️ 幫派鬥爭', desc: '敵對幫派找上門來尋仇', 
+              choices: [
+                { txt: '正面對決', effect: (g) => { 
+                    if(Math.random() > 0.5) { 
+                        g.money += 1000000; 
+                        g.health -= 20; 
+                        g.skills.charm += 10;
+                        return '打贏了！搶到100萬，威名遠播'; 
+                    } else { 
+                        g.health -= 40; 
+                        g.money -= 500000; 
+                        return '重傷住院，損失慘重'; 
+                    }
+                }},
+                { txt: '談判和解', effect: (g) => { 
+                    g.money -= 300000; 
+                    g.skills.communication += 10; 
+                    return '花30萬擺平，學會談判技巧'; 
+                }}
+              ]
+            },
+            { title: '💰 地盤擴張', desc: '有機會擴張家族勢力範圍', 
+              effect: (g) => { 
+                  if(g.money >= 500000) {
+                      g.money -= 500000;
+                      g.yearlyMoney += 10000;
+                      return '投資50萬擴張地盤，年收入+1萬';
+                  }
+                  return '資金不足';
+              }}
+        ],
+        'hacker': [
+            { title: '💻 暗網委託', desc: '收到高額駭客任務委託，但可能違法', 
+              choices: [
+                { txt: '接受任務', effect: (g) => { 
+                    if(g.skills.programming > 80) { 
+                        g.money += 2000000; 
+                        g.skills.programming += 10;
+                        return '任務成功！賺200萬，技術大增'; 
+                    } else { 
+                        g.happy -= 15; 
+                        g.money -= 100000;
+                        return '技術不足導致失敗，損失10萬'; 
+                    }
+                }},
+                { txt: '拒絕任務', effect: (g) => { 
+                    g.happy += 5; 
+                    g.intel += 3;
+                    return '保持道德底線，心安理得'; 
+                }}
+              ]
+            },
+            { title: '🛡️ 資安漏洞發現', desc: '發現重大資安漏洞', 
+              effect: (g) => { 
+                  g.skills.programming += 15; 
+                  g.money += 500000; 
+                  return '獲得漏洞獎金50萬'; 
+              }}
+        ],
+        'royal': [
+            { title: '👑 皇室召見', desc: '遠房皇室親戚邀請參加貴族宴會', 
+              effect: (g) => { 
+                  g.skills.charm += 15; 
+                  g.skills.communication += 10;
+                  g.money += 500000; 
+                  return '社交圈大幅提升，魅力+15'; 
+              }},
+            { title: '💍 聯姻提議', desc: '其他貴族家族提出聯姻', 
+              choices: [
+                { txt: '接受聯姻', effect: (g) => { 
+                    g.money += 5000000; 
+                    g.happy -= 20; 
+                    return '獲得500萬嫁妝但失去自由'; 
+                }},
+                { txt: '拒絕聯姻', effect: (g) => { 
+                    g.happy += 15; 
+                    return '追求真愛，心靈自由'; 
+                }}
+              ]
+            }
+        ],
+        'monk': [
+            { title: '🙏 頓悟時刻', desc: '修行時突然開悟，身心靈得到昇華', 
+              effect: (g) => { 
+                  g.happy += 30; 
+                  g.intel += 10; 
+                  g.health += 15; 
+                  return '身心靈全面提升'; 
+              }},
+            { title: '📿 雲遊四方', desc: '師父建議你雲遊參學', 
+              effect: (g) => { 
+                  g.intel += 15; 
+                  g.skills.communication += 10;
+                  g.happy += 20;
+                  return '見識大增，心胸開闊'; 
+              }}
+        ],
+        'esports': [
+            { title: '🎮 戰隊邀請', desc: '頂級職業戰隊想高薪簽約你', 
+              choices: [
+                { txt: '簽約當選手', effect: (g) => { 
+                    g.jobId = 'esports_player'; 
+                    g.money += 800000; 
+                    g.happy += 20;
+                    return '成為職業選手，簽約金80萬'; 
+                }},
+                { txt: '拒絕簽約', effect: (g) => { 
+                    g.intel += 5;
+                    return '專注本業發展'; 
+                }}
+              ]
+            },
+            { title: '🏆 比賽邀請', desc: '受邀參加電競比賽', 
+              effect: (g) => { 
+                  if(Math.random() > 0.6) {
+                      g.money += 500000;
+                      g.happy += 20;
+                      return '奪冠！獲得獎金50萬';
+                  } else {
+                      g.happy += 5;
+                      return '雖敗猶榮，獲得經驗';
+                  }
+              }}
+        ],
+        'spy': [
+            { title: '🕵️ 機密任務', desc: '父親希望你協助執行情報工作', 
+              choices: [
+                { txt: '接受任務', effect: (g) => { 
+                    if(g.intel > 90) { 
+                        g.money += 1500000; 
+                        g.health -= 10; 
+                        g.intel += 10;
+                        return '任務成功！賺150萬但有一定風險'; 
+                    } else { 
+                        g.happy -= 10; 
+                        g.health -= 15;
+                        return '能力不足，任務失敗'; 
+                    }
+                }},
+                { txt: '拒絕任務', effect: (g) => { 
+                    g.happy += 5; 
+                    return '選擇平凡生活'; 
+                }}
+              ]
+            },
+            { title: '🔐 破譯密碼', desc: '發現神秘加密訊息', 
+              effect: (g) => { 
+                  if(g.intel > 100) {
+                      g.money += 800000;
+                      g.intel += 15;
+                      return '成功破譯，獲得80萬獎勵';
+                  }
+                  return '難度太高，無法破譯';
+              }}
+        ],
+        'chef_family': [
+            { title: '🍳 美食大賽', desc: '受邀參加國際烹飪大賽', 
+              effect: (g) => { 
+                  if(g.skills.cooking > 80) {
+                      g.money += 1000000;
+                      g.skills.cooking += 20;
+                      g.happy += 25;
+                      return '奪冠！獲得100萬獎金';
+                  } else {
+                      g.skills.cooking += 10;
+                      g.happy += 10;
+                      return '雖未得獎但技術精進';
+                  }
+              }},
+            { title: '⭐ 米其林評鑑', desc: '米其林評審來訪餐廳', 
+              effect: (g) => { 
+                  g.skills.cooking += 15;
+                  g.money += 500000;
+                  g.happy += 20;
+                  return '獲得星級認證，名聲大噪';
+              }}
+        ],
+        'fashion': [
+            { title: '👗 時裝週邀請', desc: '巴黎時裝週邀請你走秀', 
+              effect: (g) => { 
+                  g.skills.charm += 20;
+                  g.money += 800000;
+                  g.happy += 15;
+                  return '大放異彩，魅力+20';
+              }},
+            { title: '📸 時尚雜誌封面', desc: '國際時尚雜誌想邀你當封面', 
+              effect: (g) => { 
+                  g.skills.charm += 15;
+                  g.money += 500000;
+                  return '登上封面，知名度大增';
+              }}
+        ],
+        'scientist_family': [
+            { title: '🔬 論文發表', desc: '你的研究論文受到學界關注', 
+              effect: (g) => { 
+                  g.intel += 20;
+                  g.money += 1000000;
+                  g.happy += 15;
+                  return '學術地位提升，獲得研究經費';
+              }},
+            { title: '🏅 科學獎項', desc: '獲得重要科學獎項提名', 
+              effect: (g) => { 
+                  if(g.intel > 120) {
+                      g.money += 5000000;
+                      g.intel += 25;
+                      g.happy += 30;
+                      return '獲獎！得到500萬獎金';
+                  } else {
+                      g.intel += 10;
+                      return '雖未獲獎但備受肯定';
+                  }
+              }}
+        ]
+    };
     
-    if (body && toggle) {
-        const isCollapsed = body.classList.contains('collapsed');
+    const originId = Game.originId;
+    const events = originEvents[originId];
+    
+    if (events && events.length > 0) {
+        const event = events[Math.floor(Math.random() * events.length)];
         
-        if (isCollapsed) {
-            // 展開
-            body.classList.remove('collapsed');
-            toggle.classList.remove('collapsed');
-            localStorage.setItem('skillsCollapsed', 'false');
-        } else {
-            // 收起
-            body.classList.add('collapsed');
-            toggle.classList.add('collapsed');
-            localStorage.setItem('skillsCollapsed', 'true');
+        if (event.choices) {
+            showOriginEventModal(event);
+        } else if (event.effect) {
+            const result = event.effect(Game);
+            log(`🎭 【${Game.origin}專屬】${event.title}：${result}`);
+            Game.totalEvents++;
         }
     }
 }
 
-        // 初始化
-        initCreation();
-        
+function showOriginEventModal(event) {
+    document.getElementById('ev-title').textContent = `【${Game.origin}專屬】${event.title}`;
+    document.getElementById('ev-desc').textContent = event.desc;
+    
+    const btnA = document.getElementById('btn-choice-a');
+    const btnB = document.getElementById('btn-choice-b');
+    
+    btnA.textContent = event.choices[0].txt;
+    btnB.textContent = event.choices[1].txt;
+    
+    btnA.onclick = () => {
+        const result = event.choices[0].effect(Game);
+        log(`🎭 【${Game.origin}專屬】${event.title}`);
+        log(`   └─ 選擇：${event.choices[0].txt} → ${result}`);
+        closeModal();
+        updateUI();
+        checkAchievements();
+    };
+    
+    btnB.onclick = () => {
+        const result = event.choices[1].effect(Game);
+        log(`🎭 【${Game.origin}專屬】${event.title}`);
+        log(`   └─ 選擇：${event.choices[1].txt} → ${result}`);
+        closeModal();
+        updateUI();
+        checkAchievements();
+    };
+    
+    document.getElementById('event-modal').style.display = 'flex';
+}
+
+// 初始化
+initCreation();
     </script>
 </body>
 </html>
-
 
