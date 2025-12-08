@@ -359,136 +359,166 @@
             pointer-events: none; /* 不擋住按鈕點擊 */
         }
         
-        /* ===== ORIGIN SELECTION ===== */
-        #scene-creation {
-            padding: 20px;
-            text-align: center;
-            position: relative;
-            z-index: 10;
-        }
-        
-        .creation-title {
-            font-size: 2em;
-            background: var(--bg-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        
-        .origin-card {
-            background: linear-gradient(135deg, #2a2a3e, #3a3a4e);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            text-align: left;
-            transition: all 0.3s;
-            position: relative;
-            z-index: 10; /* 確保可點擊 */
-            pointer-events: auto;
-        }
-        
-        .origin-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(187, 134, 252, 0.3);
-            border-color: rgba(187, 134, 252, 0.5);
-        }
-        
-        .origin-card.selected {
-            border-color: var(--accent);
-            background: linear-gradient(135deg, #3a3a5e, #4a4a6e);
-            box-shadow: 0 0 25px var(--accent-glow);
-        }
-        
-        .origin-card.selected::before {
-            content: '✓';
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 30px;
-            height: 30px;
-            background: var(--accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2em;
-            z-index: 20;
-            pointer-events: none;
-        }
-        
-        .origin-name {
-            font-weight: bold;
-            color: var(--gold);
-            font-size: 1.2em;
-            margin-bottom: 5px;
-        }
-        
-        .origin-desc {
-            font-size: 0.9em;
-            color: var(--text-dim);
-            margin: 5px 0;
-            line-height: 1.4;
-        }
-        
-        .origin-parents {
-            font-size: 0.85em;
-            color: #888;
-            margin: 5px 0;
-            font-style: italic;
-        }
-        
-        .origin-stats {
-            color: var(--green);
-            font-size: 0.85em;
-            margin-top: 8px;
-            line-height: 1.5;
-        }
-        
-        /* ===== INPUT GROUPS ===== */
-        .input-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: var(--text);
-            font-weight: bold;
-            font-size: 0.95em;
-        }
-        
-        .input-group input,
-        .input-group select {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255,255,255,0.15);
-            border: 2px solid rgba(255,255,255,0.3);
-            color: var(--text);
-            border-radius: 8px;
-            font-size: 1em;
-            font-family: inherit;
-            position: relative;
-            z-index: 10;
-            pointer-events: auto;
-        }
-        
-        .input-group input::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
-        
-        .input-group input:focus,
-        .input-group select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 10px var(--accent-glow);
-        }
-        
+        /* ===== ORIGIN CAROUSEL 輪播式出身選擇 ===== */
+.origin-carousel {
+    position: relative;
+    padding: 20px 50px;
+    min-height: 320px;
+}
+
+.origin-card-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.origin-card {
+    background: linear-gradient(135deg, #2a2a3e, #3a3a4e);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: left;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    animation: fadeIn 0.4s;
+    min-height: 280px;
+}
+
+.origin-card.selected {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, #3a3a5e, #4a4a6e);
+    box-shadow: 0 0 25px var(--accent-glow);
+}
+
+.origin-card.selected::before {
+    content: '✓ 已選擇';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: var(--accent);
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    font-weight: bold;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.origin-name {
+    font-weight: bold;
+    color: var(--gold);
+    font-size: 1.4em;
+    margin-bottom: 8px;
+    padding-right: 80px;
+}
+
+.origin-desc {
+    font-size: 0.95em;
+    color: var(--text-dim);
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.origin-parents {
+    font-size: 0.9em;
+    color: #888;
+    margin: 8px 0;
+    font-style: italic;
+    background: rgba(255,255,255,0.05);
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+.origin-stats {
+    color: var(--green);
+    font-size: 0.9em;
+    margin-top: 12px;
+    line-height: 1.8;
+    background: rgba(3, 218, 198, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 3px solid var(--green);
+}
+
+/* 左右切換按鈕 */
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent), #9c27b0);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.5em;
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(187, 134, 252, 0.4);
+    transition: all 0.3s;
+    pointer-events: auto;
+}
+
+.carousel-btn:hover {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(187, 134, 252, 0.6);
+}
+
+.carousel-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.carousel-btn.prev {
+    left: 0;
+}
+
+.carousel-btn.next {
+    right: 0;
+}
+
+/* 指示器 */
+.carousel-indicator {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.indicator-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.indicator-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transition: all 0.3s;
+}
+
+.indicator-dot.active {
+    background: var(--accent);
+    width: 24px;
+    border-radius: 4px;
+}
+
+.origin-counter {
+    font-weight: bold;
+    color: var(--accent);
+}
+
         /* ===== MODAL ===== */
         .modal-overlay {
             position: fixed;
@@ -740,8 +770,17 @@
             </div>
         </div>
         
-        <h3 class="section-title">🎲 選擇出身背景 (點擊卡片選擇)</h3>
-        <div id="origin-list"></div>
+        <h3 class="section-title">🎲 選擇出身背景</h3>
+<div class="origin-carousel">
+    <button class="carousel-btn prev" onclick="changeOrigin(-1)">‹</button>
+    <div class="origin-card-wrapper" id="origin-display"></div>
+    <button class="carousel-btn next" onclick="changeOrigin(1)">›</button>
+</div>
+<div class="carousel-indicator">
+    <span class="origin-counter"><span id="current-origin">1</span> / <span id="total-origins">18</span></span>
+    <div class="indicator-dots" id="indicator-dots"></div>
+</div>
+
         
         <button class="btn-main" onclick="startGame()">🚀 開始人生冒險</button>
     </div>
@@ -1198,7 +1237,7 @@
         // ==========================================
         // 🔴 遊戲狀態
         // ==========================================
-        
+        let currentOriginIndex = 0;
         let Game = {
             name: '', origin: '', originId: '', age: 0, gender: '男',
             money: 0, health: 100, happy: 80, intel: 50,
@@ -1247,38 +1286,84 @@
         // 🔴 初始化
         // ==========================================
         
-        function initCreation() {
-            let html = '';
-            ORIGINS.forEach(o => {
-                html += `
-                    <div class="origin-card" data-origin-id="${o.id}">
-                        <div class="origin-name">${o.name}</div>
-                        <div class="origin-parents">${o.parents}</div>
-                        <div class="origin-desc">${o.desc}</div>
-                        <div class="origin-stats">
-                            💰 $${o.money.toLocaleString()} | 🧠 ${o.intel} | 😊 ${o.happy}<br>
-                            📅 零用錢: $${o.yearlyMoney.toLocaleString()}/年<br>
-                            ✨ ${o.buff}
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('origin-list').innerHTML = html;
-            
-            // 使用事件委託處理點擊
-            document.getElementById('origin-list').addEventListener('click', function(e) {
-                const card = e.target.closest('.origin-card');
-                if (card) {
-                    const originId = card.getAttribute('data-origin-id');
-                    selectOrigin(originId);
-                }
-            });
-            
-            // 預設選第一個
-            setTimeout(() => {
-                selectOrigin(ORIGINS[0].id);
-            }, 100);
+        let currentOriginIndex = 0;
+
+function initCreation() {
+    // 設定總數
+    document.getElementById('total-origins').textContent = ORIGINS.length;
+    
+    // 生成指示器點點
+    let dotsHtml = '';
+    ORIGINS.forEach((_, index) => {
+        dotsHtml += `<div class="indicator-dot ${index === 0 ? 'active' : ''}" onclick="goToOrigin(${index})"></div>`;
+    });
+    document.getElementById('indicator-dots').innerHTML = dotsHtml;
+    
+    // 顯示第一個出身
+    renderOriginCard();
+    
+    // 鍵盤左右鍵支援
+    document.addEventListener('keydown', function(e) {
+        if (document.getElementById('scene-creation').style.display !== 'none') {
+            if (e.key === 'ArrowLeft') changeOrigin(-1);
+            if (e.key === 'ArrowRight') changeOrigin(1);
         }
+    });
+}
+
+function renderOriginCard() {
+    const origin = ORIGINS[currentOriginIndex];
+    selectedOriginId = origin.id;
+    
+    const html = `
+        <div class="origin-card selected" data-origin-id="${origin.id}">
+            <div class="origin-name">${origin.name}</div>
+            <div class="origin-parents">👨‍👩‍👧 ${origin.parents}</div>
+            <div class="origin-desc">${origin.desc}</div>
+            <div class="origin-stats">
+                💰 初始資金: $${origin.money.toLocaleString()}<br>
+                🧠 智力: ${origin.intel} | 😊 快樂: ${origin.happy}<br>
+                📅 年零用錢: $${origin.yearlyMoney.toLocaleString()}<br>
+                ✨ ${origin.buff}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('origin-display').innerHTML = html;
+    document.getElementById('current-origin').textContent = currentOriginIndex + 1;
+    
+    // 更新指示器
+    document.querySelectorAll('.indicator-dot').forEach((dot, index) => {
+        if (index === currentOriginIndex) {
+            dot.classList.add('active');
+        } else {
+            dot.classList.remove('active');
+        }
+    });
+}
+
+function changeOrigin(direction) {
+    currentOriginIndex += direction;
+    
+    // 循環
+    if (currentOriginIndex < 0) {
+        currentOriginIndex = ORIGINS.length - 1;
+    } else if (currentOriginIndex >= ORIGINS.length) {
+        currentOriginIndex = 0;
+    }
+    
+    renderOriginCard();
+}
+
+function goToOrigin(index) {
+    currentOriginIndex = index;
+    renderOriginCard();
+}
+
+function selectOrigin(id) {
+    // 保留這個函數以防其他地方調用
+    selectedOriginId = id;
+}
 
         function selectOrigin(id) {
             selectedOriginId = id;
@@ -2283,5 +2368,6 @@ function toggleSkills() {
     </script>
 </body>
 </html>
+
 
 
