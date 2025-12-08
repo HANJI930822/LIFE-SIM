@@ -3,32 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時事人生 V7.0：無限擴充版</title>
+    <title>時事人生 V8.0：體力制</title>
     <style>
-        :root { --bg: #121212; --card: #1e1e1e; --accent: #bb86fc; --text: #e0e0e0; --green: #03dac6; --red: #cf6679; --gold: #ffd700; }
+        :root { --bg: #121212; --card: #1e1e1e; --accent: #bb86fc; --text: #e0e0e0; --green: #03dac6; --red: #cf6679; --gold: #ffd700; --blue: #2196f3; }
         body { font-family: '微軟正黑體', sans-serif; background: var(--bg); color: var(--text); max-width: 600px; margin: 0 auto; padding-bottom: 80px; user-select: none; overflow-x: hidden; }
+        
+        /* 頂部狀態列 */
         .header { background: #2c2c2c; padding: 10px 15px; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,0.6); }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; font-size: 0.9em; text-align: center; }
         .big-stat { font-size: 1.2em; font-weight: bold; color: var(--gold); grid-column: span 3; margin-bottom: 5px; }
+        
+        /* 🔥 新增：體力條樣式 🔥 */
+        .stamina-container { grid-column: span 3; margin-top: 5px; text-align: left; }
+        .stamina-label { font-size: 0.8em; color: var(--blue); margin-bottom: 2px; display: flex; justify-content: space-between; }
+        .progress-bg { background: #444; height: 8px; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--blue); transition: width 0.3s ease; }
+        .progress-fill.low { background: var(--red); } /* 體力低時變紅色 */
+
+        /* 圖片與卡片 */
         .img-banner { width: 100%; height: 150px; object-fit: cover; border-radius: 8px 8px 0 0; display: block; background: #333; }
         .item-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 10px; background: #333; }
         .card { background: var(--card); border-radius: 10px; margin: 15px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); overflow: hidden; }
         .card-body { padding: 15px; }
         .card h3 { margin-top: 0; color: var(--accent); border-bottom: 1px solid #333; padding-bottom: 10px; }
+
+        /* 按鈕群組 */
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { background: #333; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 1em; }
+        button { background: #333; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 1em; position: relative; overflow: hidden; }
         button:hover { background: #444; filter: brightness(1.2); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* 體力不足時的按鈕樣式 */
+        button:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+        
+        /* 行動消耗提示 (小字) */
+        .cost-tag { font-size: 0.7em; color: #aaa; display: block; margin-top: 2px; }
+
         .btn-buy { background: var(--green); color: black; font-weight: bold; }
         .btn-risk { background: var(--red); color: white; }
         .btn-main { background: var(--accent); color: black; font-weight: bold; width: 100%; margin-top: 10px; font-size: 1.1em; }
+        .btn-main.pulse { animation: pulse 1.5s infinite; } /* 強制下一歲時按鈕閃爍 */
+
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(187, 134, 252, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(187, 134, 252, 0); } 100% { box-shadow: 0 0 0 0 rgba(187, 134, 252, 0); } }
+
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 50; }
         .nav-item { color: #888; cursor: pointer; text-align: center; font-size: 0.8em; }
         .nav-item.active { color: var(--accent); font-weight: bold; }
         .nav-icon { display: block; font-size: 1.5em; margin-bottom: 2px; }
+
         .page { display: none; animation: fadeIn 0.3s; }
         .page.active { display: block; }
         .log-box { height: 120px; overflow-y: auto; background: #111; padding: 10px; border-radius: 5px; font-size: 0.9em; color: #ccc; border: 1px solid #333; }
+        
+        /* Modal 樣式省略，與之前相同 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-box { background: var(--card); width: 85%; max-width: 400px; padding: 20px; border-radius: 12px; border: 1px solid var(--accent); text-align: center; box-shadow: 0 0 20px rgba(187, 134, 252, 0.2); animation: popIn 0.3s; }
         .modal-title { font-size: 1.4em; color: var(--gold); margin-bottom: 10px; font-weight: bold; }
@@ -46,6 +72,16 @@
             <div>📅 <span id="year">2025</span> (<span id="age">0</span>歲)</div>
             <div>❤️ <span id="health">100</span></div>
             <div>😊 <span id="happy">80</span></div>
+            
+            <div class="stamina-container">
+                <div class="stamina-label">
+                    <span>⚡ 體力</span>
+                    <span id="stamina-text">100/100</span>
+                </div>
+                <div class="progress-bg">
+                    <div id="stamina-bar" class="progress-fill" style="width: 100%;"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -64,18 +100,31 @@
             <div class="card-body">
                 <h3>📝 年度行動</h3>
                 <div class="btn-grid">
-                    <button onclick="action('work')">💼 工作賺錢</button>
-                    <button onclick="action('study')">📚 進修智力</button>
-                    <button onclick="action('play')">🎮 玩樂放鬆</button>
-                    <button onclick="action('gym')">🏋️ 健身運動</button>
+                    <button onclick="action('work')" id="btn-work">
+                        💼 工作賺錢
+                        <span class="cost-tag">⚡ -30</span>
+                    </button>
+                    <button onclick="action('study')" id="btn-study">
+                        📚 進修智力
+                        <span class="cost-tag">⚡ -20</span>
+                    </button>
+                    <button onclick="action('play')" id="btn-play">
+                        🎮 玩樂放鬆
+                        <span class="cost-tag">⚡ -10</span>
+                    </button>
+                    <button onclick="action('gym')" id="btn-gym">
+                        🏋️ 健身運動
+                        <span class="cost-tag">⚡ -25</span>
+                    </button>
                 </div>
             </div>
         </div>
+
         <div class="card">
             <div class="card-body">
                 <h3>📜 人生動態</h3>
                 <div id="game-log" class="log-box"></div>
-                <button class="btn-main" onclick="nextYear()">🎂 下一歲</button>
+                <button class="btn-main" id="btn-nextyear" onclick="nextYear()">🎂 下一歲 (體力回滿)</button>
             </div>
         </div>
     </div>
@@ -84,7 +133,6 @@
         <div class="card"><div class="card-body"><h3>🏎️ 豪車車庫</h3><div id="car-shop"></div></div></div>
         <div class="card"><div class="card-body"><h3>🏘️ 房產地契</h3><div id="house-shop"></div></div></div>
     </div>
-
     <div id="page-casino" class="page"><div class="card"><div class="card-body"><h3>🎰 皇家賭場</h3><input type="number" id="bet-amount" placeholder="金額" style="width:90%;padding:10px;margin-bottom:10px"><div class="btn-grid"><button class="btn-risk" onclick="gamble('big')">大</button><button class="btn-risk" onclick="gamble('small')">小</button></div><p id="casino-msg"></p></div></div></div>
     <div id="page-profile" class="page"><div class="card"><div class="card-body"><h3>🏆 成就</h3><div id="achievement-list"></div><button onclick="restartGame()" style="width:100%;margin-top:10px">重來</button></div></div></div>
 
@@ -95,76 +143,108 @@
         <div class="nav-item" onclick="nav('profile')"><span class="nav-icon">🏆</span>成就</div>
     </div>
 
-    <script src="data.js"></script> 
-    
+    <script src="data.js"></script>
     <script>
-        // 這裡現在只放遊戲引擎，不放資料
-        let Game = { age: 18, money: 5000, health: 100, happy: 80, intel: 40, charm: 30, inventory: [], achievements: [] };
+        // --- 遊戲引擎設定 ---
+        let Game = { 
+            age: 18, money: 5000, health: 100, happy: 80, intel: 40, charm: 30, 
+            stamina: 100, // 🔥 新增體力屬性
+            inventory: [], achievements: [] 
+        };
+        
+        // 🔥 定義各行動的體力消耗
+        const COSTS = {
+            work: 30,
+            study: 20,
+            play: 10,
+            gym: 25
+        };
+
         let activeEvent = null;
 
-        function init() { renderShop(); updateUI(); log("歡迎來到 V7.0 無限擴充版！"); }
+        function init() { renderShop(); updateUI(); log("V8.0 體力制上線！請妥善分配體力。"); }
 
         function updateUI() {
             ['age', 'health', 'happy', 'intel', 'charm'].forEach(k => { let el=document.getElementById(k); if(el) el.innerText = Game[k]; });
             document.getElementById('money-display').innerText = "$" + Game.money.toLocaleString();
+
+            // 🔥 更新體力條 UI
+            let bar = document.getElementById('stamina-bar');
+            let text = document.getElementById('stamina-text');
+            
+            // 確保體力不低於 0
+            if(Game.stamina < 0) Game.stamina = 0;
+            
+            bar.style.width = Game.stamina + "%";
+            text.innerText = Game.stamina + "/100";
+
+            // 顏色變化：低體力變紅
+            if(Game.stamina < 20) bar.classList.add('low');
+            else bar.classList.remove('low');
+
+            // 🔥 檢查按鈕狀態：體力不足就停用
+            checkButtonState('btn-work', COSTS.work);
+            checkButtonState('btn-study', COSTS.study);
+            checkButtonState('btn-play', COSTS.play);
+            checkButtonState('btn-gym', COSTS.gym);
+
+            // 如果體力太低，讓「下一歲」按鈕發光提示
+            let nextBtn = document.getElementById('btn-nextyear');
+            if(Game.stamina < 10) nextBtn.classList.add('pulse');
+            else nextBtn.classList.remove('pulse');
         }
+
+        function checkButtonState(btnId, cost) {
+            let btn = document.getElementById(btnId);
+            if(Game.stamina < cost) {
+                btn.disabled = true; // 變灰
+            } else {
+                btn.disabled = false; // 恢復
+            }
+        }
+
         function log(msg) { 
             let box = document.getElementById('game-log'); 
             box.innerHTML = `<div style="margin-bottom:6px;border-bottom:1px solid #333;">[${Game.age}歲] ${msg}</div>` + box.innerHTML; 
         }
 
-        // 使用 data.js 裡的變數 (CAR_DATA, HOUSE_DATA)
-        function renderShop() {
-            let carHtml = "";
-            // 注意：這裡改成讀取 CAR_DATA
-            CAR_DATA.forEach(c => {
-                carHtml += `<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #333;"><div style="display:flex;"><img src="${c.img}" class="item-img" onerror="this.style.display='none'"><div><b>${c.name}</b><br><span style="color:#888;font-size:0.8em">魅力+${c.charm}</span></div></div><button class="btn-buy" onclick="buy('car', '${c.id}')">$${c.price/10000}萬</button></div>`;
-            });
-            document.getElementById('car-shop').innerHTML = carHtml;
-
-            let houseHtml = "";
-            HOUSE_DATA.forEach(h => {
-                houseHtml += `<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #333;"><div style="display:flex;"><img src="${h.img}" class="item-img" onerror="this.style.display='none'"><div><b>${h.name}</b><br><span style="color:#888;font-size:0.8em">快樂+${h.happy}</span></div></div><button class="btn-buy" onclick="buy('house', '${h.id}')">$${h.price/10000}萬</button></div>`;
-            });
-            document.getElementById('house-shop').innerHTML = houseHtml;
-        }
-
-        function buy(type, id) {
-            // 從 data.js 的資料庫找商品
-            let item = type === 'car' ? CAR_DATA.find(c => c.id === id) : HOUSE_DATA.find(h => h.id === id);
-            if(Game.inventory.includes(id)) return alert("已擁有！");
-            if(Game.money >= item.price) {
-                Game.money -= item.price;
-                Game.inventory.push(id);
-                log(`🎉 購買成功：${item.name}`);
-                updateUI();
-            } else alert("錢不夠！");
-        }
-
+        // --- 行動邏輯 ---
         function action(type) {
             if(Game.health <= 0) return alert("已死亡");
+            
+            // 🔥 檢查體力
+            let cost = COSTS[type];
+            if(Game.stamina < cost) {
+                return alert("體力不足！請按「下一歲」休息。");
+            }
+
+            // 扣除體力
+            Game.stamina -= cost;
+
             if(type === 'work') { let v = 25000+(Game.intel*800); Game.money+=v; Game.health-=3; Game.happy-=5; log(`工作賺了 $${v}`); }
             if(type === 'study') { Game.intel+=4; Game.money-=2000; log("進修智力+4"); }
             if(type === 'play') { Game.happy+=12; Game.money-=4000; log("玩樂快樂+12"); }
             if(type === 'gym') { Game.health+=5; Game.charm+=2; Game.money-=800; log("健身健康+5"); }
-            nextYearStep(false);
+
+            updateUI();
         }
 
-        function nextYear() { nextYearStep(true); }
-
-        function nextYearStep(skipAction) {
+        function nextYear() {
             if(Game.health <= 0) return;
-            if(skipAction) { Game.health-=3; } // 如果直接點下一歲，算自然老化
-            
+
             Game.age++;
-            // 資產被動加成
+            Game.health -= 3;
+            
+            // 🔥 新的一年，體力回滿
+            Game.stamina = 100;
+            log("💤 你休息了一整年，體力恢復到 100！");
+
             Game.inventory.forEach(id => {
                 let car = CAR_DATA.find(c => c.id === id); if(car) Game.charm += 1;
                 let house = HOUSE_DATA.find(h => h.id === id); if(house) Game.happy += 2;
             });
 
-            // 🔥 讀取 data.js 裡的 EVENT_DATA
-            if(Math.random() < 0.3) {
+            if(Math.random() < 0.3 && typeof EVENT_DATA !== 'undefined') {
                 let randIndex = Math.floor(Math.random() * EVENT_DATA.length);
                 activeEvent = EVENT_DATA[randIndex];
                 document.getElementById('ev-title').innerText = activeEvent.title;
@@ -173,15 +253,12 @@
                 let btnA = document.getElementById('btn-choice-a');
                 let btnB = document.getElementById('btn-choice-b');
                 
-                // 綁定點擊事件時，把 Game 物件傳進去
                 btnA.onclick = function() { resolveEvent(0); };
                 btnB.onclick = function() { resolveEvent(1); };
                 btnA.innerText = activeEvent.choices[0].txt;
                 btnB.innerText = activeEvent.choices[1].txt;
                 
                 document.getElementById('event-modal').style.display = 'flex';
-            } else {
-                if(skipAction) log("平淡的一年。");
             }
             
             if(Game.health <= 0) Game.health = 0;
@@ -189,16 +266,37 @@
         }
 
         function resolveEvent(idx) {
-            // 執行 data.js 裡定義的 effect 函數
             let resultText = activeEvent.choices[idx].effect(Game);
             log(`⚡ [事件] ${activeEvent.title}: ${resultText}`);
             document.getElementById('event-modal').style.display = 'none';
             updateUI();
         }
 
+        function renderShop() {
+            // 這裡假設 data.js 已載入
+            if(typeof CAR_DATA === 'undefined') return;
+            let carHtml = "";
+            CAR_DATA.forEach(c => { carHtml += `<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #333;"><div style="display:flex;"><img src="${c.img}" class="item-img" onerror="this.style.display='none'"><div><b>${c.name}</b><br><span style="color:#888;font-size:0.8em">魅力+${c.charm}</span></div></div><button class="btn-buy" onclick="buy('car', '${c.id}')">$${c.price/10000}萬</button></div>`; });
+            document.getElementById('car-shop').innerHTML = carHtml;
+
+            let houseHtml = "";
+            HOUSE_DATA.forEach(h => { houseHtml += `<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #333;"><div style="display:flex;"><img src="${h.img}" class="item-img" onerror="this.style.display='none'"><div><b>${h.name}</b><br><span style="color:#888;font-size:0.8em">快樂+${h.happy}</span></div></div><button class="btn-buy" onclick="buy('house', '${h.id}')">$${h.price/10000}萬</button></div>`; });
+            document.getElementById('house-shop').innerHTML = houseHtml;
+        }
+
+        function buy(type, id) {
+            let item = type === 'car' ? CAR_DATA.find(c => c.id === id) : HOUSE_DATA.find(h => h.id === id);
+            if(Game.inventory.includes(id)) return alert("已擁有！");
+            if(Game.money >= item.price) { Game.money -= item.price; Game.inventory.push(id); log(`🎉 購買成功：${item.name}`); updateUI(); } else alert("錢不夠！");
+        }
+
         function gamble(c){ 
             let v=parseInt(document.getElementById('bet-amount').value);
             if(!v||v>Game.money)return alert("金額錯誤");
+            // 🔥 賭博也需要消耗一點點體力 (可選)
+            if(Game.stamina < 5) return alert("體力不足，沒精神賭博了。");
+            Game.stamina -= 5;
+            
             let d=Math.floor(Math.random()*10);
             let r=d>=5?'big':'small';
             if(c===r){Game.money+=v;log(`賭博贏了 $${v}`);}else{Game.money-=v;log(`賭博輸了 $${v}`);}
