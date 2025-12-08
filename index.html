@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時事人生 V9.0：債務危機</title>
+    <title>時事人生 V11.0：天賦與危機</title>
     <style>
         :root { --bg: #121212; --card: #1e1e1e; --accent: #bb86fc; --text: #e0e0e0; --green: #03dac6; --red: #cf6679; --gold: #ffd700; --blue: #2196f3; }
         body { font-family: '微軟正黑體', sans-serif; background: var(--bg); color: var(--text); max-width: 600px; margin: 0 auto; padding-bottom: 80px; user-select: none; overflow-x: hidden; }
         
+        /* 介面樣式 */
         .header { background: #2c2c2c; padding: 10px 15px; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,0.6); }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; font-size: 0.9em; text-align: center; }
-        
-        /* 🔥 金錢顯示優化：負債時變紅 🔥 */
         .big-stat { font-size: 1.2em; font-weight: bold; color: var(--gold); grid-column: span 3; margin-bottom: 5px; transition: color 0.3s; }
         .big-stat.debt { color: var(--red); animation: shake 0.5s; }
         
-        /* 🔥 債務警告條 🔥 */
-        .debt-warning { grid-column: span 3; background: #b00020; color: white; font-weight: bold; font-size: 0.8em; padding: 5px; border-radius: 4px; display: none; animation: pulseRed 1s infinite; }
+        /* 🔥 狀態警告條 🔥 */
+        .status-alert { grid-column: span 3; color: white; font-weight: bold; font-size: 0.8em; padding: 5px; border-radius: 4px; display: none; margin-bottom:5px; text-align:center;}
+        .alert-red { background: #b00020; animation: pulseRed 1s infinite; }
+        .alert-orange { background: #ff9800; }
 
         .stamina-container { grid-column: span 3; margin-top: 5px; text-align: left; }
         .stamina-label { font-size: 0.8em; color: var(--blue); margin-bottom: 2px; display: flex; justify-content: space-between; }
@@ -24,298 +25,291 @@
         .progress-fill { height: 100%; background: var(--blue); transition: width 0.3s ease; }
         .progress-fill.low { background: var(--red); }
 
-        /* 通用 UI */
-        .img-banner { width: 100%; height: 150px; object-fit: cover; border-radius: 8px 8px 0 0; display: block; background: #333; }
-        .item-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 10px; background: #333; }
         .card { background: var(--card); border-radius: 10px; margin: 15px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); overflow: hidden; }
         .card-body { padding: 15px; }
         .card h3 { margin-top: 0; color: var(--accent); border-bottom: 1px solid #333; padding-bottom: 10px; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        /* 按鈕樣式 */
         button { background: #333; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 1em; position: relative; overflow: hidden; }
         button:hover { background: #444; filter: brightness(1.2); }
-        button:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
-        .cost-tag { font-size: 0.7em; color: #aaa; display: block; margin-top: 2px; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+        
+        /* 🔥 特殊職業按鈕 🔥 */
+        .btn-special { background: linear-gradient(45deg, #6200ea, #b388ff); border: 1px solid var(--accent); display:none; }
+        .btn-special:hover { filter: brightness(1.3); transform: scale(1.02); }
+
+        .btn-main { background: var(--accent); color: black; font-weight: bold; width: 100%; margin-top: 10px; font-size: 1.1em; }
         .btn-buy { background: var(--green); color: black; font-weight: bold; }
         .btn-risk { background: var(--red); color: white; }
-        .btn-main { background: var(--accent); color: black; font-weight: bold; width: 100%; margin-top: 10px; font-size: 1.1em; }
-        .btn-main.pulse { animation: pulse 1.5s infinite; }
+        .cost-tag { font-size: 0.7em; color: #aaa; display: block; margin-top: 2px; }
 
+        /* 創角與其他介面 */
+        #scene-creation { padding: 20px; text-align: center; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group input, .input-group select { width: 95%; padding: 10px; background: #222; border: 1px solid #444; color: white; border-radius: 5px; }
+        .origin-card { background: #222; border: 2px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 10px; cursor: pointer; text-align: left; }
+        .origin-card.selected { border-color: var(--accent); background: #2a2a2a; }
+        .origin-name { font-weight: bold; color: var(--gold); }
+        
+        #scene-game { display: none; }
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 50; }
         .nav-item { color: #888; cursor: pointer; text-align: center; font-size: 0.8em; }
         .nav-item.active { color: var(--accent); font-weight: bold; }
         .nav-icon { display: block; font-size: 1.5em; margin-bottom: 2px; }
-
         .page { display: none; animation: fadeIn 0.3s; }
         .page.active { display: block; }
-        .log-box { height: 120px; overflow-y: auto; background: #111; padding: 10px; border-radius: 5px; font-size: 0.9em; color: #ccc; border: 1px solid #333; }
         
+        .log-box { height: 120px; overflow-y: auto; background: #111; padding: 10px; border-radius: 5px; font-size: 0.9em; color: #ccc; border: 1px solid #333; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-box { background: var(--card); width: 85%; max-width: 400px; padding: 20px; border-radius: 12px; border: 1px solid var(--accent); text-align: center; box-shadow: 0 0 20px rgba(187, 134, 252, 0.2); animation: popIn 0.3s; }
-        .modal-title { font-size: 1.4em; color: var(--gold); margin-bottom: 10px; font-weight: bold; }
-        .modal-desc { margin-bottom: 20px; font-size: 1.1em; line-height: 1.5; }
+        .modal-box { background: var(--card); width: 85%; max-width: 400px; padding: 20px; border-radius: 12px; border: 1px solid var(--accent); text-align: center; }
         .modal-btn { width: 100%; margin-bottom: 10px; padding: 15px; border: 1px solid #444; }
 
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(187, 134, 252, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(187, 134, 252, 0); } 100% { box-shadow: 0 0 0 0 rgba(187, 134, 252, 0); } }
         @keyframes pulseRed { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 100% { transform: translateX(0); } }
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="stat-grid">
-            <div class="big-stat" id="money-display">$0</div>
-            
-            <div id="debt-alert" class="debt-warning">⚠️ 銀行警告：請在 3 年內還清債務！</div>
-            
-            <div>📅 <span id="year">2025</span> (<span id="age">0</span>歲)</div>
-            <div>❤️ <span id="health">100</span></div>
-            <div>😊 <span id="happy">80</span></div>
-            
-            <div class="stamina-container">
-                <div class="stamina-label"><span>⚡ 體力</span><span id="stamina-text">100/100</span></div>
-                <div class="progress-bg"><div id="stamina-bar" class="progress-fill" style="width: 100%;"></div></div>
-            </div>
-        </div>
+    <div id="scene-creation">
+        <h1 style="color:var(--accent)">🧬 角色創造</h1>
+        <div class="card"><div class="card-body">
+            <div class="input-group"><label>姓名</label><input type="text" id="inp-name" placeholder="輸入姓名" maxlength="6"></div>
+            <div class="input-group"><label>性別</label><select id="inp-gender"><option value="男">👨 男生</option><option value="女">👩 女生</option><option value="其他">🌈 其他</option></select></div>
+        </div></div>
+        <h3 style="text-align:left;margin-left:10px;color:var(--gold)">出身背景</h3>
+        <div id="origin-list"></div>
+        <button class="btn-main" onclick="startGame()">🚀 開始人生</button>
     </div>
 
-    <div id="event-modal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-title" id="ev-title"></div>
-            <div class="modal-desc" id="ev-desc"></div>
-            <button class="modal-btn" id="btn-choice-a">選項 A</button>
-            <button class="modal-btn" id="btn-choice-b">選項 B</button>
-        </div>
-    </div>
+    <div id="scene-game">
+        <div class="header">
+            <div class="stat-grid">
+                <div class="big-stat" id="money-display">$0</div>
+                
+                <div id="alert-debt" class="status-alert alert-red">⚠️ 負債警告！</div>
+                <div id="alert-depression" class="status-alert alert-orange">☁️ 憂鬱狀態：不想工作...</div>
+                <div id="alert-sick" class="status-alert alert-red">🏥 重病警告：請注意健康！</div>
 
-    <div id="page-home" class="page active">
-        <div class="card">
-            <img src="images/banner-home.jpg" class="img-banner" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600'">
-            <div class="card-body">
-                <h3>📝 年度行動</h3>
-                <div class="btn-grid">
-                    <button onclick="action('work')" id="btn-work">💼 工作賺錢<span class="cost-tag">⚡ -30</span></button>
-                    <button onclick="action('study')" id="btn-study">📚 進修智力<span class="cost-tag">⚡ -20</span></button>
-                    <button onclick="action('play')" id="btn-play">🎮 玩樂放鬆<span class="cost-tag">⚡ -10</span></button>
-                    <button onclick="action('gym')" id="btn-gym">🏋️ 健身運動<span class="cost-tag">⚡ -25</span></button>
+                <div style="grid-column: span 3; font-size:0.8em; color:#aaa; margin-bottom:5px;">
+                    <span id="player-name"></span> | <span id="player-origin" style="color:var(--gold)"></span>
+                </div>
+                <div>📅 <span id="year">0</span> (<span id="age">0</span>歲)</div>
+                <div>❤️ <span id="health">100</span></div>
+                <div>😊 <span id="happy">80</span></div>
+                <div class="stamina-container">
+                    <div class="stamina-label"><span>⚡ 體力</span><span id="stamina-text">100/100</span></div>
+                    <div class="progress-bg"><div id="stamina-bar" class="progress-fill" style="width: 100%;"></div></div>
                 </div>
             </div>
         </div>
-        <div class="card">
-            <div class="card-body">
-                <h3>📜 人生動態</h3>
-                <div id="game-log" class="log-box"></div>
-                <button class="btn-main" id="btn-nextyear" onclick="nextYear()">🎂 下一歲 (體力回滿)</button>
+
+        <div id="page-home" class="page active">
+            <div class="card">
+                <img src="images/banner-home.jpg" class="img-banner" onerror="this.src='https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600'">
+                <div class="card-body">
+                    <h3>📝 年度行動</h3>
+                    <div class="btn-grid">
+                        <button onclick="action('work')" id="btn-work">💼 工作 <span class="cost-tag">⚡ -30</span></button>
+                        <button onclick="action('study')" id="btn-study">📚 進修 <span class="cost-tag">⚡ -20</span></button>
+                        <button onclick="action('play')" id="btn-play">🎮 玩樂 <span class="cost-tag">⚡ -10</span></button>
+                        <button onclick="action('gym')" id="btn-gym">🏋️ 健身 <span class="cost-tag">⚡ -25</span></button>
+                        
+                        <button onclick="action('dev_app')" id="btn-dev" class="btn-special">💻 開發AI <span class="cost-tag">需智力80 / ⚡-50</span></button>
+                        <button onclick="action('stream')" id="btn-stream" class="btn-special">🤳 直播帶貨 <span class="cost-tag">需魅力80 / ⚡-40</span></button>
+                    </div>
+                </div>
             </div>
+            <div class="card">
+                <div class="card-body">
+                    <h3>📜 人生動態</h3>
+                    <div id="game-log" class="log-box"></div>
+                    <button class="btn-main" id="btn-nextyear" onclick="nextYear()">🎂 下一歲</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-assets" class="page"><div class="card"><div class="card-body"><h3>🏎️ 車庫</h3><div id="car-shop"></div></div></div><div class="card"><div class="card-body"><h3>🏘️ 房產</h3><div id="house-shop"></div></div></div></div>
+        <div id="page-casino" class="page"><div class="card"><div class="card-body"><h3>🎰 賭場</h3><div id="casino-area"><input type="number" id="bet-amount" placeholder="金額" style="width:90%;padding:10px;margin-bottom:10px"><div class="btn-grid"><button class="btn-risk" onclick="gamble('big')">大</button><button class="btn-risk" onclick="gamble('small')">小</button></div><p id="casino-msg"></p></div></div></div></div>
+        <div id="page-profile" class="page"><div class="card"><div class="card-body"><h3>🏆 成就</h3><div id="achievement-list"></div><button onclick="restartGame()" style="width:100%;margin-top:20px">重來</button></div></div></div>
+
+        <div class="nav-bar">
+            <div class="nav-item active" onclick="nav('home')"><span class="nav-icon">🏠</span>生活</div>
+            <div class="nav-item" onclick="nav('assets')"><span class="nav-icon">🏎️</span>資產</div>
+            <div class="nav-item" onclick="nav('casino')"><span class="nav-icon">🎰</span>賭場</div>
+            <div class="nav-item" onclick="nav('profile')"><span class="nav-icon">🏆</span>成就</div>
         </div>
     </div>
 
-    <div id="page-assets" class="page">
-        <div class="card"><div class="card-body"><h3>🏎️ 豪車車庫</h3><div id="car-shop"></div></div></div>
-        <div class="card"><div class="card-body"><h3>🏘️ 房產地契</h3><div id="house-shop"></div></div></div>
-    </div>
-    <div id="page-casino" class="page"><div class="card"><div class="card-body"><h3>🎰 皇家賭場</h3><input type="number" id="bet-amount" placeholder="金額" style="width:90%;padding:10px;margin-bottom:10px"><div class="btn-grid"><button class="btn-risk" onclick="gamble('big')">大</button><button class="btn-risk" onclick="gamble('small')">小</button></div><p id="casino-msg"></p></div></div></div>
-    <div id="page-profile" class="page"><div class="card"><div class="card-body"><h3>🏆 成就</h3><div id="achievement-list"></div><button onclick="restartGame()" style="width:100%;margin-top:100px">重來</button></div></div></div>
-
-    <div class="nav-bar">
-        <div class="nav-item active" onclick="nav('home')"><span class="nav-icon">🏠</span>生活</div>
-        <div class="nav-item" onclick="nav('assets')"><span class="nav-icon">🏎️</span>資產</div>
-        <div class="nav-item" onclick="nav('casino')"><span class="nav-icon">🎰</span>賭場</div>
-        <div class="nav-item" onclick="nav('profile')"><span class="nav-icon">🏆</span>成就</div>
-    </div>
+    <div id="event-modal" class="modal-overlay"><div class="modal-box"><div class="modal-title" id="ev-title"></div><div id="ev-desc" style="margin-bottom:20px;"></div><button class="modal-btn" id="btn-choice-a">A</button><button class="modal-btn" id="btn-choice-b">B</button></div></div>
 
     <script src="data.js"></script>
     <script>
-        // --- 遊戲引擎 ---
-        let Game = { 
-            age: 18, money: 5000, health: 100, happy: 80, intel: 40, charm: 30, 
-            stamina: 100, 
-            debtYears: 0, // 🔥 新增：債務計時器
-            inventory: [], achievements: [] 
-        };
-        const COSTS = { work: 30, study: 20, play: 10, gym: 25 };
-        let activeEvent = null;
+        let Game = { name: "", origin: "", age: 0, money: 0, health: 100, happy: 80, intel: 0, charm: 0, stamina: 100, debtYears: 0, inventory: [], achievements: [] };
+        const COSTS = { work: 30, study: 20, play: 10, gym: 25, dev_app: 50, stream: 40 };
+        let activeEvent = null, selectedOriginId = null;
 
-        function init() { renderShop(); updateUI(); log("V9.0 債務系統上線！請小心理財。"); }
+        function initCreation() {
+            if(typeof ORIGIN_DATA === 'undefined') return document.getElementById('origin-list').innerHTML="<p style='color:red'>Data.js 載入失敗</p>";
+            let html = ""; ORIGIN_DATA.forEach(o => html += `<div class="origin-card" onclick="selectOrigin('${o.id}', this)"><div class="origin-name">${o.name}</div><div style="font-size:0.9em;color:#aaa">${o.desc}</div><div style="font-size:0.8em;color:var(--green)">✨ ${o.buff}</div></div>`);
+            document.getElementById('origin-list').innerHTML = html;
+            selectOrigin(ORIGIN_DATA[0].id, document.querySelector('.origin-card'));
+        }
+        function selectOrigin(id, el) { selectedOriginId = id; document.querySelectorAll('.origin-card').forEach(c => c.classList.remove('selected')); if(el) el.classList.add('selected'); }
+
+        function startGame() {
+            let name = document.getElementById('inp-name').value;
+            if(!name) return alert("請輸入名字");
+            let o = ORIGIN_DATA.find(x => x.id === selectedOriginId);
+            Game = { ...Game, name: name, origin: o.name, money: o.money, intel: o.intel, charm: o.charm, happy: o.happy };
+            document.getElementById('scene-creation').style.display='none'; document.getElementById('scene-game').style.display='block';
+            document.getElementById('player-name').innerText = Game.name; document.getElementById('player-origin').innerText = Game.origin;
+            renderShop(); updateUI(); log(`👶 ${Game.name} 出生了！背景：${Game.origin}`);
+        }
 
         function updateUI() {
-            ['age', 'health', 'happy', 'intel', 'charm'].forEach(k => { let el=document.getElementById(k); if(el) el.innerText = Game[k]; });
+            ['age', 'health', 'happy', 'intel', 'charm'].forEach(k => { document.getElementById(k).innerText = Game[k]; });
+            document.getElementById('year').innerText = new Date().getFullYear() + Game.age;
+            let mEl = document.getElementById('money-display'); mEl.innerText = "$"+Game.money.toLocaleString();
             
-            let moneyEl = document.getElementById('money-display');
-            moneyEl.innerText = "$" + Game.money.toLocaleString();
+            // 警告與狀態顯示
+            document.getElementById('alert-debt').style.display = (Game.money < 0) ? 'block' : 'none';
+            if(Game.money < 0) { mEl.classList.add('debt'); document.getElementById('alert-debt').innerText = `⚠️ 負債警告！還款剩 ${3-Game.debtYears} 年`; } else mEl.classList.remove('debt');
+            
+            // 憂鬱狀態
+            let isDepressed = Game.happy < 20;
+            document.getElementById('alert-depression').style.display = isDepressed ? 'block' : 'none';
 
-            // 🔥 債務視覺效果
-            let alertBox = document.getElementById('debt-alert');
-            if (Game.money < 0) {
-                moneyEl.classList.add('debt'); // 變紅
-                alertBox.style.display = 'block';
-                let timeLeft = 3 - Game.debtYears;
-                alertBox.innerText = `⚠️ 嚴重警告：負債！請在 ${timeLeft} 年內還清，否則將被告上法院！`;
-            } else {
-                moneyEl.classList.remove('debt');
-                alertBox.style.display = 'none';
-            }
+            // 重病狀態
+            document.getElementById('alert-sick').style.display = (Game.health < 30) ? 'block' : 'none';
 
             // 體力條
             let bar = document.getElementById('stamina-bar');
-            let text = document.getElementById('stamina-text');
             if(Game.stamina < 0) Game.stamina = 0;
-            bar.style.width = Game.stamina + "%";
-            text.innerText = Game.stamina + "/100";
+            bar.style.width = Game.stamina + "%"; document.getElementById('stamina-text').innerText = Game.stamina+"/100";
             if(Game.stamina < 20) bar.classList.add('low'); else bar.classList.remove('low');
 
-            checkButtonState('btn-work', COSTS.work);
-            checkButtonState('btn-study', COSTS.study);
-            checkButtonState('btn-play', COSTS.play);
-            checkButtonState('btn-gym', COSTS.gym);
+            updateActionButtons(isDepressed);
+            
+            // 特殊按鈕解鎖邏輯
+            document.getElementById('btn-dev').style.display = (Game.age >= 18 && Game.intel >= 80) ? 'block' : 'none';
+            document.getElementById('btn-stream').style.display = (Game.age >= 18 && Game.charm >= 80) ? 'block' : 'none';
 
             let nextBtn = document.getElementById('btn-nextyear');
             if(Game.stamina < 10) nextBtn.classList.add('pulse'); else nextBtn.classList.remove('pulse');
+            document.getElementById('casino-area').style.display = (Game.age < 18) ? 'none' : 'block';
         }
 
-        function checkButtonState(btnId, cost) {
-            document.getElementById(btnId).disabled = (Game.stamina < cost);
-        }
-
-        function log(msg) { 
-            let box = document.getElementById('game-log'); 
-            box.innerHTML = `<div style="margin-bottom:6px;border-bottom:1px solid #333;">[${Game.age}歲] ${msg}</div>` + box.innerHTML; 
+        function updateActionButtons(isDepressed) {
+            let btns = ['work', 'study', 'play', 'gym', 'dev', 'stream'];
+            btns.forEach(id => {
+                let btn = document.getElementById('btn-'+id);
+                if(!btn) return;
+                
+                // 1. 檢查體力
+                let cost = COSTS[id] || 0;
+                let enoughStamina = Game.stamina >= cost;
+                
+                // 2. 檢查憂鬱狀態 (憂鬱時不能工作、不能開發)
+                let blockedByDepression = isDepressed && (id === 'work' || id === 'dev' || id === 'study');
+                
+                if(blockedByDepression) {
+                    btn.disabled = true;
+                    if(id === 'work') btn.innerHTML = `☁️ 心情太差...`;
+                } else if(!enoughStamina) {
+                    btn.disabled = true;
+                } else {
+                    btn.disabled = false;
+                    // 恢復按鈕文字 (如果是工作)
+                    if(id === 'work' && Game.age >= 18) btn.innerHTML = `💼 工作 <span class="cost-tag">⚡ -30</span>`;
+                }
+            });
+            
+            // 嬰兒期特殊文字 (簡化處理)
+            if(Game.age <= 3) document.getElementById('btn-work').innerHTML = `🍼 喝奶 <span class="cost-tag">⚡ -30</span>`;
         }
 
         function action(type) {
             if(Game.health <= 0) return alert("已死亡");
-            if(Game.stamina < COSTS[type]) return alert("體力不足！請按「下一歲」休息。");
+            if(Game.stamina < COSTS[type]) return alert("體力不足");
             
-            Game.stamina -= COSTS[type];
-
-            if(type === 'work') { let v = 25000+(Game.intel*800); Game.money+=v; Game.health-=3; Game.happy-=5; log(`工作賺了 $${v}`); }
-            if(type === 'study') { Game.intel+=4; Game.money-=2000; log("進修智力+4"); }
-            if(type === 'play') { Game.happy+=12; Game.money-=4000; log("玩樂快樂+12"); }
-            if(type === 'gym') { Game.health+=5; Game.charm+=2; Game.money-=800; log("健身健康+5"); }
-
+            // 🔥 特殊職業邏輯 🔥
+            if(type === 'dev_app') {
+                Game.stamina -= COSTS.dev_app;
+                let success = Math.random() < (Game.intel / 150); // 智力越高成功率越高
+                if(success) {
+                    let profit = 100000 + (Game.intel * 2000);
+                    Game.money += profit; Game.happy += 10;
+                    log(`🚀 APP 開發大獲成功！賺了 $${profit.toLocaleString()}`);
+                } else {
+                    Game.happy -= 10;
+                    log(`🐛 程式一堆 Bug，開發失敗...`);
+                }
+            } 
+            else if(type === 'stream') {
+                Game.stamina -= COSTS.stream;
+                let income = Game.charm * 1000 + (Math.random() * 50000);
+                Game.money += Math.floor(income); Game.charm += 1;
+                log(`🤳 直播好多人斗內！賺了 $${Math.floor(income).toLocaleString()}`);
+            }
+            else {
+                // 普通行動
+                Game.stamina -= COSTS[type];
+                if(type === 'work') {
+                    if(Game.age <= 3) { log("喝奶睡覺"); }
+                    else if(Game.age < 18) { Game.money+=500; Game.health-=2; log("打工賺了 $500"); }
+                    else { let v=25000+(Game.intel*800); Game.money+=v; Game.health-=3; Game.happy-=5; log(`工作賺了 $${v}`); }
+                }
+                if(type === 'study') { Game.intel+=4; if(Game.age>=18)Game.money-=2000; log("智力+4"); }
+                if(type === 'play') { Game.happy+=12; if(Game.age>=18)Game.money-=4000; log("快樂+12"); }
+                if(type === 'gym') { Game.health+=5; Game.charm+=2; if(Game.age>=18)Game.money-=800; log("健康+5 魅力+2"); }
+            }
             updateUI();
         }
 
         function nextYear() {
             if(Game.health <= 0) return;
-
-            Game.age++;
-            Game.health -= 3;
-            Game.stamina = 100;
-            log("💤 休息了一年，體力全滿！");
-
-            // 🔥 債務檢查邏輯 (核心更新) 🔥
-            if (Game.money < 0) {
-                Game.debtYears++;
-                log(`⚠️ 你正處於負債狀態！(第 ${Game.debtYears} 年)`);
-                
-                if (Game.debtYears > 3) {
-                    // 觸發強制還款事件
-                    triggerDebtPunishment();
-                    // 懲罰完畢，重置計時器
-                    Game.debtYears = 0;
-                }
-            } else {
-                // 如果錢是正的，債務計時器歸零
-                Game.debtYears = 0;
+            Game.age++; Game.health -= 3; Game.stamina = 100; log(`🎂 ${Game.age} 歲了`);
+            
+            // 債務檢查
+            if(Game.money < 0) { Game.debtYears++; if(Game.debtYears > 3) triggerDebtPunishment(); } else Game.debtYears=0;
+            
+            // 🔥 重病扣錢 🔥
+            if(Game.health < 30) {
+                let bill = 50000;
+                Game.money -= bill;
+                log(`🏥 身體太差住院了，支付醫藥費 $${bill}`);
             }
 
-            // 資產加成
+            // 資產被動
             Game.inventory.forEach(id => {
-                let car = CAR_DATA.find(c => c.id === id); if(car) Game.charm += 1;
-                let house = HOUSE_DATA.find(h => h.id === id); if(house) Game.happy += 2;
+                let c = CAR_DATA.find(x=>x.id==id); if(c) Game.charm+=1;
+                let h = HOUSE_DATA.find(x=>x.id==id); if(h) Game.happy+=2;
             });
-
+            
             // 隨機事件
-            if(Math.random() < 0.3 && typeof EVENT_DATA !== 'undefined') {
-                let randIndex = Math.floor(Math.random() * EVENT_DATA.length);
-                activeEvent = EVENT_DATA[randIndex];
+            if(Math.random()<0.3 && typeof EVENT_DATA !== 'undefined') {
+                let r = Math.floor(Math.random()*EVENT_DATA.length);
+                activeEvent = EVENT_DATA[r];
                 showModal(activeEvent.title, activeEvent.desc, activeEvent.choices[0].txt, activeEvent.choices[1].txt, 0, 1);
             }
-            
-            if(Game.health <= 0) Game.health = 0;
+            if(Game.health <= 0) { Game.health = 0; log("💀 死亡"); }
             updateUI();
         }
 
-        // 🔥 強制還款懲罰事件 🔥
-        function triggerDebtPunishment() {
-            let punishMsg = "👮 法院強制執行：";
-            let lostAssets = false;
-            
-            // 1. 強制變賣資產 (如果有的話)
-            if (Game.inventory.length > 0) {
-                Game.inventory = []; // 清空所有資產
-                punishMsg += "你的車子和房子全部被銀行查封拍賣抵債！";
-                lostAssets = true;
-                // 假設拍賣後錢回到 0 (稍微仁慈一點)
-                Game.money = 0;
-            } else {
-                punishMsg += "你名下無財產可扣押。";
-            }
-
-            // 2. 額外懲罰
-            Game.happy -= 50;
-            Game.health -= 20;
-            punishMsg += " 你因欠債被告上法院，身心俱疲 (快樂-50, 健康-20)。";
-
-            // 3. 顯示彈窗告知玩家
-            // 這裡我們手動造一個事件彈窗
-            activeEvent = {
-                choices: [
-                    { effect: (p) => { return "希望能記取教訓..."; } },
-                    { effect: (p) => { return "希望能記取教訓..."; } } // 兩個選項一樣
-                ]
-            };
-            
-            showModal("⚖️ 債務到期", punishMsg, "我破產了...", "人生好難...", 0, 0);
-        }
-
-        function showModal(title, desc, btnAtxt, btnBtxt, idxA, idxB) {
-            document.getElementById('ev-title').innerText = title;
-            document.getElementById('ev-desc').innerText = desc;
-            let btnA = document.getElementById('btn-choice-a');
-            let btnB = document.getElementById('btn-choice-b');
-            btnA.onclick = function() { resolveEvent(idxA); };
-            btnB.onclick = function() { resolveEvent(idxB); };
-            btnA.innerText = btnAtxt;
-            btnB.innerText = btnBtxt;
-            document.getElementById('event-modal').style.display = 'flex';
-        }
-
-        function resolveEvent(idx) {
-            let resultText = activeEvent.choices[idx].effect(Game);
-            log(`⚡ [結果] ${resultText}`);
-            document.getElementById('event-modal').style.display = 'none';
-            updateUI();
-        }
-
-        // 商店與其他功能
-        function renderShop() {
-            if(typeof CAR_DATA === 'undefined') return;
-            let carHtml = ""; CAR_DATA.forEach(c => { carHtml += `<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #333;"><div style="display:flex;"><img src="${c.img}" class="item-img" onerror="this.style.display='none'"><div><b>${c.name}</b><br><span style="color:#888;font-size:0.8em">魅力+${c.charm}</span></div></div><button class="btn-buy" onclick="buy('car', '${c.id}')">$${c.price/10000}萬</button></div>`; }); document.getElementById('car-shop').innerHTML = carHtml;
-            let houseHtml = ""; HOUSE_DATA.forEach(h => { houseHtml += `<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #333;"><div style="display:flex;"><img src="${h.img}" class="item-img" onerror="this.style.display='none'"><div><b>${h.name}</b><br><span style="color:#888;font-size:0.8em">快樂+${h.happy}</span></div></div><button class="btn-buy" onclick="buy('house', '${h.id}')">$${h.price/10000}萬</button></div>`; }); document.getElementById('house-shop').innerHTML = houseHtml;
-        }
-        function buy(type, id) {
-            let item = type === 'car' ? CAR_DATA.find(c => c.id === id) : HOUSE_DATA.find(h => h.id === id);
-            if(Game.inventory.includes(id)) return alert("已擁有！");
-            if(Game.money >= item.price) { Game.money -= item.price; Game.inventory.push(id); log(`🎉 購買成功：${item.name}`); updateUI(); } else alert("錢不夠！");
-        }
-        function gamble(c){ 
-            let v=parseInt(document.getElementById('bet-amount').value);
-            if(!v)return alert("金額錯誤"); // 允許負債賭博翻身！
-            if(Game.stamina < 5) return alert("體力不足");
-            Game.stamina -= 5;
-            let d=Math.floor(Math.random()*10);
-            let r=d>=5?'big':'small';
-            if(c===r){Game.money+=v;log(`賭博贏了 $${v}`);}else{Game.money-=v;log(`賭博輸了 $${v}`);}
-            updateUI();
-        }
+        // 共用函數
+        function showModal(t, d, b1, b2, i1, i2) { document.getElementById('ev-title').innerText=t; document.getElementById('ev-desc').innerText=d; let ba=document.getElementById('btn-choice-a'), bb=document.getElementById('btn-choice-b'); ba.onclick=()=>resolveEvent(i1); bb.onclick=()=>resolveEvent(i2); ba.innerText=b1; bb.innerText=b2; document.getElementById('event-modal').style.display='flex'; }
+        function resolveEvent(i) { let r=activeEvent.choices[i].effect(Game); log(`⚡ ${r}`); document.getElementById('event-modal').style.display='none'; updateUI(); }
+        function triggerDebtPunishment() { Game.inventory=[]; Game.money=0; Game.happy-=50; activeEvent={choices:[{effect:()=>"資產充公"}]}; showModal("破產", "期限已到，強制還款", "認命", "認命", 0, 0); }
+        function renderShop() { if(typeof CAR_DATA==='undefined')return; let ch="", hh=""; CAR_DATA.forEach(c=>ch+=renderItem(c,'car')); HOUSE_DATA.forEach(h=>hh+=renderItem(h,'house')); document.getElementById('car-shop').innerHTML=ch; document.getElementById('house-shop').innerHTML=hh; }
+        function renderItem(i,t) { return `<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px solid #333;"><div style="display:flex;"><img src="${i.img}" class="item-img" onerror="this.style.display='none'"><div><b>${i.name}</b><br><span style="color:#888;font-size:0.8em">${t=='car'?'魅力+'+i.charm:'快樂+'+i.happy}</span></div></div><button class="btn-buy" onclick="buy('${t}','${i.id}')">$${i.price/10000}萬</button></div>`; }
+        function buy(t,id) { let i = t=='car'?CAR_DATA.find(x=>x.id==id):HOUSE_DATA.find(x=>x.id==id); if(Game.inventory.includes(id))return alert("已擁有"); if(Game.money>=i.price){Game.money-=i.price;Game.inventory.push(id);log(`購買 ${i.name}`);updateUI();}else alert("錢不夠"); }
+        function gamble(c) { let v=parseInt(document.getElementById('bet-amount').value); if(!v)return; if(Game.stamina<5)return alert("體力不足"); Game.stamina-=5; let d=Math.floor(Math.random()*10), r=d>=5?'big':'small'; if(c==r){Game.money+=v;log(`贏 $${v}`);}else{Game.money-=v;log(`輸 $${v}`);} updateUI(); }
         function nav(p){ document.querySelectorAll('.page').forEach(e=>e.classList.remove('active')); document.getElementById('page-'+p).classList.add('active'); }
         function restartGame(){ location.reload(); }
 
-        init();
+        initCreation();
     </script>
 </body>
 </html>
