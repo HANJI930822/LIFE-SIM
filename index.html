@@ -273,7 +273,7 @@
             else if(type === 'uni_study') { Game.intel += 3; log("鑽研大學專業課程 (智力+3)"); }
             else if(type === 'part_time') { Game.money += 800; Game.happy -= 5; log("課餘打工賺了 $800"); }
             else if(type === 'social') { Game.money -= 2000; Game.charm += 3; Game.happy += 10; log("去參加聯誼 (魅力+3, 花費$2000)"); }
-            
+            else if(type === 'baby_sleep') {  Game.health += 2;  Game.happy += 2; log("🍼 喝飽了奶，睡得很香甜 (健康+2, 快樂+2)");  }
             // --- 一般行動 ---
             else if(type === 'work') { 
                 let base = 25000 + (Game.intel * 800);
@@ -386,4 +386,5 @@
     </script>
 </body>
 </html>
+
 
