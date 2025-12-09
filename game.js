@@ -2475,12 +2475,20 @@ function renderChildrenList() {
       // 🆕 新增：通膨與房貸系統 (已修正變數名稱 Game)
       // ==========================================
 function updateInflation() {
-        Game.yearsPassed++; // ✅ 修正：game -> Game
-        if (Game.yearsPassed % 5 === 0) {
-          Game.inflationRate *= 1.03;
-          log(`💸 物價上漲了 3%`);
-        }
-      }
+  Game.yearsPassed++; 
+  if (Game.yearsPassed % 5 === 0) {
+    // 產生 0.0 ~ 3.0 之間的隨機數字 (例如 1.5, 2.7)
+    const percent = Math.random() * 3;
+    
+    // 計算倍率 (例如 1.5% -> 0.015 -> 1.015)
+    const multiplier = 1 + (percent / 100);
+    
+    Game.inflationRate *= multiplier;
+    
+    // 顯示時取小數點後 1 位，看起來比較整潔
+    log(`💸 物價上漲了 ${percent.toFixed(1)}%`);
+  }
+}
 
 function getInflatedPrice(basePrice) {
         return Math.floor(basePrice * Game.inflationRate); // ✅ 修正：game -> Game
@@ -5008,3 +5016,4 @@ function showModal(title, description, actions) {
 
   modal.style.display = "flex";
 }
+initCreation();
