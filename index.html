@@ -5840,14 +5840,9 @@
           };
         });
 
-        // 技能條
-        /// ... 在 updateUI 函數內 ...
-
-        // ✅ 生成技能標籤
-        let skillHtml = "";
-
+       // ===== 📊 技能顯示 (極簡版) =====
         const skillNames = {
-          programming: "💻 程式", // 加點圖示更生動
+          programming: "💻 程式",
           art: "🎨 藝術",
           medical: "⚕️ 醫療",
           cooking: "🍳 烹飪",
@@ -5856,58 +5851,36 @@
           charm: "✨ 魅力",
         };
 
-        // 遍歷技能
+        let skillHtml = '';
+        
+        // 遍歷所有技能
         Object.keys(Game.skills).forEach((key) => {
           const val = Math.floor(Game.skills[key]);
-          if (val > 0) {
-            // 數值 > 0 才顯示
+          if (val > 0) { // 只顯示數值 > 0 的技能
             skillHtml += `
-                <div class="skill-tag">
-                    ${skillNames[key] || key} <span class="skill-val">${val}</span>
+                <div class="skill-tag" style="font-size: 0.85em; padding: 4px 8px; margin: 2px;">
+                    ${skillNames[key] || key} 
+                    <span style="color: var(--gold); font-weight: bold; margin-left: 5px;">${val}</span>
                 </div>
             `;
           }
         });
 
-        // 若無技能
-        if (skillHtml === "") {
-          skillHtml =
-            '<span style="font-size: 0.8em; color: var(--text-dim); opacity: 0.5;">( 尚未習得技能 )</span>';
+        // 若完全無技能
+        if (skillHtml === '') {
+            skillHtml = '<span style="font-size: 0.8em; color: var(--text-dim); opacity: 0.5; padding: 5px;">( 尚未習得技能 )</span>';
         }
 
-        document.getElementById("skills-container").innerHTML = skillHtml;
-        if (!skillsCollapsed) {
-          const skillNames = {
-            programming: "程式",
-            art: "藝術",
-            medical: "醫療",
-            cooking: "烹飪",
-            finance: "理財",
-            communication: "溝通",
-            charm: "魅力",
-          };
-
-          // ✅ 修改：改成 Grid 佈局，讓技能像屬性面板一樣排列
-          skillHtml +=
-            '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">';
-
-          Object.keys(Game.skills).forEach((key) => {
-            const val = Math.floor(Game.skills[key]); // 取整數，無上限
-
-            // ✅ 修改：移除進度條，改用精緻的數值卡片樣式
-            skillHtml += `
-                  <div class="skill-item" style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: var(--text-dim); font-size: 0.9em;">${skillNames[key]}</span>
-                      <span style="color: var(--gold); font-weight: bold; font-size: 1.1em;">${val}</span>
-                  </div>
-              `;
-          });
-
-          skillHtml += "</div>";
+        // 更新容器 (移除原本的 Grid/Card 邏輯，只留標籤)
+        const skillsContainer = document.getElementById("skills-container");
+        if (skillsContainer) {
+            skillsContainer.innerHTML = skillHtml;
+            // 強制設定樣式以確保緊湊排列
+            skillsContainer.style.display = 'flex';
+            skillsContainer.style.flexWrap = 'wrap';
+            skillsContainer.style.gap = '4px';
+            skillsContainer.style.justifyContent = 'flex-end'; // 靠右對齊 (配合儀表板布局)
         }
-
-        document.getElementById("skills-container").innerHTML = skillHtml;
-
         // 體力條
         const stamina = Math.max(0, Math.min(100, Game.stamina));
         const staminaRatio = stamina / 100;
