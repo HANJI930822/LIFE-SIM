@@ -36,15 +36,19 @@ let Game = {
     monthlyPayment: 0,
     years: 0,
   },
-  skills: {
-    programming: 0,
-    art: 0,
-    medical: 0,
-    cooking: 0,
-    finance: 0,
-    communication: 0,
+  skills: { 
+    programming: 0, 
+    art: 0, 
+    medical: 0, 
+    cooking: 0, 
+    finance: 0, 
+    communication: 0, 
     charm: 0,
+    leadership: 0,  
+    management: 0   
   },
+  
+  salaryBonus: 0, 
   jobId: "none",
   jobYears: 0,
   yearlyMoney: 0,
@@ -2267,55 +2271,60 @@ function showEventModal(event) {
 
   modal.style.display = "flex";
 }
-// ==========================================
-// 🔴 隨機事件系統
-// ==========================================
-
-// 修改 game.js 裡的 triggerRandomEvent
 function checkPromotion() {
-        // ✅ 修正：game -> Game
-        if (!Game.job || Game.job === "無業" || Game.promotionChecked) return;
+  // 1. 基礎檢查
+  if (!Game.job || Game.job === "無業" || Game.promotionChecked) return;
 
-        const promotion = JOB_PROMOTIONS[Game.job];
-        if (!promotion) return;
+  // 2. 取得升遷規則
+  const promotion = JOB_PROMOTIONS[Game.job];
+  if (!promotion) return;
 
-        const req = promotion.requirement;
-        let canPromote = true;
+  // 3. 檢查條件 (加入預設值避免報錯)
+  const req = promotion.requirement;
+  const leadership = Game.skills.leadership || 0;
+  const communication = Game.skills.communication || 0;
+  const intel = Game.intel || 0;
+  
+  let canPromote = true;
 
-        if (req.age && Game.age < req.age) canPromote = false;
-        if (req.intel && Game.intel < req.intel) canPromote = false;
-        if (req.communication && Game.skills.communication < req.communication)
-          canPromote = false;
-        if (req.leadership && Game.skills.leadership < req.leadership)
-          canPromote = false;
-        if (req.workYears && Game.workYears < req.workYears) canPromote = false;
+  if (req.age && Game.age < req.age) canPromote = false;
+  if (req.intel && intel < req.intel) canPromote = false;
+  if (req.communication && communication < req.communication) canPromote = false;
+  if (req.leadership && leadership < req.leadership) canPromote = false;
+  if (req.workYears && Game.workYears < req.workYears) canPromote = false;
 
-        if (canPromote) {
-          showModal(
-            "🎉 晉升機會",
-            `恭喜！你可以從「${Game.job}」晉升為「${promotion.next}」\n薪水將增加 $${promotion.salaryIncrease.toLocaleString()}/年`,
-            "接受晉升",
-            "暫不晉升",
-            () => {
-              const currentJob = JOBS.find((j) => j.name === Game.job);
-              Game.job = promotion.next;
-              if (currentJob) {
-                currentJob.salary += promotion.salaryIncrease;
-              }
-              log(`✨ 你晉升為 ${promotion.next}！`);
-              Game.promotionChecked = true;
-              updateUI();
-            },
-            () => {
-              log(`你選擇暫不晉升`);
-              Game.promotionChecked = true;
-            },
-          );
+  // 4. 觸發升遷
+  if (canPromote) {
+    showModal(
+      "🎉 晉升機會",
+      `恭喜！你可以從「${Game.job}」晉升為「${promotion.next}」\n薪水將增加 $${promotion.salaryIncrease.toLocaleString()}/年`,
+      [
+        {
+          text: "接受晉升",
+          action: () => {
+            Game.job = promotion.next;
+            
+            // ✅ 修正加薪邏輯：記錄在個人加成，而不是修改全域資料
+            Game.salaryBonus = (Game.salaryBonus || 0) + promotion.salaryIncrease;
+            
+            log(`✨ 你晉升為 ${promotion.next}！(年薪 +$${promotion.salaryIncrease.toLocaleString()})`);
+            closeModal();
+            updateUI();
+          }
+        },
+        {
+          text: "暫不晉升",
+          action: () => {
+            log(`你選擇暫不晉升`);
+            closeModal();
+          }
         }
-      }
-      // ==========================================
-      // 🆕 新增：子女養育系統 (已修正變數名稱 Game)
-      // ==========================================
+      ]
+    );
+    // 標記今年已檢查過，避免重複彈出
+    Game.promotionChecked = true;
+  }
+}
 function createChild(name, age = 0) {
         return {
           name: name,
@@ -4246,69 +4255,80 @@ function addFriend() {
 }
 
 function renderShop() {
-  // 車庫
+  // 1. 車庫渲染
   let carHtml = "";
   CARS.forEach((car) => {
     const owned = Game.inventory.includes(car.id);
+    // 🔥 計算通膨後的價格
+    const currentPrice = getInflatedPrice(car.price);
+    
     carHtml += `
-                          <div class="job-card" style="cursor: default;">
-                              <div class="job-name">${car.name} ${owned ? "✓ (已擁有)" : ""}</div>
-                              <div class="job-salary">✨ 魅力 +${car.charm}</div>
-                              <div style="font-size: 0.85em; color: var(--text-dim); margin: 5px 0;">
-                                  ${car.desc}
-                              </div>
-                              <div style="margin-top: 8px;">
-                                  <button class="btn-buy" onclick="buyItem('${car.id}')" ${owned ? "disabled" : ""}>
-                                      購買 $${(car.price / 10000).toFixed(0)}萬
-                                  </button>
-                              </div>
-                          </div>
-                      `;
+      <div class="job-card" style="cursor: default;">
+          <div class="job-name">${car.name} ${owned ? "✓ (已擁有)" : ""}</div>
+          <div class="job-salary">✨ 魅力 +${car.charm}</div>
+          <div style="font-size: 0.85em; color: var(--text-dim); margin: 5px 0;">
+              ${car.desc}
+          </div>
+          <div style="margin-top: 8px;">
+              <button class="btn-buy" onclick="buyItem('${car.id}')" ${owned ? "disabled" : ""}>
+                  購買 $${(currentPrice / 10000).toFixed(0)}萬
+              </button>
+          </div>
+      </div>
+    `;
   });
 
-  // 房產
+  // 2. 房產渲染
   let houseHtml = "";
   HOUSES.forEach((house) => {
     const owned = Game.inventory.includes(house.id);
+    // 🔥 計算通膨後的價格與租金
+    const currentPrice = getInflatedPrice(house.price);
+    const currentRent = getInflatedPrice(house.passive);
+
     houseHtml += `
-                          <div class="job-card" style="cursor: default;">
-                              <div class="job-name">${house.name} ${owned ? "✓ (已擁有)" : ""}</div>
-                              <div class="job-salary">
-                                  😊 快樂 +${house.happy} | 💰 被動收入 $${house.passive.toLocaleString()}/月
-                              </div>
-                              <div style="font-size: 0.85em; color: var(--text-dim); margin: 5px 0;">
-                                  ${house.desc}
-                              </div>
-                              <div style="margin-top: 8px;">
-                                  <button class="btn-buy" onclick="buyItem('${house.id}')" ${owned ? "disabled" : ""}>
-                                      購買 $${(house.price / 10000).toFixed(0)}萬
-                                  </button>
-                              </div>
-                          </div>
-                      `;
+      <div class="job-card" style="cursor: default;">
+          <div class="job-name">${house.name} ${owned ? "✓ (已擁有)" : ""}</div>
+          <div class="job-salary">
+              😊 快樂 +${house.happy} | 💰 被動收入 $${currentRent.toLocaleString()}/月
+          </div>
+          <div style="font-size: 0.85em; color: var(--text-dim); margin: 5px 0;">
+              ${house.desc}
+          </div>
+          <div style="margin-top: 8px;">
+              <button class="btn-buy" onclick="buyItem('${house.id}')" ${owned ? "disabled" : ""}>
+                  購買 $${(currentPrice / 10000).toFixed(0)}萬
+              </button>
+              ${!owned ? `<button class="btn-main" style="margin-left:5px; font-size:0.8em; padding: 5px 10px;" onclick="buyHouseWithMortgage(HOUSES.find(h=>h.id==='${house.id}'))">貸款</button>` : ''}
+          </div>
+      </div>
+    `;
   });
 
-  // 奢侈品
+  // 3. 奢侈品渲染
   let luxHtml = "";
   LUXURIES.forEach((lux) => {
     const owned = Game.inventory.includes(lux.id);
+    // 🔥 計算通膨後的價格
+    const currentPrice = getInflatedPrice(lux.price);
+
     luxHtml += `
-                          <div class="job-card" style="cursor: default;">
-                              <div class="job-name">${lux.name} ${owned ? "✓ (已擁有)" : ""}</div>
-                              <div class="job-salary">
-                                  ${lux.charm ? `✨ 魅力 +${lux.charm}` : ""}
-                                  ${lux.happy ? `😊 快樂 +${lux.happy}` : ""}
-                              </div>
-                              <div style="font-size: 0.85em; color: var(--text-dim); margin: 5px 0;">
-                                  ${lux.desc}
-                              </div>
-                              <div style="margin-top: 8px;">
-                                  <button class="btn-buy" onclick="buyItem('${lux.id}')" ${owned ? "disabled" : ""}>
-                                      購買 $${(lux.price / 10000).toFixed(0)}萬
-                                  </button>
-                              </div>
-                          </div>
-                      `;
+      <div class="job-card" style="cursor: default;">
+          <div class="job-name">${lux.name} ${owned ? "✓ (已擁有)" : ""}</div>
+          <div class="job-salary">
+              ${lux.charm ? `✨ 魅力 +${lux.charm}` : ""}
+              ${lux.happy ? `😊 快樂 +${lux.happy}` : ""}
+          </div>
+          <div style="font-size: 0.85em; color: var(--text-dim); margin: 5px 0;">
+              ${lux.desc}
+          </div>
+          <div style="margin-top: 8px;">
+              <button class="btn-buy" onclick="buyItem('${lux.id}')" ${owned ? "disabled" : ""}>
+                  購買 $${(currentPrice / 10000).toFixed(0)}萬
+              </button>
+          </div>
+      </div>
+    `;
   });
 
   document.getElementById("car-shop").innerHTML = carHtml;
@@ -4324,26 +4344,35 @@ function buyItem(id) {
 
   if (!item) return;
   if (Game.inventory.includes(id)) return alert("已擁有");
-  if (Game.money < item.price) return alert("錢不夠");
 
-  Game.money -= item.price;
-  Game.inventory.push(id);
+  // 🔥 關鍵修改：計算當前通膨後的價格
+  const realPrice = getInflatedPrice(item.price);
 
-  if (car) {
-    Game.skills.charm += car.charm;
-    log(`🏎️ 購買了 ${car.name}`);
-  } else if (house) {
-    Game.happy += house.happy;
-    log(`🏘️ 購買了 ${house.name}`);
-  } else {
-    if (lux.charm) Game.skills.charm += lux.charm;
-    if (lux.happy) Game.happy += lux.happy;
-    log(`💎 購買了 ${lux.name}`);
+  if (Game.money < realPrice) {
+    return alert(`錢不夠！需要 $${realPrice.toLocaleString()}`);
   }
 
-  checkAchievements();
-  updateUI();
-  renderShop();
+  // 增加確認視窗，避免誤買高價物品
+  if (confirm(`確定要花費 $${realPrice.toLocaleString()} 購買 ${item.name} 嗎？`)) {
+      Game.money -= realPrice;
+      Game.inventory.push(id);
+
+      if (car) {
+        Game.skills.charm += car.charm;
+        log(`🏎️ 購買了 ${car.name}`);
+      } else if (house) {
+        Game.happy += house.happy;
+        log(`🏘️ 購買了 ${house.name}`);
+      } else {
+        if (lux.charm) Game.skills.charm += lux.charm;
+        if (lux.happy) Game.happy += lux.happy;
+        log(`💎 購買了 ${lux.name}`);
+      }
+
+      checkAchievements();
+      updateUI();
+      renderShop();
+  }
 }
 
 function renderStats() {

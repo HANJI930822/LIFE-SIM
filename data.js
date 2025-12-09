@@ -736,13 +736,13 @@ const TRAITS = [
           id: "pessimistic",
           name: "😔 悲觀主義者",
           desc: "容易陷入負面情緒",
-          detailedEffect: "快樂衰減 +30%\n智力 +5",
+          detailedEffect: "快樂衰減 +10%\n智力 +5",
           category: "personality",
           isNegative: true, // ✅ 标记为负面特质
           reward: { money: 50000, intel: 5 }, // ✅ 负面奖励
           conflictWith: ["optimistic"],
           effect: (g) => {
-            g.happyDecay *= 1.3;
+            g.happyDecay *= 1.1;
             g.intel += 5;
           },
           unlock: "default",
@@ -752,11 +752,11 @@ const TRAITS = [
           id: "extrovert",
           name: "🎉 外向",
           desc: "善於社交，容易交朋友",
-          detailedEffect: "社交效果 +50%\n魅力 +10\n初始好感 +5",
+          detailedEffect: "社交效果 +30%\n魅力 +10\n初始好感 +5",
           category: "personality",
           conflictWith: ["introvert"],
           effect: (g) => {
-            g.socialBonus *= 1.5;
+            g.socialBonus *= 1.3;
             g.skills.charm += 10;
           },
           unlock: "default",
@@ -1763,297 +1763,29 @@ const ORIGIN_STORY = {
           "家裡的書架上擺滿了諾貝爾獎章。父母對你的期許不是賺大錢，而是解開宇宙的奧祕。",
       };
 const JOBS = [
-        {
-          id: "none",
-          name: "無業",
-          salary: 0,
-          requirement: {},
-          effect: null,
-          desc: "待業中",
-        },
-
-        {
-          id: "clerk",
-          name: "辦事員",
-          salary: 25000,
-          requirement: { intel: 40 },
-          effect: (g) => {
-            g.happy -= 2;
-          },
-          desc: "處理日常文書工作",
-        },
-
-        {
-          id: "engineer",
-          name: "工程師",
-          salary: 50000,
-          requirement: { intel: 80, programming: 70 },
-          traitBonus: {
-            techsavvy: { salary: 1.3, desc: "科技達人薪資加成 30%" },
-            quicklearner: { salary: 1.2, desc: "快速學習者薪資加成 20%" },
-            introvert: { salary: 1.1, desc: "內向者薪資加成 10%" },
-          },
-          effect: (g) => {
-            g.skills.programming += 2;
-            g.happy -= 5;
-            g.health -= 3;
-          },
-          desc: "開發軟體系統",
-        },
-
-        {
-          id: "doctor",
-          name: "醫生",
-          salary: 120000,
-          requirement: { intel: 120, medical: 80 },
-          requiredTrait: "athletic",
-          traitBonus: { athletic: { salary: 1.2, desc: "運動健將薪資加成" } },
-          effect: (g) => {
-            g.health -= 5;
-            g.skills.medical += 3;
-          },
-          desc: "救死扶傷的神聖職業",
-        },
-
-        {
-          id: "artist",
-          name: "藝術家",
-          salary: 28000,
-          requirement: { art: 70, charm: 60 },
-          traitBonus: {
-            artistic: { salary: 1.5, desc: "藝術天賦薪資加成 50%" },
-            pessimistic: { salary: 1.3, desc: "悲觀主義者薪資加成 30%" },
-          },
-          effect: (g) => {
-            g.happy += 10;
-            g.skills.art += 3;
-          },
-          desc: "用藝術表達自我",
-        },
-
-        {
-          id: "teacher",
-          name: "教師",
-          salary: 38000,
-          requirement: { intel: 70, communication: 60 },
-          traitBonus: {
-            extrovert: { salary: 1.2, desc: "外向者薪資加成" },
-            charismatic: { salary: 1.15, desc: "魅力非凡薪資加成" },
-            optimistic: { salary: 1.1, desc: "樂觀主義者薪資加成 10%" },
-          },
-          effect: (g) => {
-            g.happy += 5;
-            g.skills.communication += 2;
-          },
-          desc: "教育下一代",
-        },
-
-        {
-          id: "entrepreneur",
-          name: "創業家",
-          salary: 80000,
-          requirement: { intel: 90, finance: 70, charm: 70 },
-          traitBonus: {
-            businessmind: { salary: 1.5, desc: "商業頭腦薪資加成" },
-            brave: { salary: 1.3, desc: "勇敢者薪資加成" },
-            lucky: { salary: 1.4, desc: "幸運兒薪資加成" },
-            optimistic: { salary: 1.2, desc: "樂觀主義者薪資加成 20%" },
-          },
-          effect: (g) => {
-            const fluctuation = Math.floor(Math.random() * 120000) - 60000; // ✅ 加大波動 -60k ~ +60k
-            g.money += fluctuation;
-            g.happy -= 15;
-            g.health -= 8;
-            if (fluctuation > 0)
-              log(`📈 創業獲利 +${fluctuation.toLocaleString()}`);
-            else log(`📉 創業虧損 ${Math.abs(fluctuation).toLocaleString()}`);
-          },
-          desc: "高風險高報酬的創業之路",
-        },
-
-        {
-          id: "influencer",
-          name: "網紅",
-          salary: 60000,
-          requirement: { charm: 90, communication: 70 },
-          requiredTrait: "extrovert",
-          traitBonus: {
-            extrovert: { salary: 1.3, desc: "外向者薪資加成" },
-            charismatic: { salary: 1.4, desc: "魅力非凡薪資加成" },
-            artistic: { salary: 1.2, desc: "藝術天賦薪資加成" },
-            optimistic: { salary: 1.15, desc: "樂觀主義者薪資加成 15%" },
-          },
-          effect: (g) => {
-            g.skills.charm += 2;
-            g.happy += 8;
-            g.money += Math.floor(Math.random() * 40000) - 10000; // ✅ 收入波動 -10k ~ +30k
-          },
-          desc: "依賴流量的不穩定職業",
-        },
-
-        {
-          id: "scientist",
-          name: "科學家",
-          salary: 65000,
-          requirement: { intel: 110 },
-          traitBonus: {
-            geniusmind: { salary: 1.5, desc: "天才心智薪資加成" },
-            introvert: { salary: 1.2, desc: "內向者薪資加成" },
-            quicklearner: { salary: 1.3, desc: "快速學習者薪資加成 30%" },
-          },
-          effect: (g) => {
-            g.intel += 5;
-            g.happy += 3;
-          },
-          desc: "探索未知的真理",
-        },
-
-        {
-          id: "lawyer",
-          name: "律師",
-          salary: 100000,
-          requirement: { intel: 100, communication: 80 },
-          effect: (g) => {
-            g.skills.communication += 3;
-            g.happy -= 8;
-          },
-          desc: "為正義辯護",
-        },
-
-        {
-          id: "chef",
-          name: "廚師",
-          salary: 42000,
-          requirement: { cooking: 80, art: 40 },
-          effect: (g) => {
-            g.skills.cooking += 3;
-            g.happy += 5;
-          },
-          desc: "烹飪美食的藝術家",
-        },
-
-        {
-          id: "pilot",
-          name: "機師",
-          salary: 135000,
-          requirement: { intel: 90, health: 80 },
-          effect: (g) => {
-            g.health -= 5;
-            g.happy += 3;
-          },
-          desc: "翱翔天際的職業",
-        },
-
-        {
-          id: "athlete",
-          name: "運動員",
-          salary: 70000,
-          requirement: { health: 90, charm: 60 },
-          effect: (g) => {
-            g.health += 3;
-            if (g.age > 35) {
-              g.happy -= 10;
-              log("⚠️ 運動員年齡過大，職業生涯走下坡");
-            }
-          },
-          desc: "35 歲後職業生涯走下坡",
-        },
-
-        {
-          id: "police",
-          name: "警察",
-          salary: 45000,
-          requirement: { health: 70, communication: 50 },
-          effect: (g) => {
-            g.health -= 3;
-            g.happy -= 5;
-          },
-          desc: "維護社會治安",
-        },
-
-        {
-          id: "designer",
-          name: "設計師",
-          salary: 48000,
-          requirement: { art: 80, programming: 40 },
-          effect: (g) => {
-            g.skills.art += 3;
-            g.happy += 3;
-          },
-          desc: "創造視覺美學",
-        },
-
-        // ===== 特殊出身專屬職業 =====
-        {
-          id: "hackerpro",
-          name: "駭客",
-          salary: 180000,
-          requirement: { intel: 100, programming: 100 },
-          originRequired: "hacker",
-          effect: (g) => {
-            g.skills.programming += 5;
-            g.money += Math.floor(Math.random() * 400000) - 100000; // ✅ 大波動 -100k ~ +300k
-          },
-          desc: "高風險的灰色地帶",
-        },
-
-        {
-          id: "royaladvisor",
-          name: "皇室顧問",
-          salary: 200000,
-          requirement: { intel: 110, communication: 90 },
-          originRequired: "royal",
-          effect: (g) => {
-            g.skills.charm += 3;
-            g.happy += 10;
-          },
-          desc: "服務皇室的榮耀",
-        },
-
-        {
-          id: "esportsplayer",
-          name: "電競選手",
-          salary: 100000,
-          requirement: { intel: 70 },
-          originRequired: "esports",
-          effect: (g) => {
-            if (g.age > 28) {
-              g.happy -= 15;
-              log("⚠️ 電競選手年齡過大，反應速度下降");
-            } else {
-              g.happy += 15;
-            }
-          },
-          desc: "25 歲巔峰期",
-        },
-
-        {
-          id: "spyagent",
-          name: "間諜",
-          salary: 140000,
-          requirement: { intel: 100, health: 80 },
-          originRequired: "spy",
-          effect: (g) => {
-            g.health -= 8;
-            g.money += Math.floor(Math.random() * 250000) - 50000; // ✅ 危險津貼波動
-          },
-          desc: "危險的祕密任務",
-        },
-
-        {
-          id: "michelinchef",
-          name: "米其林廚師",
-          salary: 120000,
-          requirement: { cooking: 100, art: 60 },
-          originRequired: "cheffamily",
-          effect: (g) => {
-            g.skills.cooking += 5;
-            g.skills.art += 2;
-            g.happy += 8;
-          },
-          desc: "頂級料理大師",
-        },
-      ];
+  { id: "none", name: "無業", salary: 0, requirement: {}, effect: null, desc: "待業中" },
+  { id: "clerk", name: "行政人員", salary: 32000, requirement: { intel: 40 }, effect: (g) => { g.happy -= 2; }, desc: "穩定的辦公室工作" },
+  { id: "engineer", name: "工程師", salary: 75000, requirement: { intel: 80, programming: 70 }, traitBonus: { techsavvy: { salary: 1.3, desc: "科技達人薪資加成 30%" }, quicklearner: { salary: 1.2, desc: "快速學習者薪資加成 20%" }, introvert: { salary: 1.1, desc: "內向者薪資加成 10%" } }, effect: (g) => { g.skills.programming += 2; g.happy -= 5; g.health -= 3; }, desc: "高薪但爆肝的科技業" },
+  { id: "doctor", name: "主治醫師", salary: 180000, requirement: { intel: 120, medical: 80 }, requiredTrait: "athletic", traitBonus: { athletic: { salary: 1.2, desc: "運動健將薪資加成" } }, effect: (g) => { g.health -= 5; g.skills.medical += 3; }, desc: "社會地位極高的職業" },
+  { id: "artist", name: "藝術家", salary: 35000, requirement: { art: 70, charm: 60 }, traitBonus: { artistic: { salary: 1.5, desc: "藝術天賦薪資加成 50%" }, pessimistic: { salary: 1.3, desc: "悲觀主義者薪資加成 30%" } }, effect: (g) => { g.happy += 10; g.skills.art += 3; }, desc: "收入不穩定的創作生活" },
+  { id: "teacher", name: "教師", salary: 55000, requirement: { intel: 70, communication: 60 }, traitBonus: { extrovert: { salary: 1.2, desc: "外向者薪資加成" }, charismatic: { salary: 1.15, desc: "魅力非凡薪資加成" }, optimistic: { salary: 1.1, desc: "樂觀主義者薪資加成 10%" } }, effect: (g) => { g.happy += 5; g.skills.communication += 2; }, desc: "作育英才的鐵飯碗" },
+  { id: "entrepreneur", name: "創業家", salary: 90000, requirement: { intel: 90, finance: 70, charm: 70 }, traitBonus: { businessmind: { salary: 1.5, desc: "商業頭腦薪資加成" }, brave: { salary: 1.3, desc: "勇敢者薪資加成" }, lucky: { salary: 1.4, desc: "幸運兒薪資加成" }, optimistic: { salary: 1.2, desc: "樂觀主義者薪資加成 20%" } }, effect: (g) => { const fluctuation = Math.floor(Math.random() * 200000) - 80000; g.money += fluctuation; g.happy -= 15; g.health -= 8; if (fluctuation > 0) log(`📈 創業獲利 +${fluctuation.toLocaleString()}`); else log(`📉 創業虧損 ${Math.abs(fluctuation).toLocaleString()}`); }, desc: "高風險高報酬" },
+  { id: "influencer", name: "網紅", salary: 80000, requirement: { charm: 90, communication: 70 }, requiredTrait: "extrovert", traitBonus: { extrovert: { salary: 1.3, desc: "外向者薪資加成" }, charismatic: { salary: 1.4, desc: "魅力非凡薪資加成" }, artistic: { salary: 1.2, desc: "藝術天賦薪資加成" }, optimistic: { salary: 1.15, desc: "樂觀主義者薪資加成 15%" } }, effect: (g) => { g.skills.charm += 2; g.happy += 8; g.money += Math.floor(Math.random() * 60000) - 20000; }, desc: "流量變現的時代" },
+  { id: "scientist", name: "科學家", salary: 85000, requirement: { intel: 110 }, traitBonus: { geniusmind: { salary: 1.5, desc: "天才心智薪資加成" }, introvert: { salary: 1.2, desc: "內向者薪資加成" }, quicklearner: { salary: 1.3, desc: "快速學習者薪資加成 30%" } }, effect: (g) => { g.intel += 5; g.happy += 3; }, desc: "探索未知的真理" },
+  { id: "lawyer", name: "律師", salary: 150000, requirement: { intel: 100, communication: 80 }, effect: (g) => { g.skills.communication += 3; g.happy -= 8; }, desc: "高工時高報酬" },
+  { id: "chef", name: "主廚", salary: 55000, requirement: { cooking: 80, art: 40 }, effect: (g) => { g.skills.cooking += 3; g.happy += 5; }, desc: "餐廳的靈魂人物" },
+  { id: "pilot", name: "機師", salary: 250000, requirement: { intel: 90, health: 80 }, effect: (g) => { g.health -= 5; g.happy += 3; }, desc: "夢幻的高薪職業" },
+  { id: "athlete", name: "職業運動員", salary: 80000, requirement: { health: 90, charm: 60 }, effect: (g) => { g.health += 3; if (g.age > 35) { g.happy -= 10; log("⚠️ 運動員年齡過大，職業生涯走下坡"); } }, desc: "35 歲後職業生涯走下坡" },
+  { id: "police", name: "警察", salary: 65000, requirement: { health: 70, communication: 50 }, effect: (g) => { g.health -= 3; g.happy -= 5; }, desc: "含加給的優渥薪資" },
+  { id: "designer", name: "設計師", salary: 45000, requirement: { art: 80, programming: 40 }, effect: (g) => { g.skills.art += 3; g.happy += 3; }, desc: "燃燒熱情的職業" },
+  
+  // 特殊出身職業
+  { id: "hackerpro", name: "黑帽駭客", salary: 200000, requirement: { intel: 100, programming: 100 }, originRequired: "hacker", effect: (g) => { g.skills.programming += 5; g.money += Math.floor(Math.random() * 500000) - 100000; }, desc: "游走法律邊緣" },
+  { id: "royaladvisor", name: "皇室顧問", salary: 300000, requirement: { intel: 110, communication: 90 }, originRequired: "royal", effect: (g) => { g.skills.charm += 3; g.happy += 10; }, desc: "頂級榮耀與薪資" },
+  { id: "esportsplayer", name: "電競選手", salary: 100000, requirement: { intel: 70 }, originRequired: "esports", effect: (g) => { if (g.age > 28) { g.happy -= 15; log("⚠️ 選手年齡過大，反應速度下降"); } else { g.happy += 15; } }, desc: "青春飯" },
+  { id: "spyagent", name: "特務", salary: 180000, requirement: { intel: 100, health: 80 }, originRequired: "spy", effect: (g) => { g.health -= 8; g.money += Math.floor(Math.random() * 300000) - 50000; }, desc: "高風險津貼" },
+  { id: "michelinchef", name: "米其林主廚", salary: 200000, requirement: { cooking: 100, art: 60 }, originRequired: "cheffamily", effect: (g) => { g.skills.cooking += 5; g.skills.art += 2; g.happy += 8; }, desc: "料理界的頂點" },
+];
 const JOB_PROMOTIONS = {
         實習生: {
           next: "正職員工",
@@ -2308,99 +2040,21 @@ const MAJORS = {
         ],
       };
 const CARS = [
-        {
-          id: "car1",
-          name: "國產代步車",
-          price: 500000,
-          charm: 3,
-          desc: "遮風避雨就好",
-        },
-        {
-          id: "car2",
-          name: "Toyota Camry",
-          price: 1200000,
-          charm: 8,
-          desc: "可靠耐用的中型房車",
-        },
-        {
-          id: "car3",
-          name: "Tesla Model 3",
-          price: 1800000,
-          charm: 15,
-          desc: "電動車新潮流",
-        },
-        {
-          id: "car4",
-          name: "BMW 5系列",
-          price: 3500000,
-          charm: 25,
-          desc: "豪華品牌象徵",
-        },
-        {
-          id: "car5",
-          name: "保時捷 911",
-          price: 7000000,
-          charm: 40,
-          desc: "經典跑車",
-        },
-        {
-          id: "car6",
-          name: "法拉利 F8",
-          price: 15000000,
-          charm: 70,
-          desc: "終極夢幻跑車",
-        },
-      ];
+  { id: "car1", name: "二手代步車", price: 300000, charm: 2, desc: "能動就好" },
+  { id: "car2", name: "Toyota Altis", price: 900000, charm: 5, desc: "神車，省油好開" },
+  { id: "car3", name: "Tesla Model 3", price: 1700000, charm: 15, desc: "科技新貴的最愛" },
+  { id: "car4", name: "BMW 5系列", price: 3200000, charm: 25, desc: "成功的象徵" },
+  { id: "car5", name: "Porsche 911", price: 8500000, charm: 45, desc: "男人的夢想" },
+  { id: "car6", name: "Ferrari F8", price: 18000000, charm: 80, desc: "頂級超跑" },
+];
 const HOUSES = [
-        {
-          id: "house1",
-          name: "小套房",
-          price: 2500000,
-          happy: 5,
-          passive: 1800,
-          desc: "溫馨的小窩",
-        }, // 原3000 → 1800
-        {
-          id: "house2",
-          name: "公寓",
-          price: 6000000,
-          happy: 12,
-          passive: 4800,
-          desc: "舒適的居住空間",
-        }, // 原8000 → 4800
-        {
-          id: "house3",
-          name: "透天厝",
-          price: 12000000,
-          happy: 20,
-          passive: 9000,
-          desc: "寬敞的獨立住宅",
-        }, // 原15000 → 9000
-        {
-          id: "house4",
-          name: "別墅",
-          price: 25000000,
-          happy: 30,
-          passive: 18000,
-          desc: "豪華的別墅",
-        }, // 原30000 → 18000
-        {
-          id: "house5",
-          name: "豪宅",
-          price: 80000000,
-          happy: 50,
-          passive: 48000,
-          desc: "頂級豪宅",
-        }, // 原80000 → 48000
-        {
-          id: "house6",
-          name: "城堡",
-          price: 200000000,
-          happy: 80,
-          passive: 120000,
-          desc: "夢幻的城堡",
-        }, // 原200000 → 120000
-      ];
+  { id: "house1", name: "老舊套房", price: 8500000, happy: 5, passive: 15000, desc: "市區的小蝸居" },
+  { id: "house2", name: "電梯大樓", price: 25000000, happy: 15, passive: 35000, desc: "標準的三房兩廳" },
+  { id: "house3", name: "市區透天", price: 45000000, happy: 25, passive: 60000, desc: "稀有的市區透天" },
+  { id: "house4", name: "郊區別墅", price: 80000000, happy: 40, passive: 100000, desc: "有車庫和花園" },
+  { id: "house5", name: "信義區豪宅", price: 350000000, happy: 60, passive: 300000, desc: "俯瞰城市夜景" },
+  { id: "house6", name: "私人莊園", price: 2000000000, happy: 100, passive: 1000000, desc: "富可敵國的象徵" },
+];
 const LUXURIES = [
         {
           id: "lux1",
