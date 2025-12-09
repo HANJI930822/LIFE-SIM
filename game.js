@@ -91,7 +91,7 @@ function getStatName(key) {
     finance: "📈 理財",
     communication: "🗣️ 溝通",
     charm: "✨ 魅力",
-    leadership: "🚩 領導",
+    leadership: "🚩 領導力",
     management: "💼 管理",
   };
   return map[key] || key; // 如果找不到對應的中文，就回傳原本的英文
@@ -307,7 +307,7 @@ function startGame() {
   const origin = ORIGINS.find((o) => o.id === selectedOriginId);
   const gender = document.getElementById("inp-gender").value;
 
-  // 隨機天賦
+  // 1. 隨機天賦 (保持不變)
   let talentPool = [...TALENTS];
   let selectedTalents = [];
   const talentCount = Math.random() > 0.6 ? 2 : 1;
@@ -316,9 +316,11 @@ function startGame() {
     selectedTalents.push(talentPool[idx]);
     talentPool.splice(idx, 1);
   }
+  
   const savedAchievements = loadAchievements();
   console.log("📂 載入已保存的成就:", savedAchievements);
-  // 初始化遊戲狀態
+
+  // 2. 初始化遊戲狀態 (原本的 relationships 已棄用)
   Game = {
     ...Game,
     name,
@@ -331,45 +333,30 @@ function startGame() {
     yearlyMoney: origin.yearlyMoney,
     talents: selectedTalents,
     age: 0,
-    relationships: [],
-    unlockedAchievements: savedAchievements, // ✅ 使用已保存的成就
+    // ✅ 這裡統一清空，資料將由下方的 initNPCs 載入
+    npcs: [], 
+    relationships: [], 
+    unlockedAchievements: savedAchievements,
   };
 
-  // 記錄是否負債過
+  // 3. 記錄是否負債過
   if (Game.money < 0) Game.hasBeenInDebt = true;
 
-  // 根據出身添加父母關係
-  if (origin.parents && origin.parents !== "無") {
-    const parentsSplit = origin.parents.split(" / ");
-    if (parentsSplit.length === 2) {
-      Game.relationships.push(
-        {
-          id: "dad",
-          name: "爸爸",
-          type: "parent",
-          relation: 80,
-          role: parentsSplit[0],
-        },
-        {
-          id: "mom",
-          name: "媽媽",
-          type: "parent",
-          relation: 90,
-          role: parentsSplit[1],
-        },
-      );
-    } else if (parentsSplit.length === 1) {
-      Game.relationships.push({
-        id: "mom",
-        name: "媽媽",
-        type: "parent",
-        relation: 95,
-        role: parentsSplit[0],
-      });
-    }
+  // 4. ✅【核心修改】讀取 data.js 設定的 NPC，自動載入！
+  // 這一小段程式碼取代了原本幾十行的 switch/case 判斷
+  if (origin.initNPCs && origin.initNPCs.length > 0) {
+      Game.npcs = origin.initNPCs.map(npc => ({
+          ...npc,
+          // 補上動態屬性，避免 data.js 寫得太累贅
+          health: npc.health || 100,
+          isSick: false,
+          age: npc.age || 40, // 若沒寫年齡則給預設值
+          relation: npc.relation || 50
+      }));
   }
 
-  // 應用出身特殊效果
+  // 5. 應用出身特殊數值效果 (Buff)
+  // 這部分若 data.js 沒寫在 initNPCs 裡，則保留在此
   if (origin.id === "military") Game.health += 20;
   if (origin.id === "doctor") Game.skills.medical += 30;
   if (origin.id === "farmer") {
@@ -398,110 +385,27 @@ function startGame() {
     Game.health += 15;
   }
   if (origin.id === "star") Game.skills.charm += 30;
-  switch (origin.id) {
-    case "royal":
-      Game.relationships.push({
-        id: "butler",
-        name: "管家阿爾弗雷德",
-        type: "servant",
-        relation: 80,
-        role: "忠誠管家",
-      });
-      Game.skills.charm += 30;
-      break;
-    case "mafia":
-      Game.relationships.push({
-        id: "bodyguard",
-        name: "保鑣阿強",
-        type: "subordinate",
-        relation: 70,
-        role: "貼身保鑣",
-      });
-      break;
-    case "hacker":
-      Game.relationships.push({
-        id: "mentor",
-        name: "駭客導師 Ghost",
-        type: "mentor",
-        relation: 85,
-        role: "技術導師",
-      });
-      Game.skills.programming += 50;
-      break;
-    case "monk":
-      Game.relationships.push({
-        id: "master",
-        name: "師父玄空",
-        type: "master",
-        relation: 95,
-        role: "授業恩師",
-      });
-      Game.health += 25;
-      Game.happy += 10;
-      break;
-    case "spy":
-      Game.relationships.push({
-        id: "handler",
-        name: "接頭人 Mr. Smith",
-        type: "contact",
-        relation: 60,
-        role: "神秘接頭人",
-      });
-      break;
-    case "chef_family":
-      Game.relationships.push({
-        id: "sous_chef",
-        name: "副主廚老李",
-        type: "colleague",
-        relation: 75,
-        role: "廚房夥伴",
-      });
-      Game.skills.cooking += 60;
-      Game.skills.art += 20;
-      break;
-    case "detective":
-      Game.relationships.push({
-        id: "partner",
-        name: "搭檔老王",
-        type: "partner",
-        relation: 80,
-        role: "最佳拍檔",
-      });
-      break;
-    case "esports":
-      Game.relationships.push({
-        id: "coach",
-        name: "教練",
-        type: "coach",
-        relation: 75,
-        role: "戰隊教練",
-      });
-      break;
-    case "fashion":
-      Game.relationships.push({
-        id: "stylist",
-        name: "造型師",
-        type: "stylist",
-        relation: 70,
-        role: "御用造型師",
-      });
+  if (origin.id === "royal") Game.skills.charm += 30;
+  if (origin.id === "hacker") Game.skills.programming += 50;
+  if (origin.id === "monk") {
+    Game.health += 25;
+    Game.happy += 10;
+  }
+  if (origin.id === "chef_family") { // 注意 data.js 裡的 id 是 cheffamily 還是 chef_family，需一致
+     Game.skills.cooking += 60;
+     Game.skills.art += 20;
+  }
+  if (origin.id === "fashion") {
       Game.skills.charm += 35;
       Game.skills.art += 25;
-      break;
-    case "scientist_family":
-      Game.relationships.push({
-        id: "lab_assistant",
-        name: "實驗助理",
-        type: "assistant",
-        relation: 75,
-        role: "研究助理",
-      });
-      break;
   }
-  // 應用天賦效果
+
+  // 6. 應用天賦效果
   Game.talents.forEach((t) => t.effect(Game));
+  
   generateTurnActions();
-  // ✅ 開始特質選擇流程
+  
+  // 7. 開始特質選擇流程
   currentTraitStep = 0;
   selectedTraits = [];
   showTraitSelection();
@@ -1216,6 +1120,8 @@ function updateUI() {
     finance: "💰 理財",
     communication: "🗣️ 溝通",
     charm: "✨ 魅力",
+    leadership: "🚩 領導",
+    management: "💼 管理",
   };
 
   let skillHtml = "";
@@ -4558,6 +4464,34 @@ function renderStats() {
     Game.skills[a] > Game.skills[b] ? a : b,
   );
 
+  // ✅ 新增翻譯
+  const highestSkillName = getStatName(highestSkill); 
+
+  const totalWealth =
+    Game.money +
+    Game.inventory.reduce((sum, id) => {
+      const item = [...CARS, ...HOUSES, ...LUXURIES].find((i) => i.id === id);
+      return sum + (item ? item.price : 0);
+    }, 0);
+
+  const html = `
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                          <div>🎂 當前年齡: ${Game.age}歲</div>
+                          <div>🏠 出身: ${Game.origin}</div>
+                          <div>💰 總資產: $${totalWealth.toLocaleString()}</div>
+                          <div>💼 工作年資: ${Game.jobYears}年</div>
+                          <div>👥 人際關係: ${Game.relationships.length}人</div>
+                          <div>🏆 成就數: ${Game.unlockedAchievements.length}/${ACHIEVEMENTS.length}</div>
+                          <div>🎯 執行行動: ${Game.totalActions}次</div>
+                          <div>📢 觸發事件: ${Game.totalEvents}次</div>
+                          <div>😊 快樂年數: ${Game.happyYears}年</div>
+                          <div>🌟 最強技能: ${highestSkillName}</div>
+                      </div>
+                  `;
+
+  document.getElementById("stats-panel").innerHTML = html;
+}
+
   const totalWealth =
     Game.money +
     Game.inventory.reduce((sum, id) => {
@@ -4581,8 +4515,6 @@ function renderStats() {
                   `;
 
   document.getElementById("stats-panel").innerHTML = html;
-}
-
 function nav(page, event) {
   event.preventDefault();
   event.stopPropagation();

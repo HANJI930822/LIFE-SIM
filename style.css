@@ -898,196 +898,280 @@ button,
 }
 
 /* === 手机端 (小于 768px) === */
+/* ===== 📱 手機版深度優化 (緊湊儀表板) ===== */
 @media (max-width: 767px) {
+  
+  /* 1. 全局佈局調整 */
   body {
-    max-width: 100%;
-    padding: 0 10px 80px 10px;
+    padding: 0 0 80px 0; /* 底部留白給導航列 */
+    background: #111; /* 深色背景防眩光 */
   }
 
+  /* 2. 頭部儀表板 (Header) - 極致緊湊 */
   .header {
-    padding: 12px 10px;
+    padding: 8px 12px;
+    background: rgba(30, 30, 46, 0.95);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* 第一行：頭像、名字、錢 (Flex 橫排) */
+  .dashboard-wrapper {
+    flex-direction: row; /* 強制橫排 */
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 5px;
+    width: 100%;
+  }
+
+  /* 左側：玩家資訊 */
+  .player-info-section {
+    min-width: auto;
+    flex: 1;
+  }
+
+  .player-base {
+    gap: 8px;
   }
 
   .player-avatar {
-    width: 45px;
-    height: 45px;
-    font-size: 1.3em;
+    width: 38px;
+    height: 38px;
+    font-size: 1.2em;
+    border: 2px solid var(--accent); /* 增加辨識度 */
+  }
+
+  .player-text {
+    justify-content: center;
   }
 
   .player-name-line {
     font-size: 1em;
+    line-height: 1.2;
   }
 
+  /* 隱藏職業細節，只保留年齡，省空間 */
   .player-subtitle {
     font-size: 0.75em;
+    opacity: 0.8;
+    display: flex; 
+    gap: 5px;
   }
-
+  
+  /* 右側：金錢 (獨立顯示) */
   .big-stat {
-    font-size: 1.3em;
+    font-size: 1.2em;
+    margin: 0;
+    text-align: right;
+    color: var(--gold);
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
   }
 
+  /* 3. 核心數值欄 (健康/快樂/智力) - 改為橫條微型顯示 */
   .stat-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    font-size: 0.8em;
+    display: flex;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin: 5px 0;
+    gap: 0;
   }
 
   .stat-item {
-    padding: 6px;
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+  }
+  
+  /* 增加分隔線 */
+  .stat-item:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 10%;
+    height: 80%;
+    width: 1px;
+    background: rgba(255,255,255,0.1);
+  }
+
+  .stat-item span:first-child {
+    font-size: 0.7em;
+    color: #aaa;
+    margin-bottom: 2px;
+  }
+
+  .stat-value {
+    font-size: 1.1em;
+  }
+
+  /* 4. 技能區塊 - 改為「水平滾動」 (關鍵優化！) */
+  .skills-section {
+    width: 100%;
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    align-items: flex-start; /* 靠左 */
+  }
+
+  .section-label {
+    display: none; /* 手機版隱藏標題，直接看圖標 */
+  }
+
+  .skills-grid-layout {
+    display: flex;
+    flex-wrap: nowrap; /* 禁止換行 */
+    overflow-x: auto; /* 開啟水平滾動 */
+    width: 100%;
+    justify-content: flex-start;
+    gap: 6px;
+    padding-bottom: 5px; /* 預留滾動條空間 */
+    -webkit-overflow-scrolling: touch; /* iOS 滑動優化 */
+  }
+
+  /* 隱藏滾動條但保留功能 */
+  .skills-grid-layout::-webkit-scrollbar {
+    display: none; 
+  }
+
+  .skill-tag {
+    flex: 0 0 auto; /* 防止被壓縮 */
+    font-size: 0.75em;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+  }
+
+  /* 5. 體力條 - 更細緻 */
+  .stamina-container {
+    margin-top: 5px;
+  }
+  .stamina-label { font-size: 0.7em; margin-bottom: 2px; }
+  .progress-bg { height: 8px; }
+
+  /* 6. 遊戲內容區 (卡片與按鈕) */
+  .page {
+    padding: 10px;
   }
 
   .card {
-    margin: 12px 0;
+    margin: 0 0 15px 0;
     border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
   }
 
   .card-header {
-    padding: 12px;
+    padding: 10px 15px;
+    font-size: 0.95em;
   }
 
   .card-body {
     padding: 12px;
   }
 
-  .card-title {
-    font-size: 1em;
-  }
-
+  /* 行動按鈕 - 緊湊網格 */
   .btn-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
 
   button {
-    padding: 10px;
-    font-size: 0.85em;
-    border-radius: 8px;
-  }
-
-  .btn-main {
-    font-size: 1em;
-    padding: 12px;
+    padding: 12px 5px;
+    font-size: 0.9em;
+    min-height: 50px; /* 確保手指好點 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 
   .cost-tag {
-    font-size: 0.65em;
-  }
-
-  .talent-tag {
     font-size: 0.7em;
-    padding: 2px 6px;
-    margin-right: 4px;
+    opacity: 0.7;
+    margin-top: 2px;
   }
 
+  /* 7. 日誌區塊 - 縮小高度，避免佔滿螢幕 */
   .log-box {
     height: 120px;
-    font-size: 0.8em;
-    padding: 8px;
+    font-size: 0.85em;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.3);
   }
 
+  /* 8. 底部導航列 - 優化觸控 */
   .nav-bar {
-    padding: 6px 0;
+    height: 60px;
+    padding-bottom: env(safe-area-inset-bottom); /* 適配 iPhone X+ 底部橫條 */
+    background: rgba(20, 20, 30, 0.98);
+    border-top: 1px solid rgba(255,255,255,0.1);
   }
 
   .nav-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     font-size: 0.7em;
-    padding: 4px;
   }
 
   .nav-icon {
-    font-size: 1.6em;
-    margin-bottom: 1px;
+    font-size: 1.4em;
+    margin-bottom: 3px;
   }
 
-  /* 技能条 */
-  .skills-container {
-    padding: 8px;
-  }
-
-  .skill-header {
-    font-size: 0.75em;
-  }
-
-  /* 状态警告 */
-  .status-alert {
-    padding: 6px;
-    font-size: 0.75em;
-  }
-
-  /* 创角画面 */
-  #scene-creation {
-    padding: 15px 10px;
-  }
-
-  .creation-title {
-    font-size: 1.6em;
-    margin-bottom: 15px;
-  }
-
-  .origin-card {
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-
-  .origin-name {
-    font-size: 1em;
-  }
-
-  .origin-desc {
-    font-size: 0.85em;
-  }
-
-  .origin-stats {
-    font-size: 0.8em;
-  }
-
-  .input-group input,
-  .input-group select {
-    padding: 10px;
-    font-size: 0.95em;
-  }
-
-  /* 弹窗 */
+  /* 9. 彈窗優化 */
   .modal-box {
-    width: 95%;
+    width: 90%;
+    max-height: 85vh; /* 避免超出螢幕 */
     padding: 20px;
   }
-
-  .modal-title {
-    font-size: 1.3em;
+  
+  /* 特質與天賦標籤 */
+  .talent-tag {
+    font-size: 0.7em;
+    padding: 2px 6px;
   }
 
-  .modal-desc {
-    font-size: 0.9em;
+  /* 出身選擇優化 */
+  button[onclick="prevOrigin()"],
+  button[onclick="nextOrigin()"] {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 1.2em !important;
+    left: 5px !important;
   }
 
-  .modal-btn {
-    padding: 12px;
-    font-size: 0.9em;
+  button[onclick="nextOrigin()"] {
+    right: 5px !important;
+    left: auto !important;
   }
 
-  /* 职业卡片 */
-  .job-card {
-    padding: 10px;
-    margin-bottom: 8px;
+  div[style*="padding: 0 80px"] {
+    padding: 0 50px !important;
+  }
+  
+  /* 職業選擇箭頭優化 */
+  button[onclick="prevJob()"],
+  button[onclick="nextJob()"] {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 1.2em !important;
+    left: -5px !important;
   }
 
-  .job-name {
-    font-size: 1em;
-  }
-
-  .job-salary {
-    font-size: 0.85em;
-  }
-
-  .job-requirement {
-    font-size: 0.75em;
-  }
-
-  /* 数值变化提示 */
-  .change-popup {
-    min-width: 200px;
-    padding: 20px 25px;
+  button[onclick="nextJob()"] {
+    right: -5px !important;
+    left: auto !important;
   }
 }
 

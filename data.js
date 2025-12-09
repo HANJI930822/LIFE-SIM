@@ -1254,17 +1254,37 @@ const TRAITS = [
 ];
 
 const ORIGINS = [
-  // ===== 基础出身 =====
+  // ===== 基礎出身 =====
   {
     id: "common",
     name: "平凡",
     desc: "普通的小康家庭",
     parents: "公務員 & 老師",
-    money: 30000, // ✅ 原 50000 → 30000 (-40%)
+    money: 30000,
     intel: 50,
     happy: 80,
-    yearlyMoney: 500, // ✅ 原 1000 → 500 (-50%)
+    yearlyMoney: 500,
     buff: "無特殊加成",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "公務員",
+        relation: 80,
+        age: 45,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "老師",
+        relation: 90,
+        age: 43,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1272,11 +1292,31 @@ const ORIGINS = [
     name: "富二代",
     desc: "父母是成功的企業家",
     parents: "CEO & 董事",
-    money: 3000000, // ✅ 原 5000000 → 3000000 (-40%)
+    money: 3000000,
     intel: 40,
     happy: 90,
-    yearlyMoney: 60000, // ✅ 原 100000 → 60000 (-40%)
+    yearlyMoney: 60000,
     buff: "每年被動收入 6萬，魅力 +10",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "CEO",
+        relation: 60,
+        age: 50,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "董事",
+        relation: 70,
+        age: 48,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1284,11 +1324,31 @@ const ORIGINS = [
     name: "天才",
     desc: "智商遠超常人",
     parents: "研究員 & 教授",
-    money: -50000, // ⭐ 保持负债不变
+    money: -50000,
     intel: 120,
     happy: 60,
-    yearlyMoney: 0, // ⭐ 本来就是 0
+    yearlyMoney: 0,
     buff: "智商 +120，初始負債 5萬",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "研究員",
+        relation: 70,
+        age: 40,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "教授",
+        relation: 75,
+        age: 38,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1296,11 +1356,31 @@ const ORIGINS = [
     name: "星二代",
     desc: "父母是知名藝人",
     parents: "影帝 & 歌后",
-    money: 600000, // ✅ 原 1000000 → 600000 (-40%)
+    money: 600000,
     intel: 50,
     happy: 70,
-    yearlyMoney: 30000, // ✅ 原 50000 → 30000 (-40%)
+    yearlyMoney: 30000,
     buff: "魅力自然高",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "影帝",
+        relation: 60,
+        age: 45,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "歌后",
+        relation: 65,
+        age: 42,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1308,11 +1388,31 @@ const ORIGINS = [
     name: "書香世家",
     desc: "知識分子家庭",
     parents: "大學教授 & 圖書館長",
-    money: 120000, // ✅ 原 200000 → 120000 (-40%)
+    money: 120000,
     intel: 80,
     happy: 75,
-    yearlyMoney: 3000, // ✅ 原 5000 → 3000 (-40%)
+    yearlyMoney: 3000,
     buff: "智商高，愛讀書",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "大學教授",
+        relation: 85,
+        age: 48,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "圖書館長",
+        relation: 90,
+        age: 46,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1320,11 +1420,31 @@ const ORIGINS = [
     name: "軍人世家",
     desc: "軍人家庭背景",
     parents: "將軍 & 軍醫",
-    money: 90000, // ✅ 原 150000 → 90000 (-40%)
+    money: 90000,
     intel: 60,
     happy: 70,
-    yearlyMoney: 1800, // ✅ 原 3000 → 1800 (-40%)
+    yearlyMoney: 1800,
     buff: "健康 +20",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "將軍",
+        relation: 70,
+        age: 50,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "軍醫",
+        relation: 80,
+        age: 45,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1332,24 +1452,64 @@ const ORIGINS = [
     name: "醫生世家",
     desc: "醫療背景家庭",
     parents: "主任醫師 & 護理師",
-    money: 480000, // ✅ 原 800000 → 480000 (-40%)
+    money: 480000,
     intel: 85,
     happy: 75,
-    yearlyMoney: 6000, // ✅ 原 10000 → 6000 (-40%)
+    yearlyMoney: 6000,
     buff: "醫學技能 +30",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "主任醫師",
+        relation: 75,
+        age: 48,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "護理師",
+        relation: 85,
+        age: 44,
+        gender: "female",
+      },
+    ],
   },
 
-  // ===== 困难出身 =====
+  // ===== 困難出身 =====
   {
     id: "farmer",
     name: "農家",
     desc: "務農家庭",
     parents: "果農 & 菜農",
-    money: 12000, // ✅ 原 20000 → 12000 (-40%)
+    money: 12000,
     intel: 40,
     happy: 85,
-    yearlyMoney: 300, // ✅ 原 500 → 300 (-40%)
+    yearlyMoney: 300,
     buff: "健康 +15，快樂 +5",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "果農",
+        relation: 90,
+        age: 45,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "菜農",
+        relation: 95,
+        age: 43,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1357,11 +1517,31 @@ const ORIGINS = [
     name: "漁民",
     desc: "漁村家庭",
     parents: "漁民 & 漁民",
-    money: 18000, // ✅ 原 30000 → 18000 (-40%)
+    money: 18000,
     intel: 45,
     happy: 80,
-    yearlyMoney: 600, // ✅ 原 1000 → 600 (-40%)
+    yearlyMoney: 600,
     buff: "健康 +10",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "漁民",
+        relation: 85,
+        age: 46,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "漁民",
+        relation: 90,
+        age: 44,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1369,11 +1549,31 @@ const ORIGINS = [
     name: "原住民",
     desc: "原住民部落",
     parents: "頭目 & 織布師",
-    money: 6000, // ✅ 原 10000 → 6000 (-40%)
+    money: 6000,
     intel: 45,
     happy: 90,
-    yearlyMoney: 300, // ✅ 原 500 → 300 (-40%)
+    yearlyMoney: 300,
     buff: "魅力 +15，藝術 +20，快樂 +10",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "頭目",
+        relation: 90,
+        age: 45,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "織布師",
+        relation: 95,
+        age: 42,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1381,11 +1581,31 @@ const ORIGINS = [
     name: "移民",
     desc: "新移民家庭",
     parents: "移工 & 移工",
-    money: 18000, // ✅ 原 30000 → 18000 (-40%)
+    money: 18000,
     intel: 55,
     happy: 75,
-    yearlyMoney: 480, // ✅ 原 800 → 480 (-40%)
+    yearlyMoney: 480,
     buff: "溝通 +20",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "移工",
+        relation: 90,
+        age: 40,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "移工",
+        relation: 95,
+        age: 38,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1393,11 +1613,22 @@ const ORIGINS = [
     name: "單親家庭",
     desc: "單親撫養",
     parents: "單親媽媽",
-    money: -12000, // ✅ 原 -20000 → -12000 (债务减少40%)
+    money: -12000,
     intel: 55,
     happy: 65,
-    yearlyMoney: 0, // ⭐ 保持 0
+    yearlyMoney: 0,
     buff: "堅強獨立",
+    initNPCs: [
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "單親媽媽",
+        relation: 100,
+        age: 35,
+        gender: "female",
+      },
+    ],
   },
 
   // ===== 特殊出身 =====
@@ -1406,11 +1637,31 @@ const ORIGINS = [
     name: "科技新貴",
     desc: "科技業父母",
     parents: "PM & 工程師",
-    money: 300000, // ✅ 原 500000 → 300000 (-40%)
+    money: 300000,
     intel: 75,
     happy: 70,
-    yearlyMoney: 9000, // ✅ 原 15000 → 9000 (-40%)
+    yearlyMoney: 9000,
     buff: "程式 +30",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "PM",
+        relation: 70,
+        age: 40,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "工程師",
+        relation: 80,
+        age: 38,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1418,11 +1669,31 @@ const ORIGINS = [
     name: "藝術家庭",
     desc: "藝術世家",
     parents: "畫家 & 音樂家",
-    money: 48000, // ✅ 原 80000 → 48000 (-40%)
+    money: 48000,
     intel: 65,
     happy: 85,
-    yearlyMoney: 1200, // ✅ 原 2000 → 1200 (-40%)
+    yearlyMoney: 1200,
     buff: "藝術 +40，魅力 +10",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "畫家",
+        relation: 85,
+        age: 45,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "音樂家",
+        relation: 85,
+        age: 42,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1430,11 +1701,31 @@ const ORIGINS = [
     name: "政治世家",
     desc: "政治人物家庭",
     parents: "立委 & 市長",
-    money: 1200000, // ✅ 原 2000000 → 1200000 (-40%)
+    money: 1200000,
     intel: 70,
     happy: 75,
-    yearlyMoney: 18000, // ✅ 原 30000 → 18000 (-40%)
+    yearlyMoney: 18000,
     buff: "溝通 +25",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "立委",
+        relation: 60,
+        age: 50,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "市長",
+        relation: 65,
+        age: 48,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1442,11 +1733,22 @@ const ORIGINS = [
     name: "孤兒",
     desc: "從小在育幼院長大",
     parents: "無",
-    money: 0, // ⭐ 保持 0
+    money: 0,
     intel: 50,
     happy: 50,
-    yearlyMoney: 0, // ⭐ 保持 0
+    yearlyMoney: 0,
     buff: "堅韌不拔 +30",
+    initNPCs: [
+      {
+        id: "director",
+        name: "院長奶奶",
+        type: "mentor",
+        role: "院長",
+        relation: 80,
+        age: 65,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1454,11 +1756,31 @@ const ORIGINS = [
     name: "宮廟世家",
     desc: "宮廟管理家庭",
     parents: "廟祝 & 乩童",
-    money: 180000, // ✅ 原 300000 → 180000 (-40%)
+    money: 180000,
     intel: 50,
     happy: 80,
-    yearlyMoney: 3000, // ✅ 原 5000 → 3000 (-40%)
+    yearlyMoney: 3000,
     buff: "溝通 +15，快樂 +5",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "廟祝",
+        relation: 80,
+        age: 50,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "乩童",
+        relation: 85,
+        age: 48,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1466,11 +1788,40 @@ const ORIGINS = [
     name: "黑道世家",
     desc: "黑道背景",
     parents: "堂主 & 堂口大姐",
-    money: 300000, // ✅ 原 500000 → 300000 (-40%)
+    money: 300000,
     intel: 45,
     happy: 60,
-    yearlyMoney: 12000, // ✅ 原 20000 → 12000 (-40%)
+    yearlyMoney: 12000,
     buff: "魅力 +20，健康 +15",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "堂主",
+        relation: 75,
+        age: 50,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "大姐頭",
+        relation: 80,
+        age: 45,
+        gender: "female",
+      },
+      {
+        id: "bodyguard",
+        name: "保鑣阿強",
+        type: "subordinate",
+        role: "貼身保鑣",
+        relation: 90,
+        age: 30,
+        gender: "male",
+      },
+    ],
   },
 
   // ===== 頂級特殊出身 =====
@@ -1479,12 +1830,41 @@ const ORIGINS = [
     name: "皇族",
     desc: "顯赫的皇室血統",
     parents: "國王 & 王后",
-    money: 6000000, // ✅ 原 10000000 → 6000000 (-40%)
+    money: 6000000,
     intel: 70,
     happy: 60,
-    yearlyMoney: 120000, // ✅ 原 200000 → 120000 (-40%)
+    yearlyMoney: 120000,
     buff: "每年 12萬被動收入，魅力 +100",
     special: "royal",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "父王",
+        type: "parent",
+        role: "國王",
+        relation: 60,
+        age: 55,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "母后",
+        type: "parent",
+        role: "王后",
+        relation: 70,
+        age: 50,
+        gender: "female",
+      },
+      {
+        id: "butler",
+        name: "管家阿爾弗雷德",
+        type: "servant",
+        role: "忠誠管家",
+        relation: 100,
+        age: 60,
+        gender: "male",
+      },
+    ],
   },
 
   {
@@ -1492,12 +1872,41 @@ const ORIGINS = [
     name: "駭客世家",
     desc: "頂尖駭客家庭",
     parents: "白帽駭客 & 資安專家",
-    money: 180000, // ✅ 原 300000 → 180000 (-40%)
+    money: 180000,
     intel: 100,
     happy: 65,
-    yearlyMoney: 4800, // ✅ 原 8000 → 4800 (-40%)
+    yearlyMoney: 4800,
     buff: "程式能力 +50",
     special: "hacker",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "白帽駭客",
+        relation: 70,
+        age: 45,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "資安專家",
+        relation: 75,
+        age: 42,
+        gender: "female",
+      },
+      {
+        id: "mentor",
+        name: "駭客導師 Ghost",
+        type: "mentor",
+        role: "技術導師",
+        relation: 85,
+        age: 35,
+        gender: "male",
+      },
+    ],
   },
 
   {
@@ -1505,12 +1914,41 @@ const ORIGINS = [
     name: "偵探世家",
     desc: "名偵探家族",
     parents: "名侦探 & 犯罪心理學家",
-    money: 108000, // ✅ 原 180000 → 108000 (-40%)
+    money: 108000,
     intel: 90,
     happy: 70,
-    yearlyMoney: 2400, // ✅ 原 4000 → 2400 (-40%)
+    yearlyMoney: 2400,
     buff: "智商 +40",
     special: "detective",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "名偵探",
+        relation: 75,
+        age: 48,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "犯罪心理學家",
+        relation: 80,
+        age: 45,
+        gender: "female",
+      },
+      {
+        id: "partner",
+        name: "搭檔老王",
+        type: "partner",
+        role: "最佳拍檔",
+        relation: 90,
+        age: 40,
+        gender: "male",
+      },
+    ],
   },
 
   {
@@ -1518,12 +1956,41 @@ const ORIGINS = [
     name: "名廚世家",
     desc: "米其林家族",
     parents: "米其林主廚 & 甜點師",
-    money: 300000, // ✅ 原 500000 → 300000 (-40%)
+    money: 300000,
     intel: 60,
     happy: 85,
-    yearlyMoney: 7200, // ✅ 原 12000 → 7200 (-40%)
+    yearlyMoney: 7200,
     buff: "廚藝 +60，藝術 +20",
     special: "chef",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "米其林主廚",
+        relation: 75,
+        age: 50,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "甜點師",
+        relation: 85,
+        age: 45,
+        gender: "female",
+      },
+      {
+        id: "sous_chef",
+        name: "副主廚老李",
+        type: "colleague",
+        role: "廚房夥伴",
+        relation: 80,
+        age: 35,
+        gender: "male",
+      },
+    ],
   },
 
   {
@@ -1531,12 +1998,41 @@ const ORIGINS = [
     name: "修行世家",
     desc: "佛門世家",
     parents: "住持 & 法師",
-    money: 3000, // ✅ 原 5000 → 3000 (-40%)
+    money: 3000,
     intel: 75,
     happy: 90,
-    yearlyMoney: 0, // ⭐ 保持 0
+    yearlyMoney: 0,
     buff: "健康 +25，快樂 +10",
     special: "monk",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "住持",
+        relation: 85,
+        age: 55,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "法師",
+        relation: 90,
+        age: 50,
+        gender: "female",
+      },
+      {
+        id: "master",
+        name: "師父玄空",
+        type: "master",
+        role: "授業恩師",
+        relation: 95,
+        age: 70,
+        gender: "male",
+      },
+    ],
   },
 
   {
@@ -1544,12 +2040,32 @@ const ORIGINS = [
     name: "馬戲團世家",
     desc: "馬戲團家族",
     parents: "團長 & 空中飛人",
-    money: 30000, // ✅ 原 50000 → 30000 (-40%)
+    money: 30000,
     intel: 50,
     happy: 80,
-    yearlyMoney: 1200, // ✅ 原 2000 → 1200 (-40%)
+    yearlyMoney: 1200,
     buff: "魅力 +25，健康 +10",
     special: "circus",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "團長",
+        relation: 80,
+        age: 45,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "空中飛人",
+        relation: 85,
+        age: 40,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1557,12 +2073,32 @@ const ORIGINS = [
     name: "外交世家",
     desc: "外交官家族",
     parents: "大使 & 外交官",
-    money: 720000, // ✅ 原 1200000 → 720000 (-40%)
+    money: 720000,
     intel: 85,
     happy: 75,
-    yearlyMoney: 15000, // ✅ 原 25000 → 15000 (-40%)
+    yearlyMoney: 15000,
     buff: "溝通 +35",
     special: "diplomat",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "大使",
+        relation: 65,
+        age: 50,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "外交官",
+        relation: 70,
+        age: 48,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1570,12 +2106,41 @@ const ORIGINS = [
     name: "電競世家",
     desc: "電競冠軍家庭",
     parents: "電競教練 & 職業選手",
-    money: 360000, // ✅ 原 600000 → 360000 (-40%)
+    money: 360000,
     intel: 65,
     happy: 85,
-    yearlyMoney: 9000, // ✅ 原 15000 → 9000 (-40%)
+    yearlyMoney: 9000,
     buff: "反應力超群",
     special: "esports",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "電競教練",
+        relation: 80,
+        age: 40,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "職業選手",
+        relation: 85,
+        age: 38,
+        gender: "female",
+      },
+      {
+        id: "coach",
+        name: "戰隊教練",
+        type: "coach",
+        role: "魔鬼教練",
+        relation: 70,
+        age: 35,
+        gender: "male",
+      },
+    ],
   },
 
   {
@@ -1583,12 +2148,41 @@ const ORIGINS = [
     name: "間諜世家",
     desc: "情報世家",
     parents: "特務 & 情報員",
-    money: 480000, // ✅ 原 800000 → 480000 (-40%)
+    money: 480000,
     intel: 95,
     happy: 60,
-    yearlyMoney: 12000, // ✅ 原 20000 → 12000 (-40%)
+    yearlyMoney: 12000,
     buff: "智商 +45",
     special: "spy",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "特務",
+        relation: 60,
+        age: 45,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "情報員",
+        relation: 65,
+        age: 42,
+        gender: "female",
+      },
+      {
+        id: "handler",
+        name: "接頭人 Mr. Smith",
+        type: "contact",
+        role: "神秘接頭人",
+        relation: 50,
+        age: 50,
+        gender: "male",
+      },
+    ],
   },
 
   {
@@ -1596,12 +2190,32 @@ const ORIGINS = [
     name: "考古世家",
     desc: "考古學家家族",
     parents: "考古學家 & 博物館長",
-    money: 150000, // ✅ 原 250000 → 150000 (-40%)
+    money: 150000,
     intel: 88,
     happy: 78,
-    yearlyMoney: 3600, // ✅ 原 6000 → 3600 (-40%)
+    yearlyMoney: 3600,
     buff: "智商 +38",
     special: "archaeologist",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "考古學家",
+        relation: 80,
+        age: 50,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "博物館長",
+        relation: 85,
+        age: 48,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1609,12 +2223,41 @@ const ORIGINS = [
     name: "時尚世家",
     desc: "時尚設計師家族",
     parents: "時裝設計師 & 超模",
-    money: 1800000, // ✅ 原 3000000 → 1800000 (-40%)
+    money: 1800000,
     intel: 60,
     happy: 80,
-    yearlyMoney: 30000, // ✅ 原 50000 → 30000 (-40%)
+    yearlyMoney: 30000,
     buff: "魅力 +35，藝術 +25",
     special: "fashion",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "時裝設計師",
+        relation: 70,
+        age: 45,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "超模",
+        relation: 75,
+        age: 40,
+        gender: "female",
+      },
+      {
+        id: "stylist",
+        name: "御用造型師",
+        type: "stylist",
+        role: "造型師",
+        relation: 80,
+        age: 30,
+        gender: "female",
+      },
+    ],
   },
 
   {
@@ -1622,12 +2265,41 @@ const ORIGINS = [
     name: "科學家族",
     desc: "諾貝爾家族",
     parents: "諾貝爾獎得主 & 研究員",
-    money: 500000, // ✅ 原 1500000 → 900000 (-40%)
+    money: 500000,
     intel: 130,
     happy: 70,
-    yearlyMoney: 18000, // ✅ 原 30000 → 18000 (-40%)
+    yearlyMoney: 18000,
     buff: "智商 +80",
     special: "scientist",
+    initNPCs: [
+      {
+        id: "dad",
+        name: "爸爸",
+        type: "parent",
+        role: "諾貝爾獎得主",
+        relation: 75,
+        age: 55,
+        gender: "male",
+      },
+      {
+        id: "mom",
+        name: "媽媽",
+        type: "parent",
+        role: "研究員",
+        relation: 80,
+        age: 50,
+        gender: "female",
+      },
+      {
+        id: "assistant",
+        name: "實驗助理",
+        type: "assistant",
+        role: "研究助理",
+        relation: 75,
+        age: 25,
+        gender: "male",
+      },
+    ],
   },
 ];
 const LIFE_STAGES = [
@@ -2769,99 +3441,129 @@ const TAIWAN_SCHOOLS = {
 };
 const MAJORS = {
   university: [
-    { 
-      id: "medicine", name: "醫學系", 
+    {
+      id: "medicine",
+      name: "醫學系",
       desc: "錄取分數極高，畢業後可從醫。",
-      skills: { medical: 40 }, intel: 20, 
+      skills: { medical: 40 },
+      intel: 20,
       requirement: { intel: 130, money: 500000 }, // 智力要求高，學費貴
     },
-    { 
-      id: "law", name: "法律系", 
+    {
+      id: "law",
+      name: "法律系",
       desc: "邏輯與口才的試煉場。",
-      skills: { communication: 25 }, intel: 15, 
-      requirement: { intel: 110, communication: 40 } // 需智力與溝通
+      skills: { communication: 25 },
+      intel: 15,
+      requirement: { intel: 110, communication: 40 }, // 需智力與溝通
     },
-    { 
-      id: "cs", name: "資訊工程系", 
+    {
+      id: "cs",
+      name: "資訊工程系",
       desc: "爆肝寫程式，未來的工程師。",
-      skills: { programming: 30 }, intel: 10, 
-      requirement: { intel: 100 }
+      skills: { programming: 30 },
+      intel: 10,
+      requirement: { intel: 100 },
     },
-    { 
-      id: "business", name: "企業管理系", 
+    {
+      id: "business",
+      name: "企業管理系",
       desc: "學習商業運作與理財。",
-      skills: { finance: 30, communication: 20 }, intel: 5, 
-      requirement: { intel: 90, finance: 20 }
+      skills: { finance: 30, communication: 20 },
+      intel: 5,
+      requirement: { intel: 90, finance: 20 },
     },
-    { 
-      id: "engineering", name: "電機工程系", 
+    {
+      id: "engineering",
+      name: "電機工程系",
       desc: "硬體與軟體的結合。",
-      skills: { programming: 20, communication: 10 }, intel: 15, 
-      requirement: { intel: 95 }
+      skills: { programming: 20, communication: 10 },
+      intel: 15,
+      requirement: { intel: 95 },
     },
-    { 
-      id: "art", name: "藝術設計系", 
+    {
+      id: "art",
+      name: "藝術設計系",
       desc: "燃燒靈魂的創作殿堂。",
-      skills: { art: 35, charm: 15 }, intel: 5, 
-      requirement: { art: 60 } // 看重術科(藝術)
+      skills: { art: 35, charm: 15 },
+      intel: 5,
+      requirement: { art: 60 }, // 看重術科(藝術)
     },
-    { 
-      id: "education", name: "教育學系", 
+    {
+      id: "education",
+      name: "教育學系",
       desc: "培育未來的老師。",
-      skills: { communication: 30 }, intel: 10, 
-      requirement: { intel: 85, communication: 30 }
+      skills: { communication: 30 },
+      intel: 10,
+      requirement: { intel: 85, communication: 30 },
     },
-    { 
-      id: "economics", name: "經濟學系", 
+    {
+      id: "economics",
+      name: "經濟學系",
       desc: "研究市場與金錢流動。",
-      skills: { finance: 35 }, intel: 12, 
-      requirement: { intel: 90 }
+      skills: { finance: 35 },
+      intel: 12,
+      requirement: { intel: 90 },
     },
   ],
   master: [
-    { 
-      id: "mba", name: "MBA 企管碩士", 
+    {
+      id: "mba",
+      name: "MBA 企管碩士",
       desc: "晉升管理階層的跳板。",
-      skills: { finance: 40, management: 30 }, intel: 15, 
-      requirement: { intel: 110, finance: 50, management: 20 }
+      skills: { finance: 40, management: 30 },
+      intel: 15,
+      requirement: { intel: 110, finance: 50, management: 20 },
     },
-    { 
-      id: "cs_master", name: "資工碩士", 
+    {
+      id: "cs_master",
+      name: "資工碩士",
       desc: "深造演算法與AI技術。",
-      skills: { programming: 45 }, intel: 20, 
-      requirement: { intel: 120, programming: 60 }
+      skills: { programming: 45 },
+      intel: 20,
+      requirement: { intel: 120, programming: 60 },
     },
-    { 
-      id: "med_master", name: "醫學碩士", 
+    {
+      id: "med_master",
+      name: "醫學碩士",
       desc: "醫學研究的進階領域。",
-      skills: { medical: 55 }, intel: 25, 
-      requirement: { intel: 140, medical: 60 }
+      skills: { medical: 55 },
+      intel: 25,
+      requirement: { intel: 140, medical: 60 },
     },
-    { 
-      id: "art_master", name: "藝術碩士", 
+    {
+      id: "art_master",
+      name: "藝術碩士",
       desc: "藝術造詣的極致追求。",
-      skills: { art: 50 }, intel: 10, 
-      requirement: { art: 100 }
+      skills: { art: 50 },
+      intel: 10,
+      requirement: { art: 100 },
     },
   ],
   phd: [
-    { 
-      id: "cs_phd", name: "資工博士", 
+    {
+      id: "cs_phd",
+      name: "資工博士",
       desc: "電腦科學的頂尖研究。",
-      skills: { programming: 60 }, intel: 30, 
-      requirement: { intel: 150, programming: 100 }
+      skills: { programming: 60 },
+      intel: 30,
+      requirement: { intel: 150, programming: 100 },
     },
-    { 
-      id: "med_phd", name: "醫學博士", 
+    {
+      id: "med_phd",
+      name: "醫學博士",
       desc: "醫學界的權威。",
-      skills: { medical: 70 }, intel: 35, 
-      requirement: { intel: 160, medical: 100 }
+      skills: { medical: 70 },
+      intel: 35,
+      requirement: { intel: 160, medical: 100 },
     },
-    { 
-      id: "law_phd", name: "法學博士", 
+    {
+      id: "law_phd",
+      name: "法學博士",
       desc: "法律學術的巔峰。",
-      skills: { communication: 60 }, intel: 30, 
-      requirement: { intel: 150, communication: 100 }
+      skills: { communication: 60 },
+      intel: 30,
+      requirement: { intel: 150, communication: 100 },
     },
   ],
 };
@@ -2904,12 +3606,54 @@ const CARS = [
   },
 ];
 const HOUSES = [
-  { id: "house1", name: "老舊套房", price: 5000000, happy: 5, passive: 12000, desc: "市區的小蝸居" },
-  { id: "house2", name: "電梯大樓", price: 15000000, happy: 15, passive: 28000, desc: "標準的三房兩廳" },
-  { id: "house3", name: "市區透天", price: 30000000, happy: 25, passive: 45000, desc: "稀有的市區透天" },
-  { id: "house4", name: "郊區別墅", price: 60000000, happy: 40, passive: 80000, desc: "有車庫和花園" },
-  { id: "house5", name: "信義區豪宅", price: 150000000, happy: 60, passive: 200000, desc: "俯瞰城市夜景" },
-  { id: "house6", name: "私人莊園", price: 800000000, happy: 100, passive: 800000, desc: "富可敵國的象徵" },
+  {
+    id: "house1",
+    name: "老舊套房",
+    price: 5000000,
+    happy: 5,
+    passive: 12000,
+    desc: "市區的小蝸居",
+  },
+  {
+    id: "house2",
+    name: "電梯大樓",
+    price: 15000000,
+    happy: 15,
+    passive: 28000,
+    desc: "標準的三房兩廳",
+  },
+  {
+    id: "house3",
+    name: "市區透天",
+    price: 30000000,
+    happy: 25,
+    passive: 45000,
+    desc: "稀有的市區透天",
+  },
+  {
+    id: "house4",
+    name: "郊區別墅",
+    price: 60000000,
+    happy: 40,
+    passive: 80000,
+    desc: "有車庫和花園",
+  },
+  {
+    id: "house5",
+    name: "信義區豪宅",
+    price: 150000000,
+    happy: 60,
+    passive: 200000,
+    desc: "俯瞰城市夜景",
+  },
+  {
+    id: "house6",
+    name: "私人莊園",
+    price: 800000000,
+    happy: 100,
+    passive: 800000,
+    desc: "富可敵國的象徵",
+  },
 ];
 const LUXURIES = [
   {
@@ -2949,20 +3693,39 @@ const LUXURIES = [
     happy: 50,
     desc: "終極奢華",
   },
-  { 
-      id: "gym_card", name: "終身健身卡", price: 50000, 
-      desc: "體力上限 +20", 
-      effect: (g) => { g.maxStamina += 20; g.stamina += 20; return "體力上限提升了！"; } 
+  {
+    id: "gym_card",
+    name: "終身健身卡",
+    price: 50000,
+    desc: "體力上限 +20",
+    effect: (g) => {
+      g.maxStamina += 20;
+      g.stamina += 20;
+      return "體力上限提升了！";
+    },
   },
-  { 
-      id: "massage_chair", name: "天王按摩椅", price: 250000, 
-      desc: "體力上限 +50", 
-      effect: (g) => { g.maxStamina += 50; g.stamina += 50; return "全身舒暢，體力大增！"; } 
+  {
+    id: "massage_chair",
+    name: "天王按摩椅",
+    price: 250000,
+    desc: "體力上限 +50",
+    effect: (g) => {
+      g.maxStamina += 50;
+      g.stamina += 50;
+      return "全身舒暢，體力大增！";
+    },
   },
-  { 
-      id: "medical_bed", name: "高科技睡眠艙", price: 2000000, 
-      desc: "體力上限 +100，健康+20", 
-      effect: (g) => { g.maxStamina += 100; g.stamina += 100; g.health += 20; return "睡眠品質達到極致！"; } 
+  {
+    id: "medical_bed",
+    name: "高科技睡眠艙",
+    price: 2000000,
+    desc: "體力上限 +100，健康+20",
+    effect: (g) => {
+      g.maxStamina += 100;
+      g.stamina += 100;
+      g.health += 20;
+      return "睡眠品質達到極致！";
+    },
   },
 ];
 const NPC_TEMPLATES = {
@@ -3464,139 +4227,897 @@ const calc = (min, max, bonus = 1) =>
 const ACTIONS_POOL = {
   // 👶 嬰兒期
   infant: [
-    { id: "cry", name: "😭 哭鬧", cost: { stamina: 10 }, effect: (g) => { g.happy += calc(2, 4); return "發洩情緒"; } }, // 3-6 -> 2-4
-    { id: "sleep", name: "😴 睡覺", cost: { stamina: 20 }, effect: (g) => { g.health += calc(1, 3); g.happy += calc(1, 3); return "睡得香甜"; } },
-    { id: "play_toy", name: "🧸 玩玩具", cost: { stamina: 15 }, effect: (g) => { g.happy += calc(4, 8); g.intel += calc(0, 1); return "玩得開心"; } },
-    { id: "act_cute", name: "🥺 賣萌", cost: { stamina: 15 }, effect: (g) => { g.skills.charm += calc(1, 2, g.skillBonus); g.happy += 3; if(Math.random()<0.2){ g.money+=200; return "獲得零用錢！"; } return "大家說你可愛"; } }, // 數值減半
-    { id: "explore", name: "🏠 探索", cost: { stamina: 20 }, effect: (g) => { g.intel += calc(1, 3, g.learnBonus); return "發現新角落"; } },
-    { id: "learn_speak", name: "🗣️ 學說話", cost: { stamina: 25 }, effect: (g) => { g.skills.communication += calc(1, 3, g.skillBonus); g.intel += 1; return "叫了聲爸爸"; } },
-    { id: "crawl", name: "🐛 爬行", cost: { stamina: 30 }, effect: (g) => { g.health += 3; return "鍛鍊小手小腳"; } },
-    { id: "milk", name: "🍼 喝奶奶", cost: { stamina: 10 }, effect: (g) => { g.health += 2; g.happy += 2; return "好喝"; } },
-    { id: "stare", name: "👀 發呆", cost: { stamina: 5 }, effect: (g) => { g.intel += 1; return "思考人生..."; } },
-    { id: "poop", name: "💩 便便", cost: { stamina: 20 }, effect: (g) => { g.health += 1; g.happy += 3; return "通體舒暢"; } },
-    { id: "bite", name: "🦷 咬東西", cost: { stamina: 15 }, effect: (g) => { g.health += 1; return "正在長牙"; } },
-    { id: "roll", name: "🔄 翻身", cost: { stamina: 25 }, effect: (g) => { g.health += 2; return "世界旋轉了"; } },
+    {
+      id: "cry",
+      name: "😭 哭鬧",
+      cost: { stamina: 10 },
+      effect: (g) => {
+        g.happy += calc(2, 4);
+        return "發洩情緒";
+      },
+    }, // 3-6 -> 2-4
+    {
+      id: "sleep",
+      name: "😴 睡覺",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.health += calc(1, 3);
+        g.happy += calc(1, 3);
+        return "睡得香甜";
+      },
+    },
+    {
+      id: "play_toy",
+      name: "🧸 玩玩具",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.happy += calc(4, 8);
+        g.intel += calc(0, 1);
+        return "玩得開心";
+      },
+    },
+    {
+      id: "act_cute",
+      name: "🥺 賣萌",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.skills.charm += calc(1, 2, g.skillBonus);
+        g.happy += 3;
+        if (Math.random() < 0.2) {
+          g.money += 200;
+          return "獲得零用錢！";
+        }
+        return "大家說你可愛";
+      },
+    }, // 數值減半
+    {
+      id: "explore",
+      name: "🏠 探索",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.intel += calc(1, 3, g.learnBonus);
+        return "發現新角落";
+      },
+    },
+    {
+      id: "learn_speak",
+      name: "🗣️ 學說話",
+      cost: { stamina: 25 },
+      effect: (g) => {
+        g.skills.communication += calc(1, 3, g.skillBonus);
+        g.intel += 1;
+        return "叫了聲爸爸";
+      },
+    },
+    {
+      id: "crawl",
+      name: "🐛 爬行",
+      cost: { stamina: 30 },
+      effect: (g) => {
+        g.health += 3;
+        return "鍛鍊小手小腳";
+      },
+    },
+    {
+      id: "milk",
+      name: "🍼 喝奶奶",
+      cost: { stamina: 10 },
+      effect: (g) => {
+        g.health += 2;
+        g.happy += 2;
+        return "好喝";
+      },
+    },
+    {
+      id: "stare",
+      name: "👀 發呆",
+      cost: { stamina: 5 },
+      effect: (g) => {
+        g.intel += 1;
+        return "思考人生...";
+      },
+    },
+    {
+      id: "poop",
+      name: "💩 便便",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.health += 1;
+        g.happy += 3;
+        return "通體舒暢";
+      },
+    },
+    {
+      id: "bite",
+      name: "🦷 咬東西",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.health += 1;
+        return "正在長牙";
+      },
+    },
+    {
+      id: "roll",
+      name: "🔄 翻身",
+      cost: { stamina: 25 },
+      effect: (g) => {
+        g.health += 2;
+        return "世界旋轉了";
+      },
+    },
   ],
 
   // 🧸 幼兒期
   toddler: [
-    { id: "kindergarten", name: "🏫 上幼兒園", cost: { stamina: 20 }, effect: (g) => { g.intel += calc(1, 3, g.learnBonus); g.skills.communication += 1; return "學到了新知識"; } },
-    { id: "play_outside", name: "🌳 戶外玩耍", cost: { stamina: 20 }, effect: (g) => { g.health += calc(2, 4); g.happy += 3; return "跑跑跳跳"; } },
-    { id: "draw", name: "🖍️ 畫畫", cost: { stamina: 15 }, effect: (g) => { g.skills.art += calc(1, 3, g.skillBonus); return "畫了塗鴉"; } },
-    { id: "prank", name: "🤡 惡作劇", cost: { stamina: 15 }, effect: (g) => { g.happy += 8; g.skills.charm -= 1; return "把拖鞋藏起來"; } },
-    { id: "ask_money", name: "💰 要零用錢", cost: { stamina: 10 }, effect: (g) => { if(Math.random() < 0.3 + g.skills.charm/300){ const m = calc(50, 200); g.money += m; return `要到了 $${m}`; } g.happy -= 3; return "被拒絕了..."; } },
-    { id: "blocks", name: "🧱 堆積木", cost: { stamina: 15 }, effect: (g) => { g.intel += 2; g.skills.art += 1; return "蓋了城堡"; } },
-    { id: "watch_tv", name: "📺 看卡通", cost: { stamina: 10 }, effect: (g) => { g.happy += 5; g.intel -= 1; return "看得目不轉睛"; } },
-    { id: "sing", name: "🎵 唱歌", cost: { stamina: 15 }, effect: (g) => { g.skills.charm += 1; g.happy += 3; return "兩隻老虎"; } },
-    { id: "ask_why", name: "❓ 問為什麼", cost: { stamina: 20 }, effect: (g) => { g.intel += 2; g.skills.communication += 1; return "爸媽崩潰"; } },
-    { id: "refuse_eat", name: "🥕 挑食", cost: { stamina: 10 }, effect: (g) => { g.health -= 1; g.happy += 3; return "不吃紅蘿蔔"; } },
-    { id: "mud_pie", name: "🥧 做泥巴派", cost: { stamina: 25 }, effect: (g) => { g.skills.art += 2; g.skills.cooking += 1; return "看起來很好吃"; } },
-    { id: "share_toy", name: "🤝 分享玩具", cost: { stamina: 15 }, effect: (g) => { g.skills.charm += 3; return "學會分享"; } },
+    {
+      id: "kindergarten",
+      name: "🏫 上幼兒園",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.intel += calc(1, 3, g.learnBonus);
+        g.skills.communication += 1;
+        return "學到了新知識";
+      },
+    },
+    {
+      id: "play_outside",
+      name: "🌳 戶外玩耍",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.health += calc(2, 4);
+        g.happy += 3;
+        return "跑跑跳跳";
+      },
+    },
+    {
+      id: "draw",
+      name: "🖍️ 畫畫",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.skills.art += calc(1, 3, g.skillBonus);
+        return "畫了塗鴉";
+      },
+    },
+    {
+      id: "prank",
+      name: "🤡 惡作劇",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.happy += 8;
+        g.skills.charm -= 1;
+        return "把拖鞋藏起來";
+      },
+    },
+    {
+      id: "ask_money",
+      name: "💰 要零用錢",
+      cost: { stamina: 10 },
+      effect: (g) => {
+        if (Math.random() < 0.3 + g.skills.charm / 300) {
+          const m = calc(50, 200);
+          g.money += m;
+          return `要到了 $${m}`;
+        }
+        g.happy -= 3;
+        return "被拒絕了...";
+      },
+    },
+    {
+      id: "blocks",
+      name: "🧱 堆積木",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.intel += 2;
+        g.skills.art += 1;
+        return "蓋了城堡";
+      },
+    },
+    {
+      id: "watch_tv",
+      name: "📺 看卡通",
+      cost: { stamina: 10 },
+      effect: (g) => {
+        g.happy += 5;
+        g.intel -= 1;
+        return "看得目不轉睛";
+      },
+    },
+    {
+      id: "sing",
+      name: "🎵 唱歌",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.skills.charm += 1;
+        g.happy += 3;
+        return "兩隻老虎";
+      },
+    },
+    {
+      id: "ask_why",
+      name: "❓ 問為什麼",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.intel += 2;
+        g.skills.communication += 1;
+        return "爸媽崩潰";
+      },
+    },
+    {
+      id: "refuse_eat",
+      name: "🥕 挑食",
+      cost: { stamina: 10 },
+      effect: (g) => {
+        g.health -= 1;
+        g.happy += 3;
+        return "不吃紅蘿蔔";
+      },
+    },
+    {
+      id: "mud_pie",
+      name: "🥧 做泥巴派",
+      cost: { stamina: 25 },
+      effect: (g) => {
+        g.skills.art += 2;
+        g.skills.cooking += 1;
+        return "看起來很好吃";
+      },
+    },
+    {
+      id: "share_toy",
+      name: "🤝 分享玩具",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.skills.charm += 3;
+        return "學會分享";
+      },
+    },
   ],
 
   // 🎒 兒童期
   child: [
-    { id: "study_hard", name: "📚 認真讀書", cost: { stamina: 30 }, effect: (g) => { g.intel += calc(2, 5, g.learnBonus); if(g.isStudying) g.studyProgress+=8; return "知識增加"; } },
-    { id: "read_comic", name: "📖 看漫畫", cost: { stamina: 15 }, effect: (g) => { g.happy += 5; g.intel += 1; return "熱血沸騰"; } },
-    { id: "sports", name: "⚽ 運動", cost: { stamina: 20 }, effect: (g) => { g.health += 3; g.skills.charm += 1; return "揮灑汗水"; } },
-    { id: "play_game", name: "🎮 打電動", cost: { stamina: 15 }, effect: (g) => { g.happy += 8; g.intel -= 1; g.health -= 1; return "太好玩了"; } },
-    { id: "internet", name: "🌐 上網", cost: { stamina: 15 }, effect: (g) => { g.intel += 1; g.happy += 3; g.health -= 1; return "發現新世界"; } },
-    { id: "cram_school", name: "🏫 補習班", cost: { stamina: 25, money: 2000 }, effect: (g) => { g.intel += calc(4, 8, g.learnBonus); g.happy -= 3; return "進步很快"; } },
-    { id: "help_house", name: "🧹 幫忙家務", cost: { stamina: 20 }, effect: (g) => { g.money += 200; g.happy += 1; return "獎勵 $200"; } },
-    { id: "piano", name: "🎹 練鋼琴", cost: { stamina: 20 }, effect: (g) => { g.skills.art += calc(2, 4, g.skillBonus); return "氣質提升"; } },
-    { id: "science", name: "🧪 科學實驗", cost: { stamina: 20 }, effect: (g) => { g.intel += 3; return "有趣"; } },
-    { id: "climb_tree", name: "🌳 爬樹", cost: { stamina: 25 }, effect: (g) => { g.health += 2; if(Math.random()<0.1){ g.health-=3; return "摔下來了！"; } return "風景好"; } },
-    { id: "catch_bug", name: "🐞 抓昆蟲", cost: { stamina: 20 }, effect: (g) => { g.happy += 3; g.intel += 1; return "抓到獨角仙"; } },
-    { id: "secret_base", name: "🏰 秘密基地", cost: { stamina: 25 }, effect: (g) => { g.happy += 6; g.skills.leadership += 1; return "孩子王"; } },
-    { id: "forget_hw", name: "📝 忘記作業", cost: { stamina: 5 }, effect: (g) => { g.happy += 3; g.intel -= 1; return "老師生氣"; } },
+    {
+      id: "study_hard",
+      name: "📚 認真讀書",
+      cost: { stamina: 30 },
+      effect: (g) => {
+        g.intel += calc(2, 5, g.learnBonus);
+        if (g.isStudying) g.studyProgress += 8;
+        return "知識增加";
+      },
+    },
+    {
+      id: "read_comic",
+      name: "📖 看漫畫",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.happy += 5;
+        g.intel += 1;
+        return "熱血沸騰";
+      },
+    },
+    {
+      id: "sports",
+      name: "⚽ 運動",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.health += 3;
+        g.skills.charm += 1;
+        return "揮灑汗水";
+      },
+    },
+    {
+      id: "play_game",
+      name: "🎮 打電動",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.happy += 8;
+        g.intel -= 1;
+        g.health -= 1;
+        return "太好玩了";
+      },
+    },
+    {
+      id: "internet",
+      name: "🌐 上網",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.intel += 1;
+        g.happy += 3;
+        g.health -= 1;
+        return "發現新世界";
+      },
+    },
+    {
+      id: "cram_school",
+      name: "🏫 補習班",
+      cost: { stamina: 25, money: 2000 },
+      effect: (g) => {
+        g.intel += calc(4, 8, g.learnBonus);
+        g.happy -= 3;
+        return "進步很快";
+      },
+    },
+    {
+      id: "help_house",
+      name: "🧹 幫忙家務",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.money += 200;
+        g.happy += 1;
+        return "獎勵 $200";
+      },
+    },
+    {
+      id: "piano",
+      name: "🎹 練鋼琴",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.skills.art += calc(2, 4, g.skillBonus);
+        return "氣質提升";
+      },
+    },
+    {
+      id: "science",
+      name: "🧪 科學實驗",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.intel += 3;
+        return "有趣";
+      },
+    },
+    {
+      id: "climb_tree",
+      name: "🌳 爬樹",
+      cost: { stamina: 25 },
+      effect: (g) => {
+        g.health += 2;
+        if (Math.random() < 0.1) {
+          g.health -= 3;
+          return "摔下來了！";
+        }
+        return "風景好";
+      },
+    },
+    {
+      id: "catch_bug",
+      name: "🐞 抓昆蟲",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.happy += 3;
+        g.intel += 1;
+        return "抓到獨角仙";
+      },
+    },
+    {
+      id: "secret_base",
+      name: "🏰 秘密基地",
+      cost: { stamina: 25 },
+      effect: (g) => {
+        g.happy += 6;
+        g.skills.leadership += 1;
+        return "孩子王";
+      },
+    },
+    {
+      id: "forget_hw",
+      name: "📝 忘記作業",
+      cost: { stamina: 5 },
+      effect: (g) => {
+        g.happy += 3;
+        g.intel -= 1;
+        return "老師生氣";
+      },
+    },
   ],
 
   // 🎧 青春期
   teen: [
-    { id: "exam_prep", name: "📝 準備考試", cost: { stamina: 35 }, effect: (g) => { g.intel += calc(5, 10, g.learnBonus); g.happy -= 3; return "為了升學"; } },
-    { id: "club", name: "🎭 參加社團", cost: { stamina: 20 }, effect: (g) => { g.skills.communication += 2; g.skills.charm += 1; g.happy += 3; return "社團生活"; } },
-    { id: "date", name: "💕 約會", cost: { stamina: 30, money: 1000 }, effect: (g) => { g.happy += 10; g.skills.charm += 3; return "心跳加速"; } },
-    { id: "skip_class", name: "🏃 翹課", cost: { stamina: 10 }, effect: (g) => { g.happy += 10; g.intel -= 3; if(Math.random()<0.3){ g.happy-=20; return "被抓到記過！"; } return "自由"; } },
-    { id: "part_time", name: "💼 打工", cost: { stamina: 30 }, effect: (g) => { const m = calc(2000, 3500); g.money += m; g.skills.communication += 1; return `賺了 $${m}`; } },
-    { id: "write_novel", name: "✍️ 寫小說", cost: { stamina: 25 }, effect: (g) => { g.skills.art += 3; g.intel += 1; if(Math.random()<0.05){ g.money+=5000; g.happy+=15; return "小說爆紅！"; } return "寫得很爽"; } },
-    { id: "code", name: "💻 自學程式", cost: { stamina: 25 }, effect: (g) => { g.skills.programming += calc(3, 7, g.skillBonus); return "Hello World"; } },
-    { id: "volunteer", name: "🤝 志工服務", cost: { stamina: 25 }, effect: (g) => { g.happy += 6; g.skills.charm += 3; return "助人為樂"; } },
-    { id: "gym", name: "💪 健身", cost: { stamina: 25, money: 500 }, effect: (g) => { g.health += 5; g.skills.charm += 1; return "練肌肉"; } },
-    { id: "social_media", name: "📱 滑IG", cost: { stamina: 15 }, effect: (g) => { g.happy += 3; g.intel -= 1; return "發文青照"; } },
-    { id: "dye_hair", name: "💇 染頭髮", cost: { stamina: 10, money: 2000 }, effect: (g) => { g.money -= 2000; g.skills.charm += 3; return "教官氣瘋"; } },
-    { id: "love_letter", name: "💌 寫情書", cost: { stamina: 20 }, effect: (g) => { g.skills.art += 1; g.happy -= 3; return "撕了又寫"; } },
-    { id: "sneak_out", name: "🌙 半夜溜出門", cost: { stamina: 30 }, effect: (g) => { if(Math.random()<0.5){ g.happy+=10; return "看夜景"; } g.health-=5; return "遇不良少年"; } },
+    {
+      id: "exam_prep",
+      name: "📝 準備考試",
+      cost: { stamina: 35 },
+      effect: (g) => {
+        g.intel += calc(5, 10, g.learnBonus);
+        g.happy -= 3;
+        return "為了升學";
+      },
+    },
+    {
+      id: "club",
+      name: "🎭 參加社團",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.skills.communication += 2;
+        g.skills.charm += 1;
+        g.happy += 3;
+        return "社團生活";
+      },
+    },
+    {
+      id: "date",
+      name: "💕 約會",
+      cost: { stamina: 30, money: 1000 },
+      effect: (g) => {
+        g.happy += 10;
+        g.skills.charm += 3;
+        return "心跳加速";
+      },
+    },
+    {
+      id: "skip_class",
+      name: "🏃 翹課",
+      cost: { stamina: 10 },
+      effect: (g) => {
+        g.happy += 10;
+        g.intel -= 3;
+        if (Math.random() < 0.3) {
+          g.happy -= 20;
+          return "被抓到記過！";
+        }
+        return "自由";
+      },
+    },
+    {
+      id: "part_time",
+      name: "💼 打工",
+      cost: { stamina: 30 },
+      effect: (g) => {
+        const m = calc(2000, 3500);
+        g.money += m;
+        g.skills.communication += 1;
+        return `賺了 $${m}`;
+      },
+    },
+    {
+      id: "write_novel",
+      name: "✍️ 寫小說",
+      cost: { stamina: 25 },
+      effect: (g) => {
+        g.skills.art += 3;
+        g.intel += 1;
+        if (Math.random() < 0.05) {
+          g.money += 5000;
+          g.happy += 15;
+          return "小說爆紅！";
+        }
+        return "寫得很爽";
+      },
+    },
+    {
+      id: "code",
+      name: "💻 自學程式",
+      cost: { stamina: 25 },
+      effect: (g) => {
+        g.skills.programming += calc(3, 7, g.skillBonus);
+        return "Hello World";
+      },
+    },
+    {
+      id: "volunteer",
+      name: "🤝 志工服務",
+      cost: { stamina: 25 },
+      effect: (g) => {
+        g.happy += 6;
+        g.skills.charm += 3;
+        return "助人為樂";
+      },
+    },
+    {
+      id: "gym",
+      name: "💪 健身",
+      cost: { stamina: 25, money: 500 },
+      effect: (g) => {
+        g.health += 5;
+        g.skills.charm += 1;
+        return "練肌肉";
+      },
+    },
+    {
+      id: "social_media",
+      name: "📱 滑IG",
+      cost: { stamina: 15 },
+      effect: (g) => {
+        g.happy += 3;
+        g.intel -= 1;
+        return "發文青照";
+      },
+    },
+    {
+      id: "dye_hair",
+      name: "💇 染頭髮",
+      cost: { stamina: 10, money: 2000 },
+      effect: (g) => {
+        g.money -= 2000;
+        g.skills.charm += 3;
+        return "教官氣瘋";
+      },
+    },
+    {
+      id: "love_letter",
+      name: "💌 寫情書",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.skills.art += 1;
+        g.happy -= 3;
+        return "撕了又寫";
+      },
+    },
+    {
+      id: "sneak_out",
+      name: "🌙 半夜溜出門",
+      cost: { stamina: 30 },
+      effect: (g) => {
+        if (Math.random() < 0.5) {
+          g.happy += 10;
+          return "看夜景";
+        }
+        g.health -= 5;
+        return "遇不良少年";
+      },
+    },
   ],
 
   // 💼 成年人
   adult: [
-    { id: "work", name: "💼 上班", cost: { stamina: 35 }, condition: (g)=>g.jobId!=='none', effect: (g) => { 
-        const job = JOBS.find(j=>j.id===g.jobId); 
-        const base = (job.salary + (g.salaryBonus||0)) * (g.inflationRate||1);
+    {
+      id: "work",
+      name: "💼 上班",
+      cost: { stamina: 35 },
+      condition: (g) => g.jobId !== "none",
+      effect: (g) => {
+        const job = JOBS.find((j) => j.id === g.jobId);
+        const base =
+          (job.salary + (g.salaryBonus || 0)) * (g.inflationRate || 1);
         const pay = Math.floor(base * g.incomeBonus);
-        g.money += pay; g.jobYears++; g.health-=2; g.happy-=5; 
-        if(job.effect) job.effect(g);
-        return `工作獲得 $${pay.toLocaleString()}`; 
-    }},
-    { id: "find_job", name: "📰 找工作", cost: { stamina: 20 }, condition: (g)=>g.jobId==='none', effect: (g) => { return "請到「職業頁面」"; } },
-    { id: "side_hustle", name: "🛵 跑外送", cost: { stamina: 30 }, effect: (g) => { const m = calc(3000, 8000) * (g.inflationRate||1); g.money += m; g.health -= 3; return `兼職賺 $${Math.floor(m).toLocaleString()}`; } },
-    { id: "lottery", name: "🎫 買彩券", cost: { stamina: 5, money: 500 }, effect: (g) => { 
-        g.money -= 500; 
-        if(Math.random()<0.0001){ g.money+=100000000; g.happy+=100; return "中頭獎一億！！！"; }
-        if(Math.random()<0.1){ g.money+=2000; return "中小獎 $2000"; }
-        return "沒中"; 
-    }},
-    { id: "invest", name: "📈 投資股票", cost: { stamina: 10, money: 10000 }, effect: (g) => {
+        g.money += pay;
+        g.jobYears++;
+        g.health -= 2;
+        g.happy -= 5;
+        if (job.effect) job.effect(g);
+        return `工作獲得 $${pay.toLocaleString()}`;
+      },
+    },
+    {
+      id: "find_job",
+      name: "📰 找工作",
+      cost: { stamina: 20 },
+      condition: (g) => g.jobId === "none",
+      effect: (g) => {
+        return "請到「職業頁面」";
+      },
+    },
+    {
+      id: "side_hustle",
+      name: "🛵 跑外送",
+      cost: { stamina: 30 },
+      effect: (g) => {
+        const m = calc(3000, 8000) * (g.inflationRate || 1);
+        g.money += m;
+        g.health -= 3;
+        return `兼職賺 $${Math.floor(m).toLocaleString()}`;
+      },
+    },
+    {
+      id: "lottery",
+      name: "🎫 買彩券",
+      cost: { stamina: 5, money: 500 },
+      effect: (g) => {
+        g.money -= 500;
+        if (Math.random() < 0.0001) {
+          g.money += 100000000;
+          g.happy += 100;
+          return "中頭獎一億！！！";
+        }
+        if (Math.random() < 0.1) {
+          g.money += 2000;
+          return "中小獎 $2000";
+        }
+        return "沒中";
+      },
+    },
+    {
+      id: "invest",
+      name: "📈 投資股票",
+      cost: { stamina: 10, money: 10000 },
+      effect: (g) => {
         g.money -= 10000;
-        const roi = (Math.random() * 0.4 - 0.2) + (g.skills.finance/400); // 波動縮小 -20% ~ +20%
+        const roi = Math.random() * 0.4 - 0.2 + g.skills.finance / 400; // 波動縮小 -20% ~ +20%
         const profit = Math.floor(10000 * (1 + roi));
         g.money += profit;
-        if(profit > 10000) { g.happy+=3; return `獲利變為 $${profit.toLocaleString()}`; }
-        else { g.happy-=5; return `虧損剩 $${profit.toLocaleString()}`; }
-    }},
-    { id: "crypto", name: "🪙 加密貨幣", cost: { stamina: 15, money: 50000 }, effect: (g) => {
+        if (profit > 10000) {
+          g.happy += 3;
+          return `獲利變為 $${profit.toLocaleString()}`;
+        } else {
+          g.happy -= 5;
+          return `虧損剩 $${profit.toLocaleString()}`;
+        }
+      },
+    },
+    {
+      id: "crypto",
+      name: "🪙 加密貨幣",
+      cost: { stamina: 15, money: 50000 },
+      effect: (g) => {
         g.money -= 50000;
         const roi = Math.random() * 2.5; // 0 ~ 2.5倍
-        if(Math.random() < 0.5) { g.happy-=15; return "歸零膏！血本無歸..."; }
+        if (Math.random() < 0.5) {
+          g.happy -= 15;
+          return "歸零膏！血本無歸...";
+        }
         const profit = Math.floor(50000 * roi);
         g.money += profit;
         return `資產變 $${profit.toLocaleString()}`;
-    }},
-    { id: "socialize", name: "🍻 居酒屋", cost: { stamina: 20, money: 3000 }, effect: (g) => { g.money -= 3000; g.happy += 10; g.skills.communication += 2; return "抱怨老闆"; } },
-    { id: "travel", name: "✈️ 出國旅遊", cost: { stamina: 0, money: 80000 }, effect: (g) => { g.money -= 80000; g.happy += 35; g.stamina = g.maxStamina; return "體力全滿！"; } }, // 修正為回滿 maxStamina
-    { id: "night_club", name: "🕺 去夜店", cost: { stamina: 30, money: 6000 }, effect: (g) => { g.money -= 6000; g.happy += 20; g.skills.charm += 3; g.health -= 4; return "嗨整晚"; } },
-    { id: "learn_skill", name: "📖 進修技能", cost: { stamina: 30, money: 5000 }, effect: (g) => { 
-        const skills = ['programming','art','finance','communication','medical','cooking','leadership'];
-        const s = skills[Math.floor(Math.random()*skills.length)];
-        g.skills[s] += 3; g.money -= 5000; return `進修 ${s} 技能`; 
-    }},
-    { id: "gym", name: "💪 健身房", cost: { stamina: 25, money: 1000 }, effect: (g) => { g.money -= 1000; g.health += 6; g.skills.charm += 1; return "深蹲"; } },
-    { id: "hospital", name: "🏥 健康檢查", cost: { stamina: 10, money: 10000 }, effect: (g) => { g.money -= 10000; g.health += 15; return "醫生建議少熬夜"; } },
-    { id: "casino", name: "🎲 去賭場", cost: { stamina: 15, money: 50000 }, effect: (g) => { 
-        g.money -= 50000; 
-        if(Math.random() < 0.45) { const win = 50000 * 2; g.money += win; g.happy+=15; return `賭贏！獲得 $${win.toLocaleString()}`; }
-        g.happy -= 20; return "輸光了...";
-    }},
-    { id: "overtime", name: "🔥 加班", cost: { stamina: 40 }, effect: (g) => { g.money += 2000; g.health -= 4; g.happy -= 8; return "肝在燃燒"; } },
-    { id: "do_nothing", name: "🛌 躺平", cost: { stamina: 5 }, effect: (g) => { g.happy += 1; g.money -= 500; return "不想努力"; } },
-    { id: "office_gossip", name: "👂 八卦", cost: { stamina: 10 }, effect: (g) => { g.skills.communication += 1; g.skills.leadership -= 1; return "聽說經理..."; } },
-    { id: "clean_house", name: "🧹 大掃除", cost: { stamina: 30 }, effect: (g) => { g.happy += 3; if(Math.random()<0.1) { g.money+=1000; return "找到私房錢！"; } return "家裡變乾淨"; } },
+      },
+    },
+    {
+      id: "socialize",
+      name: "🍻 居酒屋",
+      cost: { stamina: 20, money: 3000 },
+      effect: (g) => {
+        g.money -= 3000;
+        g.happy += 10;
+        g.skills.communication += 2;
+        return "抱怨老闆";
+      },
+    },
+    {
+      id: "travel",
+      name: "✈️ 出國旅遊",
+      cost: { stamina: 0, money: 80000 },
+      effect: (g) => {
+        g.money -= 80000;
+        g.happy += 35;
+        g.stamina = g.maxStamina;
+        return "體力全滿！";
+      },
+    }, // 修正為回滿 maxStamina
+    {
+      id: "night_club",
+      name: "🕺 去夜店",
+      cost: { stamina: 30, money: 6000 },
+      effect: (g) => {
+        g.money -= 6000;
+        g.happy += 20;
+        g.skills.charm += 3;
+        g.health -= 4;
+        return "嗨整晚";
+      },
+    },
+    {
+      id: "learn_skill",
+      name: "📖 進修技能",
+      cost: { stamina: 30, money: 5000 },
+      effect: (g) => {
+        // ✅ 新增技能名稱對照表，用於在日誌中顯示中文
+        const skillsMap = {
+          programming: "程式",
+          art: "藝術",
+          finance: "理財",
+          communication: "溝通",
+          medical: "醫療",
+          cooking: "烹飪",
+          leadership: "領導力",
+          management: "管理", // 加上管理
+        };
+        const skills = Object.keys(skillsMap);
+        const s = skills[Math.floor(Math.random() * skills.length)];
+        g.skills[s] += 3;
+        g.money -= 5000;
+        // 返回值改為使用 skillsMap[s] 顯示中文
+        return `進修 ${skillsMap[s]} 技能`;
+      },
+    },
+    {
+      id: "gym",
+      name: "💪 健身房",
+      cost: { stamina: 25, money: 1000 },
+      effect: (g) => {
+        g.money -= 1000;
+        g.health += 6;
+        g.skills.charm += 1;
+        return "深蹲";
+      },
+    },
+    {
+      id: "hospital",
+      name: "🏥 健康檢查",
+      cost: { stamina: 10, money: 10000 },
+      effect: (g) => {
+        g.money -= 10000;
+        g.health += 15;
+        return "醫生建議少熬夜";
+      },
+    },
+    {
+      id: "casino",
+      name: "🎲 去賭場",
+      cost: { stamina: 15, money: 50000 },
+      effect: (g) => {
+        g.money -= 50000;
+        if (Math.random() < 0.45) {
+          const win = 50000 * 2;
+          g.money += win;
+          g.happy += 15;
+          return `賭贏！獲得 $${win.toLocaleString()}`;
+        }
+        g.happy -= 20;
+        return "輸光了...";
+      },
+    },
+    {
+      id: "overtime",
+      name: "🔥 加班",
+      cost: { stamina: 40 },
+      effect: (g) => {
+        g.money += 2000;
+        g.health -= 4;
+        g.happy -= 8;
+        return "肝在燃燒";
+      },
+    },
+    {
+      id: "do_nothing",
+      name: "🛌 躺平",
+      cost: { stamina: 5 },
+      effect: (g) => {
+        g.happy += 1;
+        g.money -= 500;
+        return "不想努力";
+      },
+    },
+    {
+      id: "office_gossip",
+      name: "👂 八卦",
+      cost: { stamina: 10 },
+      effect: (g) => {
+        g.skills.communication += 1;
+        g.skills.leadership -= 1;
+        return "聽說經理...";
+      },
+    },
+    {
+      id: "clean_house",
+      name: "🧹 大掃除",
+      cost: { stamina: 30 },
+      effect: (g) => {
+        g.happy += 3;
+        if (Math.random() < 0.1) {
+          g.money += 1000;
+          return "找到私房錢！";
+        }
+        return "家裡變乾淨";
+      },
+    },
   ],
 
   // 🗺️ 地點專屬
   location_actions: [
-    { id: "sleep_home", name: "😴 睡覺補眠", cost: { stamina: 0 }, effect: (g) => { g.stamina = g.maxStamina; g.health += 3; return "體力全滿！"; } }, // 修正
-    { id: "clean_home", name: "🧹 大掃除", cost: { stamina: 25 }, effect: (g) => { g.happy += 5; if(Math.random()<0.2) { g.money+=500; return "找到私房錢！"; } return "家裡煥然一新"; } },
-    { id: "attend_class", name: "📝 專心上課", cost: { stamina: 30 }, effect: (g) => { g.intel += calc(3, 6, g.learnBonus); if(g.isStudying) g.studyProgress += 10; return "筆記寫滿"; } },
-    { id: "library", name: "📚 圖書館自習", cost: { stamina: 20 }, effect: (g) => { g.intel += 3; return "安靜讀書"; } },
-    { id: "school_lunch", name: "🍱 學生餐廳", cost: { stamina: -10, money: 100 }, effect: (g) => { g.stamina += 10; g.health += 1; return "便宜大碗"; } },
-    { id: "see_doctor", name: "🏥 看醫生", cost: { stamina: 10, money: 3000 }, effect: (g) => { g.health += 20; g.isSick=false; return "藥到病除"; } },
-    { id: "rehab", name: "💪 復健", cost: { stamina: 20, money: 500 }, effect: (g) => { g.health += 3; return "身體靈活"; } },
-    { id: "pray_god", name: "🙏 拜拜求籤", cost: { stamina: 10, money: 500 }, effect: (g) => { const r = Math.random(); if(r<0.2) { g.luckBonus+=0.05; return "大吉！運氣變好"; } if(r<0.5) { g.happy+=5; return "中吉"; } return "末吉"; } },
-    { id: "luxury_meal", name: "🍣 吃大餐", cost: { stamina: -20, money: 5000 }, effect: (g) => { g.stamina += 20; g.happy += 15; g.health += 1; return "頂級美味"; } },
-    { id: "night_club_map", name: "💃 進入夜店", cost: { stamina: 30, money: 3000 }, effect: (g) => { g.happy += 15; g.skills.charm += 3; g.health -= 3; return "嗨翻"; } },
-    { id: "casino_map", name: "🎲 地下賭場", cost: { stamina: 15, money: 50000 }, effect: (g) => { g.money -= 50000; if(Math.random()<0.45) { g.money += 100000; g.happy+=15; return "賭贏！翻倍！"; } g.happy-=20; return "輸光..."; } },
-  ]
+    {
+      id: "sleep_home",
+      name: "😴 睡覺補眠",
+      cost: { stamina: 0 },
+      effect: (g) => {
+        g.stamina = g.maxStamina;
+        g.health += 3;
+        return "體力全滿！";
+      },
+    }, // 修正
+    {
+      id: "clean_home",
+      name: "🧹 大掃除",
+      cost: { stamina: 25 },
+      effect: (g) => {
+        g.happy += 5;
+        if (Math.random() < 0.2) {
+          g.money += 500;
+          return "找到私房錢！";
+        }
+        return "家裡煥然一新";
+      },
+    },
+    {
+      id: "attend_class",
+      name: "📝 專心上課",
+      cost: { stamina: 30 },
+      effect: (g) => {
+        g.intel += calc(3, 6, g.learnBonus);
+        if (g.isStudying) g.studyProgress += 10;
+        return "筆記寫滿";
+      },
+    },
+    {
+      id: "library",
+      name: "📚 圖書館自習",
+      cost: { stamina: 20 },
+      effect: (g) => {
+        g.intel += 3;
+        return "安靜讀書";
+      },
+    },
+    {
+      id: "school_lunch",
+      name: "🍱 學生餐廳",
+      cost: { stamina: -10, money: 100 },
+      effect: (g) => {
+        g.stamina += 10;
+        g.health += 1;
+        return "便宜大碗";
+      },
+    },
+    {
+      id: "see_doctor",
+      name: "🏥 看醫生",
+      cost: { stamina: 10, money: 3000 },
+      effect: (g) => {
+        g.health += 20;
+        g.isSick = false;
+        return "藥到病除";
+      },
+    },
+    {
+      id: "rehab",
+      name: "💪 復健",
+      cost: { stamina: 20, money: 500 },
+      effect: (g) => {
+        g.health += 3;
+        return "身體靈活";
+      },
+    },
+    {
+      id: "pray_god",
+      name: "🙏 拜拜求籤",
+      cost: { stamina: 10, money: 500 },
+      effect: (g) => {
+        const r = Math.random();
+        if (r < 0.2) {
+          g.luckBonus += 0.05;
+          return "大吉！運氣變好";
+        }
+        if (r < 0.5) {
+          g.happy += 5;
+          return "中吉";
+        }
+        return "末吉";
+      },
+    },
+    {
+      id: "luxury_meal",
+      name: "🍣 吃大餐",
+      cost: { stamina: -20, money: 5000 },
+      effect: (g) => {
+        g.stamina += 20;
+        g.happy += 15;
+        g.health += 1;
+        return "頂級美味";
+      },
+    },
+    {
+      id: "night_club_map",
+      name: "💃 進入夜店",
+      cost: { stamina: 30, money: 3000 },
+      effect: (g) => {
+        g.happy += 15;
+        g.skills.charm += 3;
+        g.health -= 3;
+        return "嗨翻";
+      },
+    },
+    {
+      id: "casino_map",
+      name: "🎲 地下賭場",
+      cost: { stamina: 15, money: 50000 },
+      effect: (g) => {
+        g.money -= 50000;
+        if (Math.random() < 0.45) {
+          g.money += 100000;
+          g.happy += 15;
+          return "賭贏！翻倍！";
+        }
+        g.happy -= 20;
+        return "輸光...";
+      },
+    },
+  ],
 };
 const LOCATIONS = [
   {
