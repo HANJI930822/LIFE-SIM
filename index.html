@@ -149,7 +149,28 @@
           <div class="card-body" id="luxury-shop"></div>
         </div>
       </div>
-
+      <div id="page-map" class="page">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🗺️ 城市地圖</span>
+            <span style="font-size:0.8em; float:right; color:var(--text-dim)">位置：<span id="current-location" style="color:var(--gold)">🏠 家</span></span>
+          </div>
+          <div class="card-body">
+            <div id="map-grid" class="map-grid"></div>
+            
+            <div id="location-actions" style="margin-top: 20px; border-top: 1px solid #444; padding-top: 15px; display:none;">
+                <div style="display:flex; align-items:center; margin-bottom:10px;">
+                    <div id="loc-icon" style="font-size:2em; margin-right:10px;"></div>
+                    <div>
+                        <h3 id="loc-name" style="color:var(--gold); margin:0;">地點</h3>
+                        <div id="loc-desc" style="color:#aaa; font-size:0.85em;">描述</div>
+                    </div>
+                </div>
+                <div id="loc-btn-container" class="btn-grid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div id="page-social" class="page">
         <div class="card">
           <div class="card-header">
@@ -195,6 +216,9 @@
       <div class="nav-bar">
         <div class="nav-item active" onclick="nav('home', event)">
           <span class="nav-icon">🏠</span>生活
+        </div>
+        <div class="nav-item" onclick="nav('map', event)">
+          <span class="nav-icon">🗺️</span>地圖
         </div>
         <div class="nav-item" onclick="nav('career', event)">
           <span class="nav-icon">💼</span>職業

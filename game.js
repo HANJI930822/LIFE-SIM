@@ -13,6 +13,7 @@ let Game = {
   isStudying: false,
   studyProgress: 0,
   age: 0,
+  currentLocation: "home",
   gender: "男",
   money: 0,
   health: 100,
@@ -4337,6 +4338,9 @@ function nav(page, event) {
   event.currentTarget.classList.add("active");
 
   // 更新特定頁面的資料
+  if (page === 'map') {
+      renderMap();
+  }
   if (page === "profile") {
     // ✅ 成就统计
     const stats = getAchievementStats();
@@ -4980,5 +4984,185 @@ function showModal(title, description, actions) {
   }
 
   modal.style.display = "flex";
+}
+// ==========================================
+// 🗺️ 地圖系統 (新增)
+// ==========================================
+
+function renderMap() {
+  const grid = document.getElementById("map-grid");
+  const locActionDiv = document.getElementById("location-actions");
+  if(!grid) return;
+
+  grid.innerHTML = "";
+  
+  const currentLoc = LOCATIONS.find(l => l.id === Game.currentLocation);
+  
+  // 更新上方標題
+  if(document.getElementById("current-location")) {
+      document.getElementById("current-location").textContent = currentLoc ? currentLoc.name : "未知";
+  }
+
+  // 渲染九宮格
+  LOCATIONS.forEach(loc => {
+    const isCurrent = Game.currentLocation === loc.id;
+    const cell = document.createElement("div");
+    cell.className = `map-cell ${isCurrent ? "current" : ""}`;
+    cell.onclick = () => travelTo(loc.id); // 點擊移動
+    
+    cell.innerHTML = `
+      <div class="map-icon">${loc.icon}</div>
+      <div class="map-name">${loc.name}</div>
+    `;
+    grid.appendChild(cell);
+  });
+
+  // 顯示當前地點的功能按鈕
+  if (currentLoc) {
+    locActionDiv.style.display = "block";
+    document.getElementById("loc-icon").textContent = currentLoc.icon;
+    document.getElementById("loc-name").textContent = currentLoc.name;
+    document.getElementById("loc-desc").textContent = currentLoc.desc;
+    renderLocationButtons(currentLoc.id);
+  }
+}
+
+// 🚕 移動邏輯
+function travelTo(locId) {
+  if (locId === Game.currentLocation) return; // 已經在這裡
+
+  // 移動消耗 10 體力
+  const travelCost = 10;
+  
+  if (Game.stamina < travelCost) {
+    return showPopup("❌ 體力不足，無法移動！", "red");
+  }
+
+  const targetName = LOCATIONS.find(l=>l.id===locId).name;
+
+  if (confirm(`要前往【${targetName}】嗎？\n(消耗 ${travelCost} 體力)`)) {
+    Game.stamina -= travelCost;
+    Game.currentLocation = locId;
+    
+    // 🎲 移動隨機事件 (15% 機率)
+    if (Math.random() < 0.15) {
+       const event = Math.random();
+       if(event < 0.5) {
+           log("🚕 移動途中塞車了，心情變差...", ["😊-5"]);
+           Game.happy -= 5;
+       } else {
+           log("🍀 路上撿到 100 元！", ["💰+100"]);
+           Game.money += 100;
+       }
+    }
+
+    updateUI();
+    renderMap(); // 重新渲染地圖以更新狀態
+  }
+}
+
+// 🔘 地點功能按鈕 (整合原本的 action)
+function renderLocationButtons(locId) {
+  const container = document.getElementById("loc-btn-container");
+  container.innerHTML = "";
+
+  let btns = "";
+
+  // 根據地點生成不同的按鈕
+  switch (locId) {
+    case "home":
+      btns += `<button class="btn-main" onclick="action('sleep')">😴 睡覺補眠</button>`;
+      btns += `<button class="btn-main" onclick="action('play_game')">🎮 打電動</button>`;
+      btns += `<button class="btn-main" onclick="action('clean_house')">🧹 大掃除</button>`;
+      break;
+
+    case "mall":
+      btns += `<button class="btn-buy" onclick="renderShop(); nav('assets', event)">🛍️ 逛商店 (買車/房)</button>`;
+      btns += `<button class="btn-main" onclick="action('luxury_meal')">🍣 吃大餐 ($5,000)</button>`;
+      btns += `<button class="btn-main" onclick="action('online_shopping')">📦 購物舒壓</button>`;
+      break;
+
+    case "cbd":
+      btns += `<button class="btn-main" style="background:var(--blue)" onclick="showBankMenu()">🏦 銀行 (貸款/還款)</button>`;
+      btns += `<button class="btn-main" onclick="action('invest')">📈 股票投資</button>`;
+      btns += `<button class="btn-main" onclick="action('crypto')">🪙 加密貨幣</button>`;
+      break;
+
+    case "hospital":
+      btns += `<button class="btn-main" style="background:var(--red)" onclick="action('hospital')">🏥 看醫生 ($3,000)</button>`;
+      btns += `<button class="btn-main" onclick="action('gym')">💪 健身房</button>`;
+      break;
+
+    case "school":
+      btns += `<button class="btn-main" onclick="showEducationMenu()">🎓 學校教務處</button>`;
+      btns += `<button class="btn-main" onclick="action('learn_skill')">📖 進修課程</button>`;
+      btns += `<button class="btn-main" onclick="action('read_book')">📚 圖書館看書</button>`;
+      break;
+      
+    case "temple":
+      btns += `<button class="btn-main" style="background:var(--gold); color:black;" onclick="pray()">🙏 拜拜求籤 ($500)</button>`;
+      btns += `<button class="btn-main" onclick="action('volunteer')">🤝 志工服務</button>`;
+      break;
+      
+    case "park":
+      btns += `<button class="btn-main" onclick="action('sports')">⚽ 運動</button>`;
+      btns += `<button class="btn-main" onclick="meetFriend()">👋 尋找路人聊天</button>`;
+      break;
+      
+    case "club_area":
+      btns += `<button class="btn-main" style="background:var(--purple)" onclick="action('night_club')">🕺 進入夜店</button>`;
+      btns += `<button class="btn-main" onclick="action('casino')">🎲 地下賭場</button>`;
+      btns += `<button class="btn-main" onclick="action('socialize')">🍻 居酒屋</button>`;
+      break;
+      
+    case "airport":
+      btns += `<button class="btn-main" onclick="action('travel')">✈️ 出國旅遊 ($50,000)</button>`;
+      break;
+  }
+
+  container.innerHTML = btns || "<div style='color:#aaa; text-align:center;'>這裡目前沒什麼事可做...</div>";
+}
+
+// 🙏 新增：拜拜功能
+function pray() {
+    if(Game.money < 500) return alert("香油錢不足！");
+    if(isProcessing) return;
+    
+    Game.money -= 500;
+    Game.stamina -= 10;
+    isProcessing = true;
+    
+    const r = Math.random();
+    let msg = "";
+    if(r < 0.2) {
+        Game.luckBonus += 0.05;
+        msg = "大吉！感覺運氣變好了！(幸運+5%)";
+    } else if (r < 0.5) {
+        Game.happy += 10;
+        msg = "中吉，心情平靜。(快樂+10)";
+    } else {
+        msg = "末吉，但求平安。";
+    }
+    
+    log(`🙏 在寺廟拜拜：${msg}`);
+    updateUI();
+    setTimeout(()=>isProcessing=false, 300);
+}
+
+// 👋 新增：公園遇人
+function meetFriend() {
+    if(Game.stamina < 15) return alert("體力不足");
+    if(isProcessing) return;
+
+    Game.stamina -= 15;
+    isProcessing = true;
+    
+    if(Math.random() < 0.4) {
+        addFriend(); // 呼叫原本的交朋友函數
+    } else {
+        log("🌳 在公園晃了一圈，沒遇到認識的人。", ["體力-15"]);
+    }
+    updateUI();
+    setTimeout(()=>isProcessing=false, 300);
 }
 initCreation();
