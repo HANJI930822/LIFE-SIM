@@ -541,7 +541,6 @@ function renderTraitOptions() {
   document.getElementById("trait-options").innerHTML = html;
 }
 // ===== ✅ 新增特質卡片渲染函數 =====
-// ✅ 優化後的特質卡片渲染 (適配手機)
 function renderTraitCard() {
   // 1. 確保索引在範圍內
   if (currentTraitIndex < 0) currentTraitIndex = availableTraits.length - 1;
@@ -654,7 +653,6 @@ function renderTraitCard() {
   document.getElementById("trait-card-container").innerHTML = html;
   updateSelectedTraitsDisplay();
 }
-
 function prevTrait() {
   currentTraitIndex--;
   if (currentTraitIndex < 0) currentTraitIndex = availableTraits.length - 1;
@@ -708,7 +706,88 @@ function toggleTraitSelection(traitId) {
   renderTraitCard();
   updateSelectedTraitsDisplay();
 }
+function finishCharacterCreation() {
+        // 1. 將選擇的特質加入遊戲
+        // 注意：這裡使用 TRAITS (全大寫) 和 selectedTraits (全域變數)
+        Game.traits = selectedTraits.map((id) =>
+          TRAITS.find((t) => t.id === id),
+        );
+        Game.unlockedTraits = [...selectedTraits];
 
+        // 2. 應用特質效果與計算補償
+        let rewardMessages = [];
+        Game.traits.forEach((trait) => {
+          // 應用效果
+          if (trait.effect) {
+            trait.effect(Game);
+          }
+
+          // 計算負面特質獎勵
+          if (trait.isNegative && trait.reward) {
+            if (trait.reward.money) {
+              Game.money += trait.reward.money;
+              rewardMessages.push(
+                `💰 補償金 +$${trait.reward.money.toLocaleString()}`,
+              );
+            }
+            if (trait.reward.intel) {
+              Game.intel += trait.reward.intel;
+              rewardMessages.push(`🧠 智力 +${trait.reward.intel}`);
+            }
+            if (trait.reward.health) {
+              Game.health += trait.reward.health;
+              rewardMessages.push(`❤️ 健康 +${trait.reward.health}`);
+            }
+            if (trait.reward.happy) {
+              Game.happy += trait.reward.happy;
+              rewardMessages.push(`😊 快樂 +${trait.reward.happy}`);
+            }
+            if (trait.reward.charm) {
+              Game.skills.charm += trait.reward.charm;
+              rewardMessages.push(`✨ 魅力 +${trait.reward.charm}`);
+            }
+          }
+        });
+
+        // 3. 顯示補償訊息 (如果有)
+        if (rewardMessages.length > 0) {
+          alert(`🎁 負面特質補償獎勵：\n\n${rewardMessages.join("\n")}`);
+        }
+
+        // 4. 切換介面：隱藏創角，顯示遊戲主畫面
+        document.getElementById("scene-creation").style.display = "none";
+        const gameScene = document.getElementById("scene-game");
+        gameScene.style.display = "block";
+        gameScene.classList.add("active");
+
+        // 5. 初始化遊戲各項顯示
+        updateUI();
+        renderJobs();
+        renderShop();
+        renderSocial();
+        renderAchievements();
+        renderStats();
+
+        // 6. 寫入第一筆日誌
+        log(`👶 ${Game.name} 出生了！`);
+        log(`🏠 出身：${Game.origin}`);
+        log(`🎁 天賦：${Game.talents.map((t) => t.name).join("、")}`);
+        log(`✨ 特質：${Game.traits.map((t) => t.name).join("、")}`);
+
+        // 7. ✅ 觸發開場劇情 (最重要的部分)
+        // 這裡使用 setTimeout 延遲 500毫秒，確保介面切換完成後才彈出，體驗較好
+        if (
+          typeof ORIGIN_STORY !== "undefined" &&
+          ORIGIN_STORY[Game.originId]
+        ) {
+          setTimeout(() => {
+            showModal("📖 人生篇章開啟", ORIGIN_STORY[Game.originId], [
+              { text: "開始冒險", action: () => closeModal() },
+            ]);
+            log(ORIGIN_STORY[Game.originId]);
+          }, 500);
+        }
+      }
 function updateSelectedTraitsDisplay() {
   document.getElementById("selected-count").textContent = selectedTraits.length;
 
@@ -2237,7 +2316,7 @@ function checkPromotion() {
       // ==========================================
       // 🆕 新增：子女養育系統 (已修正變數名稱 Game)
       // ==========================================
-      function createChild(name, age = 0) {
+function createChild(name, age = 0) {
         return {
           name: name,
           age: age,
@@ -2252,7 +2331,7 @@ function checkPromotion() {
         };
       }
 
-      function tryHaveBaby() {
+ function tryHaveBaby() {
         if (!Game.partner) {
           // ✅ 修正：game -> Game
           showPopup("❌ 需要先有伴侶", "red");
@@ -2287,7 +2366,7 @@ function checkPromotion() {
         );
       }
 
-      function updateChildren() {
+function updateChildren() {
         Game.children.forEach((child) => {
           // ✅ 修正：game -> Game
           child.age++;
@@ -2328,7 +2407,7 @@ function checkPromotion() {
         });
       }
 
-      function interactWithChild(childIndex) {
+function interactWithChild(childIndex) {
         const child = Game.children[childIndex]; // ✅ 修正：game -> Game
         if (!child) return;
 
@@ -2362,7 +2441,7 @@ function checkPromotion() {
         );
       }
 
-      function renderChildrenList() {
+function renderChildrenList() {
         const container = document.getElementById("children-list");
         if (!container) return;
 
@@ -2395,7 +2474,7 @@ function checkPromotion() {
       // ==========================================
       // 🆕 新增：通膨與房貸系統 (已修正變數名稱 Game)
       // ==========================================
-      function updateInflation() {
+function updateInflation() {
         Game.yearsPassed++; // ✅ 修正：game -> Game
         if (Game.yearsPassed % 5 === 0) {
           Game.inflationRate *= 1.03;
@@ -2403,11 +2482,11 @@ function checkPromotion() {
         }
       }
 
-      function getInflatedPrice(basePrice) {
+function getInflatedPrice(basePrice) {
         return Math.floor(basePrice * Game.inflationRate); // ✅ 修正：game -> Game
       }
 
-      function payMortgage() {
+function payMortgage() {
         if (Game.mortgage.active) {
           // ✅ 修正：game -> Game
           if (Game.money >= Game.mortgage.monthlyPayment) {
@@ -2431,7 +2510,7 @@ function checkPromotion() {
         }
       }
 
-      function buyHouseWithMortgage(house) {
+function buyHouseWithMortgage(house) {
         const realPrice = getInflatedPrice(house.price);
         const downPayment = Math.floor(realPrice * 0.3);
         const loanAmount = realPrice - downPayment;
@@ -2484,7 +2563,7 @@ function checkPromotion() {
         );
       }
 
-      function nextYear() {
+function nextYear() {
         // ===== 1. 防止重複執行 =====
         if (isProcessing) {
           console.log("⚠️ 正在處理中...");
@@ -3225,7 +3304,6 @@ function checkAchievements() {
     }
   });
 }
-
 // ===== 🏫 教育系統函數 =====
 function canEnterEducation(eduId) {
   const edu = EDUCATION_LEVELS.find((e) => e.id === eduId);

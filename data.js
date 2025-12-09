@@ -92,7 +92,7 @@
           },
         },
       ];
-      const RANDOM_EVENTS = [
+const RANDOM_EVENTS = [
           // === 💰 金錢事件 ===
           {
             title: "💰 路上撿到錢",
@@ -715,7 +715,7 @@
           },
         ];
       // ===== 個人特質系統 =====
-      const TRAITS = [
+const TRAITS = [
         // 38个特质
         // ===== 20个性格特质 =====
         {
@@ -1260,7 +1260,7 @@
         },
       ];
 
-      const ORIGINS = [
+const ORIGINS = [
         // ===== 基础出身 =====
         {
           id: "common",
@@ -1637,9 +1637,7 @@
           special: "scientist",
         },
       ];
-      // ===== 補上缺失的 LIFE_STAGES 定義 =====
-
-      const LIFE_STAGES = [
+const LIFE_STAGES = [
         { min: 0, max: 2, name: "嬰兒期", icon: "👶" },
         { min: 3, max: 5, name: "幼兒期", icon: "🧸" },
         { min: 6, max: 12, name: "兒童期", icon: "🎒" },
@@ -1649,8 +1647,7 @@
         { min: 51, max: 65, name: "中年期", icon: "👓" },
         { min: 66, max: 200, name: "老年期", icon: "👴" }, // 確保最大值夠大
       ];
-      // ===== 補上缺失的 ACHIEVEMENTS 定義 =====
-      const ACHIEVEMENTS = [
+const ACHIEVEMENTS = [
         {
           id: "first_bucket",
           name: "第一桶金",
@@ -1708,8 +1705,7 @@
           check: (g) => g.happy >= 100,
         },
       ];
-      // ===== 📖 出身開場劇情 =====
-      const ORIGIN_STORY = {
+const ORIGIN_STORY = {
         common:
           "你出生在一個平凡的家庭，父母看著你的眼神充滿慈愛，雖然家裡不富裕，但也不愁吃穿。牆上的日曆顯示著今天是發薪日，爸爸買了一個小蛋糕慶祝你的誕生。",
         rich: "你出生在頂級私立醫院的豪華產房，窗外停著爸爸的司機和保鑣。你的搖籃是義大利進口的，旁邊堆滿了還沒拆封的名牌嬰兒用品。",
@@ -1766,91 +1762,7 @@
         scientistfamily:
           "家裡的書架上擺滿了諾貝爾獎章。父母對你的期許不是賺大錢，而是解開宇宙的奧祕。",
       };
-
-      // ✅ 修正與合併後的 finishCharacterCreation 函數
-      function finishCharacterCreation() {
-        // 1. 將選擇的特質加入遊戲
-        // 注意：這裡使用 TRAITS (全大寫) 和 selectedTraits (全域變數)
-        Game.traits = selectedTraits.map((id) =>
-          TRAITS.find((t) => t.id === id),
-        );
-        Game.unlockedTraits = [...selectedTraits];
-
-        // 2. 應用特質效果與計算補償
-        let rewardMessages = [];
-        Game.traits.forEach((trait) => {
-          // 應用效果
-          if (trait.effect) {
-            trait.effect(Game);
-          }
-
-          // 計算負面特質獎勵
-          if (trait.isNegative && trait.reward) {
-            if (trait.reward.money) {
-              Game.money += trait.reward.money;
-              rewardMessages.push(
-                `💰 補償金 +$${trait.reward.money.toLocaleString()}`,
-              );
-            }
-            if (trait.reward.intel) {
-              Game.intel += trait.reward.intel;
-              rewardMessages.push(`🧠 智力 +${trait.reward.intel}`);
-            }
-            if (trait.reward.health) {
-              Game.health += trait.reward.health;
-              rewardMessages.push(`❤️ 健康 +${trait.reward.health}`);
-            }
-            if (trait.reward.happy) {
-              Game.happy += trait.reward.happy;
-              rewardMessages.push(`😊 快樂 +${trait.reward.happy}`);
-            }
-            if (trait.reward.charm) {
-              Game.skills.charm += trait.reward.charm;
-              rewardMessages.push(`✨ 魅力 +${trait.reward.charm}`);
-            }
-          }
-        });
-
-        // 3. 顯示補償訊息 (如果有)
-        if (rewardMessages.length > 0) {
-          alert(`🎁 負面特質補償獎勵：\n\n${rewardMessages.join("\n")}`);
-        }
-
-        // 4. 切換介面：隱藏創角，顯示遊戲主畫面
-        document.getElementById("scene-creation").style.display = "none";
-        const gameScene = document.getElementById("scene-game");
-        gameScene.style.display = "block";
-        gameScene.classList.add("active");
-
-        // 5. 初始化遊戲各項顯示
-        updateUI();
-        renderJobs();
-        renderShop();
-        renderSocial();
-        renderAchievements();
-        renderStats();
-
-        // 6. 寫入第一筆日誌
-        log(`👶 ${Game.name} 出生了！`);
-        log(`🏠 出身：${Game.origin}`);
-        log(`🎁 天賦：${Game.talents.map((t) => t.name).join("、")}`);
-        log(`✨ 特質：${Game.traits.map((t) => t.name).join("、")}`);
-
-        // 7. ✅ 觸發開場劇情 (最重要的部分)
-        // 這裡使用 setTimeout 延遲 500毫秒，確保介面切換完成後才彈出，體驗較好
-        if (
-          typeof ORIGIN_STORY !== "undefined" &&
-          ORIGIN_STORY[Game.originId]
-        ) {
-          setTimeout(() => {
-            showModal("📖 人生篇章開啟", ORIGIN_STORY[Game.originId], [
-              { text: "開始冒險", action: () => closeModal() },
-            ]);
-            log(ORIGIN_STORY[Game.originId]);
-          }, 500);
-        }
-      }
-      const JOBS = [
+const JOBS = [
         {
           id: "none",
           name: "無業",
@@ -2142,8 +2054,7 @@
           desc: "頂級料理大師",
         },
       ];
-      // 🆕 新增：職業晉升系統
-      const JOB_PROMOTIONS = {
+const JOB_PROMOTIONS = {
         實習生: {
           next: "正職員工",
           requirement: { age: 22, intel: 60, communication: 30 },
@@ -2170,8 +2081,7 @@
           salaryIncrease: 150000,
         },
       };
-      // ===== 🏫 教育系統 =====
-      const EDUCATION_LEVELS = [
+const EDUCATION_LEVELS = [
         { id: "none", name: "無學歷", minAge: 0, unlock: true },
         {
           id: "kindergarten",
@@ -2230,9 +2140,7 @@
           cost: 500000,
         },
       ];
-
-      // 台灣實際學校名單
-      const TAIWAN_SCHOOLS = {
+const TAIWAN_SCHOOLS = {
         kindergarten: [
           "何嘉仁幼兒園",
           "康橋幼兒園",
@@ -2312,7 +2220,7 @@
           { name: "逢甲大學", requirement: 58, prestige: "normal" },
         ],
       };
-      const MAJORS = {
+const MAJORS = {
         university: [
           {
             id: "cs",
@@ -2399,7 +2307,7 @@
           },
         ],
       };
-      const CARS = [
+const CARS = [
         {
           id: "car1",
           name: "國產代步車",
@@ -2443,8 +2351,7 @@
           desc: "終極夢幻跑車",
         },
       ];
-
-      const HOUSES = [
+const HOUSES = [
         {
           id: "house1",
           name: "小套房",
@@ -2494,7 +2401,7 @@
           desc: "夢幻的城堡",
         }, // 原200000 → 120000
       ];
-      const LUXURIES = [
+const LUXURIES = [
         {
           id: "lux1",
           name: "勞力士手錶",
@@ -2533,8 +2440,7 @@
           desc: "終極奢華",
         },
       ];
-      // ===== 👥 NPC 系統 =====
-      const NPC_TEMPLATES = {
+const NPC_TEMPLATES = {
         classmate: [
           { name: "陳奕安", personality: "friendly", baseRelation: 50 },
           { name: "林俊佑", personality: "quiet", baseRelation: 40 },
@@ -2917,8 +2823,7 @@
           },
         ],
       };
-
-      const NPC_INTERACTIONS = {
+const NPC_INTERACTIONS = {
         chat: { cost: 10, relationChange: 5, moneyChange: 0, desc: "閒聊" },
         help: {
           cost: 20,
