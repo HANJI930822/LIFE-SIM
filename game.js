@@ -2706,7 +2706,39 @@ function nextYear() {
       Game.happy -= 5;
       log(`${emergency.name}，支出 ${realCost.toLocaleString()} 元`);
     }
+    if (Game.relationships) {
+        Game.relationships.forEach(npc => {
+            // 好感度 > 60 的朋友，且沒有生病
+            if (npc.relation >= 60 && !npc.isSick && Math.random() < 0.2) {
+                let giftName = "";
+                let giftMoney = 0;
+                
+                // 根據關係與職業給予不同獎勵
+                if (npc.type === "spouse") {
+                    giftName = "愛心便當";
+                    Game.stamina = Math.min(Game.maxStamina, Game.stamina + 30);
+                    Game.happy += 10;
+                } else if (npc.relation >= 90) {
+                    giftName = "高級生日禮物";
+                    giftMoney = 8000;
+                    Game.happy += 15;
+                } else {
+                    giftName = "新年紅包";
+                    giftMoney = 2000;
+                    Game.happy += 5;
+                }
 
+                // 隨通膨調整金額
+                if (giftMoney > 0) {
+                    giftMoney = Math.floor(giftMoney * (Game.inflationRate || 1));
+                    Game.money += giftMoney;
+                    log(`🎁 好友 ${npc.name} 送你 ${giftName} (+$${giftMoney.toLocaleString()})`);
+                } else {
+                    log(`🎁 ${npc.name} 送你 ${giftName} (恢復體力/快樂)`);
+                }
+            }
+        });
+    }
     // NPC 生命週期更新
     if (Game.relationships) {
       updateNPCLifecycle();
@@ -3009,22 +3041,29 @@ function showEnding() {
     overlayEl.style.display = "flex";
   }
 }
-// ===== 👥 NPC 系統函數 =====
 function generateNPC(type) {
   const templates = NPC_TEMPLATES[type];
   if (!templates || templates.length === 0) return null;
 
   const template = templates[Math.floor(Math.random() * templates.length)];
+  
+  // 隨機分配一個職業給 NPC (讓他們更真實)
+  const jobs = ["工程師", "設計師", "老師", "業務", "會計", "護理師", "公務員", "店員"];
+  const randomJob = jobs[Math.floor(Math.random() * jobs.length)];
+
   const npc = {
     id: `npc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     name: template.name,
     type: type,
+    job: randomJob, // ✨ 新增職業
     personality: template.personality,
     relation: template.baseRelation,
     gender: template.gender || (Math.random() > 0.5 ? "male" : "female"),
-    age: Game.age + (Math.floor(Math.random() * 6) - 3), // 年齡差距 -3 到 +3
+    age: Game.age + (Math.floor(Math.random() * 6) - 3),
     metAt: Game.age,
     lastInteraction: Game.age,
+    health: 100,
+    isSick: false
   };
 
   return npc;
@@ -3049,133 +3088,125 @@ function interactWithNPC(npcId, interactionType) {
   const npc = Game.npcs.find((n) => n.id === npcId);
   if (!npc) return;
 
+  // 🔴 特殊處理：如果是約會，開啟地點選擇選單
+  if (interactionType === 'date') {
+      showDateMenu(npc);
+      return;
+  }
+
   const interaction = NPC_INTERACTIONS[interactionType];
   if (!interaction) return;
 
-  // 檢查關係需求
-  if (
-    interaction.requireRelation &&
-    npc.relation < interaction.requireRelation
-  ) {
-    alert(`❌ 關係不夠好，需要好感度 ${interaction.requireRelation} 以上`);
-    return;
-  }
+  // 檢查體力與金錢
+  if (Game.stamina < interaction.cost) return alert("⚡ 體力不足！");
+  if (interaction.moneyChange < 0 && Game.money < Math.abs(interaction.moneyChange)) return alert("💸 金錢不足！");
 
-  // 檢查體力
-  if (Game.stamina < interaction.cost) {
-    alert("⚡ 體力不足！");
-    return;
-  }
-
-  // 檢查金錢
-  if (
-    interaction.moneyChange < 0 &&
-    Game.money < Math.abs(interaction.moneyChange)
-  ) {
-    alert("💸 金錢不足！");
-    return;
-  }
-
-  // 執行互動
+  // 執行消耗
   Game.stamina -= interaction.cost;
   Game.money += interaction.moneyChange;
 
-  // ===== ✅ 計算特質對關係的影響 =====
+  // 計算關係變化 (含特質加成)
   let relationChange = interaction.relationChange;
-  let bonusMessages = [];
-
-  // 特質加成1：外向特質（聊天 +5）
-  if (
-    Game.traits.some((t) => t.id === "extrovert") &&
-    interactionType === "chat"
-  ) {
-    relationChange += 5;
-    bonusMessages.push("🎉 外向特質：聊天效果 +5");
-  }
-
-  // 特質加成2：魅力特質（所有互動 +3）
-  if (Game.traits.some((t) => t.id === "charismatic")) {
-    relationChange += 3;
-    bonusMessages.push("✨ 魅力特質：好感度 +3");
-  }
-
-  // 特質加成3：社交大師（所有效果 x1.5）
-  if (Game.traits.some((t) => t.id === "socialmaster")) {
-    relationChange = Math.floor(relationChange * 1.5);
-    bonusMessages.push("👑 社交大師：效果 +50%");
-  }
-
-  // 特質減益1：內向特質（聊天 -2）
-  if (
-    Game.traits.some((t) => t.id === "introvert") &&
-    interactionType === "chat"
-  ) {
-    relationChange -= 2;
-    bonusMessages.push("😅 內向特質：聊天效果 -2");
-  }
-
-  // 特質加成4：樂觀特質（所有互動 +2）
-  if (Game.traits.some((t) => t.id === "optimistic")) {
-    relationChange += 2;
-    bonusMessages.push("🌟 樂觀特質：正能量 +2");
-  }
-
-  // 特質減益2：悲觀特質（所有互動 -2）
-  if (Game.traits.some((t) => t.id === "pessimistic")) {
-    relationChange -= 2;
-    bonusMessages.push("😔 悲觀特質：負能量 -2");
-  }
-
-  // 特質加成5：勇敢特質（約會 +5）
-  if (Game.traits.some((t) => t.id === "brave") && interactionType === "date") {
-    relationChange += 5;
-    bonusMessages.push("💪 勇敢特質：約會更大膽 +5");
-  }
-
+  if (Game.traits.some(t => t.id === "charismatic")) relationChange += 3;
+  if (Game.traits.some(t => t.id === "socialmaster")) relationChange = Math.floor(relationChange * 1.5);
+  
+  // 更新關係
   npc.relation = Math.max(0, Math.min(100, npc.relation + relationChange));
   npc.lastInteraction = Game.age;
 
-  // 根據 NPC 性格調整關係變化
-  let personalityBonus = 0;
-  if (npc.personality === "friendly" && interactionType === "chat")
-    personalityBonus = 3;
-  if (npc.personality === "kind" && interactionType === "help")
-    personalityBonus = 5;
-  if (npc.personality === "outgoing" && interactionType === "chat")
-    personalityBonus = 2;
-  if (npc.personality === "gentle" && interactionType === "date")
-    personalityBonus = 4;
-
-  npc.relation += personalityBonus;
-  npc.relation = Math.max(0, Math.min(100, npc.relation));
-
-  // ===== ✅ 顯示訊息 =====
-  const changes = [];
-  if (interaction.moneyChange !== 0) {
-    changes.push(
-      `💰 ${interaction.moneyChange > 0 ? "+" : ""}$${Math.abs(interaction.moneyChange).toLocaleString()}`,
-    );
+  // 🗣️ 獲取動態對話
+  let dialog = "";
+  const personality = npc.personality || "friendly";
+  
+  // 如果關係很好，有機率觸發特殊對話
+  if (npc.relation > 80 && Math.random() > 0.5) {
+      const bestLines = NPC_DIALOGUES.chat.high_relation;
+      dialog = bestLines[Math.floor(Math.random() * bestLines.length)];
+  } else {
+      // 根據互動類型與性格找對話
+      const lines = NPC_DIALOGUES[interactionType]?.[personality] || NPC_DIALOGUES.chat.friendly;
+      if (Array.isArray(lines)) {
+          dialog = lines[Math.floor(Math.random() * lines.length)];
+      } else {
+          dialog = lines;
+      }
   }
-  changes.push(
-    `💗 好感度 ${relationChange + personalityBonus > 0 ? "+" : ""}${relationChange + personalityBonus}`,
+
+  // 顯示結果
+  const msg = `你與 ${npc.name} ${interaction.desc}。`;
+  const changes = [`💗 好感 +${relationChange}`];
+  if (interaction.moneyChange !== 0) changes.push(`💰 ${interaction.moneyChange}`);
+  
+  log(msg, changes);
+  
+  // 彈出對話視窗 (增加代入感)
+  showModal(
+      `${npc.name} 說：`, 
+      `<div style="font-size:1.2em; color:var(--gold); margin:10px 0;">"${dialog}"</div>
+       <div style="font-size:0.9em; color:#aaa;">(好感度變為 ${npc.relation})</div>`,
+      [{ text: "關閉", action: () => { closeModal(); updateUI(); renderSocial(); } }]
   );
+}
 
-  let logMessage = `與 ${npc.name} ${interaction.desc}`;
-  if (bonusMessages.length > 0) {
-    logMessage += "\n" + bonusMessages.join("\n");
-  }
+// ✨ 新增：顯示約會地點選單
+function showDateMenu(npc) {
+    let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+    
+    DATE_LOCATIONS.forEach(loc => {
+        const canGo = npc.relation >= loc.minRelation;
+        const isLoversOnly = loc.loversOnly && npc.type !== 'lover' && npc.type !== 'spouse';
+        const disabled = !canGo || isLoversOnly;
+        
+        let color = "var(--green)";
+        let status = "";
+        
+        if (isLoversOnly) { color = "var(--red)"; status = "(限戀人)"; }
+        else if (!canGo) { color = "gray"; status = `(需好感 ${loc.minRelation})`; }
 
-  log(logMessage, changes);
+        html += `
+            <div class="job-card" style="padding:15px; border:2px solid ${disabled ? '#444' : 'var(--accent)'}; opacity:${disabled?0.6:1};">
+                <div style="display:flex; justify-content:space-between;">
+                    <div style="font-weight:bold; color:${disabled ? '#888' : 'var(--gold)'};">${loc.name} ${status}</div>
+                    <div style="color:var(--orange);">$${loc.cost.toLocaleString()}</div>
+                </div>
+                <div style="font-size:0.85em; color:#aaa; margin:5px 0;">${loc.desc}</div>
+                ${!disabled ? `<button class="btn-main" onclick="goOnDate('${npc.id}', '${loc.id}')">出發</button>` : ''}
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    showModal(`💕 選擇與 ${npc.name} 的約會地點`, html, [{text:"取消", action:()=>closeModal()}]);
+}
 
-  // 檢查關係里程碑
-  if (npc.relation >= 80 && npc.type === "romantic") {
-    if (Math.random() > 0.7) {
-      showConfessionEvent(npc);
+// ✨ 新增：執行約會
+function goOnDate(npcId, locId) {
+    const npc = Game.npcs.find(n => n.id === npcId);
+    const loc = DATE_LOCATIONS.find(l => l.id === locId);
+    
+    if (!npc || !loc) return;
+    if (Game.money < loc.cost) return alert("錢不夠！");
+    if (Game.stamina < 25) return alert("體力不足！");
+
+    Game.money -= loc.cost;
+    Game.stamina -= 25;
+    
+    Game.happy += loc.effect.happy;
+    npc.relation = Math.min(100, npc.relation + loc.effect.relation);
+    npc.lastInteraction = Game.age;
+
+    closeModal();
+    
+    // 約會結果顯示
+    log(`💕 與 ${npc.name} 去 ${loc.name} 約會，度過了美好時光！`, [`😊 快樂 +${loc.effect.happy}`, `💗 好感 +${loc.effect.relation}`]);
+    
+    // 機率觸發告白
+    if (npc.relation >= 90 && npc.type === "romantic" && Math.random() > 0.6) {
+        setTimeout(() => showConfessionEvent(npc), 500);
     }
-  }
-
-  updateUI();
-  renderSocial();
+    
+    updateUI();
+    renderSocial();
 }
 
 function showConfessionEvent(npc) {
