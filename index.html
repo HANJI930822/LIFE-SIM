@@ -2000,24 +2000,30 @@
           origin: Game.origin,
           traits: [...Game.traits],
           talents: [...Game.talents],
-          // 🔴 修正這裡： items 改為 inventory
-          inventory: [...Game.inventory],
+          inventory: [...Game.inventory], // 確保這裡是 inventory
           npcs: Game.npcs.map((n) => ({ ...n })),
-          // 🔴 修正這裡： achievements 改為 unlockedAchievements
-          unlockedAchievements: [...Game.unlockedAchievements],
+          unlockedAchievements: [...Game.unlockedAchievements], // 確保這裡是 unlockedAchievements
           stats: { ...Game.stats },
           lifeStage: Game.lifeStage,
           partner: Game.partner,
           gender: Game.gender,
+          
+          // ✅ 新增：保存負債年數
+          debtYears: Game.debtYears || 0,
         };
 
         try {
           localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-          showPopup("💾 存檔成功！", "green");
+          // 這裡加個檢查，確保 showPopup 存在才呼叫
+          if (typeof showPopup === 'function') {
+              showPopup("💾 存檔成功！", "green");
+          } else {
+              console.log("💾 存檔成功！");
+          }
           return true;
         } catch (e) {
           console.error("存檔錯誤:", e);
-          showPopup("❌ 存檔失敗", "red");
+          alert("❌ 存檔失敗，請檢查控制台");
           return false;
         }
       }
@@ -2026,7 +2032,8 @@
         try {
           const saved = localStorage.getItem(SAVE_KEY);
           if (!saved) {
-            showPopup("❌ 沒有存檔記錄", "red");
+            if (typeof showPopup === 'function') showPopup("❌ 沒有存檔記錄", "red");
+            else alert("❌ 沒有存檔記錄");
             return false;
           }
 
@@ -2044,33 +2051,29 @@
           Game.origin = data.origin;
           Game.traits = data.traits || [];
           Game.talents = data.talents || [];
-          
-          // 🔴 修正這裡：讀取 inventory
           Game.inventory = data.inventory || [];
-          
           Game.npcs = data.npcs || [];
-          
-          // 🔴 修正這裡：讀取 unlockedAchievements
           Game.unlockedAchievements = data.unlockedAchievements || [];
-          
           Game.stats = data.stats || {};
           Game.lifeStage = data.lifeStage;
           Game.partner = data.partner;
           Game.gender = data.gender;
+          
+          // ✅ 新增：讀取負債年數
+          Game.debtYears = data.debtYears || 0;
 
           document.getElementById("scene-creation").style.display = "none";
           document.getElementById("scene-game").classList.add("active");
           document.getElementById("scene-game").style.display = "block";
 
           updateUI();
-          // renderAll(); 
 
           const date = new Date(data.timestamp);
-          showPopup(`✅ 讀取成功！\n${date.toLocaleString("zh-TW")}`, "green");
+          if (typeof showPopup === 'function') showPopup(`✅ 讀取成功！`, "green");
           return true;
         } catch (e) {
           console.error("讀檔錯誤:", e);
-          showPopup("❌ 讀檔失敗", "red");
+          alert("❌ 讀檔失敗");
           return false;
         }
       }
@@ -3833,213 +3836,181 @@ const LIFE_STAGES = [
       }
 
       // ✅ 這是最關鍵的修復！nextYear 函數
-      function nextYear() {
-        // 防抖检查
+    function nextYear() {
+        // 1. 防抖檢查
         if (isProcessing) {
           console.log("⏳ 處理中，請稍候...");
           return;
         }
 
-        if (Game.health <= 0) {
-          showEnding();
-          return;
-        }
-
+        // 鎖定按鈕
         isProcessing = true;
 
-        const oldStage = LIFE_STAGES.find(
-          (s) => Game.age >= s.min && Game.age <= s.max,
-        );
+        // 使用 try-catch 確保發生錯誤時按鈕能解鎖
+        try {
+            // 2. 檢查健康度 (死亡判定)
+            if (Game.health <= 0) {
+              showEnding();
+              return;
+            }
 
-        Game.age++;
-        Game.stamina = 100;
+            // 記錄舊階段
+            const oldStage = LIFE_STAGES.find(
+              (s) => Game.age >= s.min && Game.age <= s.max,
+            ) || LIFE_STAGES[LIFE_STAGES.length - 1]; 
 
-        // ✅ 這裡原本是 game，導致崩潰
-        Game.workYears++;
-        Game.promotionChecked = false;
-
-        // 這些函數現在內部也修正為 Game 了
-        updateInflation();
-        payMortgage();
-        updateChildren();
-        checkPromotion();
-
-        // 每5年自動存檔
-        if (Game.age % 5 === 0) {
-          // ✅ 修正：game -> Game
-          saveGame();
-        }
-
-        const newStage = LIFE_STAGES.find(
-          (s) => Game.age >= s.min && Game.age <= s.max,
-        );
-
-        // 生活成本系统
-        let livingCost = 0;
-        if (Game.age >= 18 && Game.age < 25) {
-          livingCost = 15000;
-        } else if (Game.age >= 25 && Game.age < 40) {
-          livingCost = 30000;
-        } else if (Game.age >= 40 && Game.age < 60) {
-          livingCost = 50000;
-        } else if (Game.age >= 60) {
-          livingCost = 70000;
-        }
-
-        const hasHouse = Game.inventory.some((i) => i.startsWith("house"));
-        if (hasHouse) {
-          livingCost = Math.floor(livingCost * 0.6);
-        }
-
-        const hasCar = Game.inventory.some((i) => i.startsWith("car"));
-        if (hasCar) {
-          livingCost += 12000;
-        }
-
-        if (livingCost > 0) {
-          Game.money -= livingCost;
-          log(`💸 年度生活費 -${livingCost.toLocaleString()}`);
-        }
-
-        // 随机突发事件
-        if (Math.random() < 0.15) {
-          const emergencies = [
-            { name: "📱 手機壞掉", cost: 8000 },
-            { name: "🏥 突發疾病", cost: 15000 },
-            { name: "💻 電腦故障", cost: 12000 },
-            { name: "🚗 車輛維修", cost: 20000 },
-            { name: "👨‍👩‍👧 家人急用", cost: 25000 },
-            { name: "🏠 房屋維修", cost: 30000 },
-          ];
-          const emergency =
-            emergencies[Math.floor(Math.random() * emergencies.length)];
-          Game.money -= emergency.cost;
-          Game.happy -= 5;
-          log(`⚠️ ${emergency.name} -${emergency.cost.toLocaleString()}`);
-        }
-
-        updateNPCLifecycle();
-
-        const yearChanges = [];
-
-        if (Game.yearlyMoney > 0) {
-          Game.money += Game.yearlyMoney;
-          yearChanges.push(`💰 +${Game.yearlyMoney.toLocaleString()}`);
-        }
-
-        Game.inventory.forEach((item) => {
-          const house = HOUSES.find((h) => h.id === item);
-          if (house && house.passive) {
-            Game.money += house.passive;
-            yearChanges.push(
-              `🏠 ${house.name} +${house.passive.toLocaleString()}`,
-            );
-          }
-        });
-
-        let baseHealthLoss = 5;
-        if (Game.age > 40) baseHealthLoss += 2;  // 40歲後，每年多扣 2
-        if (Game.age > 60) baseHealthLoss += 3;  // 60歲後，再多扣 3 (共 10)
-        if (Game.age > 80) baseHealthLoss += 5;  // 80歲後，再多扣 5 (共 15)
-
-        // 應用特質加成 (例如長壽基因、運動健將)
-        let actualHealthLoss = Math.floor(baseHealthLoss * Game.healthDecay);
-        Game.health -= actualHealthLoss;
-
-        // 2. 老年危機檢定 (60歲開始)
-        if (Game.age > 60) {
-            // 死亡機率：每大 1 歲增加 0.5% (80歲時約 10%，100歲時約 20%)
-            let deathChance = (Game.age - 60) * 0.005;
+            // 3. 數值變更
+            Game.age++;
+            Game.stamina = 100; // 每年體力回滿
+            Game.workYears++;
+            Game.promotionChecked = false;
             
-            // 生病機率：每大 1 歲增加 1%
-            let sickChance = (Game.age - 50) * 0.01;
+            // 確保年份計數器存在
+            if (!Game.yearsPassed) Game.yearsPassed = 0;
+            updateInflation();
+            
+            // 處理房貸與子女
+            if (Game.mortgage && Game.mortgage.active) payMortgage();
+            if (Game.children) updateChildren();
+            checkPromotion();
 
-            // 特質修正：如果有「長壽基因」，機率大幅降低
-            if (Game.traits.some(t => t.id === 'immortal')) {
-                deathChance *= 0.1;
-                sickChance *= 0.5;
-            }
+            // 4. ===== 💸 實裝負債懲罰邏輯 (這裡是你原本缺少的) =====
+            if (Game.money < 0) {
+                // 初始化負債年數 (防止變數不存在)
+                if (typeof Game.debtYears === 'undefined') Game.debtYears = 0;
+                
+                Game.debtYears++;
+                Game.hasBeenInDebt = true;
 
-            // 🎲 死亡檢定
-            if (Math.random() < deathChance) {
-                // 為了避免玩家一過 60 歲就猝死，給個最後機會：健康度高於 60 可豁免一次
-                if (Game.health > 60) {
-                    Game.health -= 50;
-                    log(`⚠️ 心臟突然劇烈疼痛！幸好平日身體硬朗，逃過一劫 (健康 -50)`);
-                    showChanges(["健康 -50"]);
-                } else {
-                    log("🕯️ 年事已高，你在睡夢中安詳離世...");
-                    showEnding(); // 直接進入結局
-                    return; // 停止執行後續代碼
+                // 懲罰：負債壓力導致快樂和健康大幅下降
+                Game.happy -= 20;
+                Game.health -= 5;
+                
+                log(`⚠️ 負債警告！已持續 ${Game.debtYears}/3 年 (快樂 -20, 健康 -5)`);
+                showChanges(["快樂 -20", "健康 -5"]);
+
+                // 連續負債 3 年 -> 破產結局
+                if (Game.debtYears >= 3) {
+                    log("💸 宣告破產！你的資產遭到法院查封...");
+                    // 強制觸發結局
+                    showEnding();
+                    // 重要：這裡不回傳，讓 finally 解鎖按鈕，但遊戲邏輯應停止
+                    return; 
                 }
-            } 
-            // 🎲 生病檢定 (沒死才檢查生病)
-            else if (Math.random() < sickChance) {
-                const sickDamage = Math.floor(10 + Math.random() * 15); // 扣 10-25 點
-                Game.health -= sickDamage;
-                Game.happy -= 10;
-                log(`🏥 因為年老體衰，突然生了一場大病... (健康 -${sickDamage})`);
-                showChanges([`健康 -${sickDamage}`, "快樂 -10"]);
+            } else {
+                // 如果還清債務，重置計數器
+                if (Game.debtYears > 0) {
+                    log("🎉 恭喜！你還清了債務，如釋重負。");
+                    Game.debtYears = 0;
+                }
             }
-        }
-        Game.happy -= Math.floor(3 * Game.happyDecay);
+            // ===================================
 
-        if (Game.happy > 80) Game.happyYears++;
+            // 5. 自動存檔 (每 5 年)
+            if (Game.age % 5 === 0) {
+              // 這裡不會再崩潰了，因為我們修好了 saveGame
+              saveGame();
+            }
 
-        if (Game.money < 0) {
-          Game.hasBeenInDebt = true;
-          log("⚠️ 陷入負債！");
-        }
+            // 6. 生活成本計算
+            let livingCost = 0;
+            if (Game.age >= 18 && Game.age < 25) livingCost = 15000;
+            else if (Game.age >= 25 && Game.age < 40) livingCost = 30000;
+            else if (Game.age >= 40 && Game.age < 60) livingCost = 50000;
+            else if (Game.age >= 60) livingCost = 70000;
 
-        if (yearChanges.length > 0) {
-          log(`📅 ${Game.age} 歲：${yearChanges.join("、")}`);
-        }
+            const inventory = Game.inventory || [];
+            const hasHouse = inventory.some((i) => i.startsWith("house"));
+            const hasCar = inventory.some((i) => i.startsWith("car"));
 
-        if (oldStage && newStage && oldStage.name !== newStage.name) {
-          log(`🎂 進入新階段：${newStage.icon} ${newStage.name}`);
+            if (hasHouse) livingCost = Math.floor(livingCost * 0.6);
+            if (hasCar) livingCost += 12000;
 
-          const toast = document.createElement("div");
-          toast.style.cssText = `
-            position: fixed;
-            top: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--accent), var(--purple));
-            color: white;
-            padding: 15px 30px;
-            border-radius: 12px;
-            font-weight: bold;
-            z-index: 400;
-            box-shadow: 0 8px 25px rgba(187, 134, 252, 0.6);
-            animation: slideIn 0.5s;
-            font-size: 1.2em;
-            border: 3px solid white;
-        `;
-          toast.innerHTML = `${newStage.icon} 進入 ${newStage.name}`;
-          document.body.appendChild(toast);
+            livingCost = Math.floor(livingCost * (Game.inflationRate || 1));
 
-          setTimeout(() => {
-            toast.style.animation = "slideIn 0.5s reverse";
-            setTimeout(() => {
-              if (toast.parentNode) {
-                document.body.removeChild(toast);
+            if (livingCost > 0) {
+              Game.money -= livingCost;
+              log(`💸 支付年度生活費 $${livingCost.toLocaleString()}`);
+            }
+
+            // 7. 隨機突發事件
+            if (Math.random() < 0.15) {
+              const emergencies = [
+                { name: "📱 手機壞掉", cost: 8000 },
+                { name: "🏥 突發疾病", cost: 15000 },
+                { name: "💻 電腦故障", cost: 12000 },
+                { name: "🚗 車輛維修", cost: 20000 },
+                { name: "🏠 房屋維修", cost: 30000 },
+              ];
+              const emergency = emergencies[Math.floor(Math.random() * emergencies.length)];
+              const realCost = Math.floor(emergency.cost * (Game.inflationRate || 1));
+              
+              Game.money -= realCost;
+              Game.happy -= 5;
+              log(`⚠️ ${emergency.name}！花費 $${realCost.toLocaleString()}`);
+            }
+
+            if (Game.relationships) updateNPCLifecycle();
+
+            // 8. 收入計算
+            const yearChanges = [];
+            if (Game.yearlyMoney > 0) {
+              Game.money += Game.yearlyMoney;
+              yearChanges.push(`💰 +${Game.yearlyMoney.toLocaleString()}`);
+            }
+
+            inventory.forEach((item) => {
+              if (typeof HOUSES !== 'undefined') {
+                  const house = HOUSES.find((h) => h.id === item);
+                  if (house && house.passive) {
+                    const rent = Math.floor(house.passive * (Game.inflationRate || 1));
+                    Game.money += rent;
+                    yearChanges.push(`🏠 租金 +${rent.toLocaleString()}`);
+                  }
               }
-            }, 500);
-          }, 2000);
+            });
+
+            // 9. 衰老機制
+            let baseHealthLoss = 5;
+            if (Game.age > 40) baseHealthLoss += 2;
+            if (Game.age > 60) baseHealthLoss += 3;
+            if (Game.age > 80) baseHealthLoss += 5;
+
+            let actualHealthLoss = Math.floor(baseHealthLoss * (Game.healthDecay || 1));
+            Game.health -= actualHealthLoss;
+            Game.happy -= Math.floor(3 * (Game.happyDecay || 1));
+            
+            if (Game.happy > 80) Game.happyYears++;
+
+            if (yearChanges.length > 0) {
+              log(`📅 ${Game.age} 歲結算：${yearChanges.join("、")}`);
+            }
+
+            // 10. 階段變化通知
+            const newStage = LIFE_STAGES.find(
+              (s) => Game.age >= s.min && Game.age <= s.max,
+            ) || LIFE_STAGES[LIFE_STAGES.length - 1];
+
+            if (oldStage && newStage && oldStage.name !== newStage.name) {
+              log(`🎂 進入新階段：${newStage.icon} ${newStage.name}`);
+              if (typeof showPopup === 'function') showPopup(`${newStage.icon} 進入 ${newStage.name}`, "blue");
+            }
+
+            checkAchievements();
+            updateUI();
+            if (typeof renderChildrenList === 'function') renderChildrenList();
+
+        } catch (error) {
+            console.error("❌ 遊戲發生錯誤:", error);
+            alert("遊戲發生錯誤，已自動嘗試恢復。請查看控制台(F12)了解詳情。");
+        } finally {
+            // 🔓 重要：無論是否發生錯誤或破產，最後一定要解鎖按鈕
+            setTimeout(() => {
+                isProcessing = false;
+            }, 300);
         }
-
-        checkAchievements();
-
-        updateUI();
-        renderChildrenList();
-
-        // 延遲解鎖，讓按鈕恢復可用
-        setTimeout(() => {
-          isProcessing = false;
-        }, 300);
       }
       // ===== 🏫 教育系統 =====
-      // ===== 🏫 教育系統（台灣學校版）=====
       const EDUCATION_LEVELS = [
         { id: "none", name: "無學歷", minAge: 0, unlock: true },
         {
@@ -4836,6 +4807,7 @@ const LIFE_STAGES = [
         intel: 50,
         stamina: 100,
         maxStamina: 100,
+        debtYears: 0,
         workYears: 0, // 工作年資
         promotionChecked: false, // 本年是否已檢查晉升
         children: [], // 子女陣列
