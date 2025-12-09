@@ -1397,11 +1397,6 @@ function getActionName(type) {
 function rnd(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-// ✅ 修正後的 action 函數 (確保 ID 與 HTML 一致)
-
-// game.js
-
-// ⚠️ 請用這個新函數取代舊的 function action(type)
 function action(actId) {
     // 1. 防抖檢查 (避免連點)
     if (isProcessing) return;
@@ -2192,58 +2187,203 @@ function payMortgage() {
 }
 
 function buyHouseWithMortgage(house) {
-  const realPrice = getInflatedPrice(house.price);
-  const downPayment = Math.floor(realPrice * 0.3);
-  const loanAmount = realPrice - downPayment;
+    // 計算通膨後的房價
+    const realPrice = getInflatedPrice(house.price);
+    // 頭期款 30%
+    const downPayment = Math.floor(realPrice * 0.3);
+    // 貸款本金
+    const principal = realPrice - downPayment;
+    
+    // 設定房貸利率 (2.5% ~ 4.0% 隨機浮動)
+    const interestRate = (Math.random() * 0.015 + 0.025);
+    
+    // 貸款 20 年，計算本利和 (簡單單利計算，方便玩家理解)
+    // 總利息 = 本金 * 利率 * 年數
+    const totalInterest = Math.floor(principal * interestRate * 20);
+    const totalDebt = principal + totalInterest;
+    const yearlyPayment = Math.floor(totalDebt / 20);
 
-  showModal(
-    "🏠 購屋方案",
-    `${house.name}\n房價：$${realPrice.toLocaleString()}\n頭期款(30%)：$${downPayment.toLocaleString()}\n貸款金額：$${loanAmount.toLocaleString()}\n貸款年限：20年\n年繳金額：$${Math.floor(loanAmount / 20).toLocaleString()}`,
-    "💰 全額付清",
-    "🏦 申請貸款",
-    () => {
-      if (Game.money >= realPrice) {
-        Game.money -= realPrice;
-        // 🔴 修正：items -> inventory
-        Game.inventory.push(house.name);
-        if (house.happyBonus) Game.happy += house.happyBonus;
-        log(`全額購買了 ${house.name}！`);
-        updateUI();
-        renderShop();
-      } else {
-        showPopup("❌ 金錢不足", "red");
-      }
-    },
-    () => {
-      if (Game.money >= downPayment) {
-        if (Game.mortgage.active) {
-          showPopup("❌ 已有貸款進行中", "red");
-          return;
-        }
-        Game.money -= downPayment;
-        Game.mortgage = {
-          active: true,
-          totalAmount: loanAmount,
-          remaining: loanAmount,
-          monthlyPayment: Math.floor(loanAmount / 20),
-          years: 20,
-          itemName: house.name,
-        };
-        // 🔴 修正：items -> inventory
-        Game.inventory.push(house.name);
-        if (house.happyBonus) Game.happy += house.happyBonus;
-        log(
-          `貸款購買了 ${house.name}！每年繳納 $${Game.mortgage.monthlyPayment.toLocaleString()}`,
-        );
-        updateUI();
-        renderShop();
-      } else {
-        showPopup("❌ 頭期款不足", "red");
-      }
-    },
-  );
+    // 檢查頭期款
+    if (Game.money < downPayment) {
+        return alert(`❌ 頭期款不足！\n需要現金 $${downPayment.toLocaleString()}`);
+    }
+
+    // 檢查是否已有房貸 (簡化版：一次只能背一個房貸)
+    if (Game.mortgage && Game.mortgage.active) {
+        return alert("❌ 你已經有房貸了，請先還清！");
+    }
+
+    showModal(
+        "🏦 銀行房貸試算",
+        `
+        <div style="text-align:left; font-size:0.95em; line-height:1.8;">
+            <div style="color:var(--gold); font-weight:bold; font-size:1.1em;">🏠 ${house.name}</div>
+            <hr style="border:0; border-top:1px solid #555; margin:5px 0;">
+            <div>總房價：$${realPrice.toLocaleString()}</div>
+            <div>頭期款 (30%)：<span style="color:var(--red)">-$${downPayment.toLocaleString()}</span></div>
+            <div>貸款本金：$${principal.toLocaleString()}</div>
+            <div>年利率：${(interestRate * 100).toFixed(2)}%</div>
+            <div>貸款期限：20 年</div>
+            <hr style="border:0; border-top:1px solid #555; margin:5px 0;">
+            <div style="color:var(--orange)">📅 每年需還款：$${yearlyPayment.toLocaleString()}</div>
+            <div style="color:#aaa; font-size:0.8em;">(含利息總還款：$${totalDebt.toLocaleString()})</div>
+        </div>
+        `,
+        [
+            {
+                text: "✍️ 簽約購買",
+                action: () => {
+                    Game.money -= downPayment;
+                    Game.inventory.push(house.id);
+                    Game.happy += house.happy;
+                    
+                    // 記錄詳細房貸資訊
+                    Game.mortgage = {
+                        active: true,
+                        name: house.name,
+                        totalDebt: totalDebt,      // 總債務
+                        remaining: totalDebt,      // 剩餘債務
+                        yearlyPayment: yearlyPayment, // 每年還款
+                        yearsLeft: 20,             // 剩餘年數
+                        interestRate: interestRate // 記錄利率
+                    };
+
+                    log(`🏠 貸款買下了 ${house.name}！背負債務 $${totalDebt.toLocaleString()}`);
+                    closeModal();
+                    updateUI();
+                    renderShop();
+                }
+            },
+            {
+                text: "再考慮一下",
+                action: () => closeModal()
+            }
+        ]
+    );
+}
+// game.js - 新增銀行介面功能
+
+function showBankMenu() {
+    let html = `<div style="padding:10px;">`;
+    
+    // === 1. 房貸區塊 ===
+    html += `<h3 style="color:var(--gold); border-bottom:1px solid #555; padding-bottom:5px; margin-bottom:10px;">🏠 房屋貸款</h3>`;
+    
+    if (Game.mortgage && Game.mortgage.active) {
+        const m = Game.mortgage;
+        html += `
+            <div class="job-card" style="margin-bottom:15px; border-color:var(--orange);">
+                <div style="font-weight:bold; font-size:1.1em; margin-bottom:5px;">標的：${m.name}</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; font-size:0.9em; color:#ddd;">
+                    <div>剩餘債務：</div><div style="text-align:right; color:var(--red);">$${m.remaining.toLocaleString()}</div>
+                    <div>剩餘年限：</div><div style="text-align:right;">${m.yearsLeft} 年</div>
+                    <div>每年還款：</div><div style="text-align:right; color:var(--orange);">$${m.yearlyPayment.toLocaleString()}</div>
+                </div>
+                <div style="margin-top:15px;">
+                    <button class="btn-main" onclick="repayMortgageEarly()">💰 提前還清 (省利息)</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `<div style="color:#aaa; text-align:center; padding:15px;">目前沒有房貸</div>`;
+    }
+
+    // === 2. 信貸區塊 (新增功能) ===
+    html += `<h3 style="color:var(--gold); border-bottom:1px solid #555; padding-bottom:5px; margin-bottom:10px; margin-top:20px;">💳 信用貸款</h3>`;
+    
+    // 檢查是否有欠信貸
+    if (Game.personalLoan && Game.personalLoan > 0) {
+        html += `
+            <div class="job-card" style="margin-bottom:15px;">
+                <div style="color:var(--red); font-weight:bold; margin-bottom:10px;">尚欠銀行：$${Game.personalLoan.toLocaleString()}</div>
+                <div style="font-size:0.85em; color:#aaa; margin-bottom:10px;">利息高達 10%，建議盡快還清！</div>
+                <button class="btn-main" onclick="repayPersonalLoan()">💸 還款</button>
+            </div>
+        `;
+    } else {
+        // 計算可貸額度 (年收入的 2 倍 + 資產證明)
+        const loanLimit = Math.floor((Game.yearlyMoney * 3) + (Game.money * 0.5) + 50000); 
+        html += `
+            <div style="margin-bottom:10px;">
+                <div style="font-size:0.9em; margin-bottom:5px;">可貸額度：$${loanLimit.toLocaleString()}</div>
+                <button class="btn-buy" onclick="takePersonalLoan(${loanLimit})">申請信貸 (急用)</button>
+            </div>
+            <div style="font-size:0.8em; color:#aaa;">*信貸年利率 10%，需在 5 年內還清</div>
+        `;
+    }
+
+    html += `</div>`;
+
+    showModal("🏦 銀行服務", html, [{ text: "離開", action: () => closeModal() }]);
 }
 
+// === 提前還清房貸 ===
+function repayMortgageEarly() {
+    const m = Game.mortgage;
+    if (!m || !m.active) return;
+
+    // 提前還款優惠：扣除剩餘利息的一半 (當作違約金或手續費折扣)
+    // 簡單算法：直接還剩餘本金
+    const payAmount = m.remaining;
+
+    if (Game.money >= payAmount) {
+        if (confirm(`確定要花費 $${payAmount.toLocaleString()} 還清房貸嗎？`)) {
+            Game.money -= payAmount;
+            Game.mortgage.active = false;
+            Game.mortgage.remaining = 0;
+            Game.happy += 15;
+            log(`🎉 恭喜！你還清了 ${m.name} 的所有貸款！無債一身輕！`);
+            closeModal();
+            updateUI();
+        }
+    } else {
+        alert(`❌ 現金不足！需要 $${payAmount.toLocaleString()}`);
+    }
+}
+
+// === 申請信貸 ===
+function takePersonalLoan(limit) {
+    // 彈出輸入框詢問金額
+    const amountStr = prompt(`請輸入借款金額 (最高 $${limit})`, limit);
+    const amount = parseInt(amountStr);
+
+    if (!amount || isNaN(amount) || amount <= 0) return;
+    if (amount > limit) return alert("❌ 超過可貸額度！");
+
+    Game.money += amount;
+    // 信貸記錄在 Game.personalLoan
+    Game.personalLoan = (Game.personalLoan || 0) + Math.floor(amount * 1.1); // 直接加 10% 利息算入總債務
+    
+    log(`💳 向銀行借了 $${amount.toLocaleString()} (含息需還 $${Math.floor(amount*1.1).toLocaleString()})`);
+    closeModal();
+    updateUI();
+}
+
+// === 還信貸 ===
+function repayPersonalLoan() {
+    const debt = Game.personalLoan;
+    if (Game.money >= debt) {
+        Game.money -= debt;
+        Game.personalLoan = 0;
+        alert("✅ 信貸已還清！");
+        closeModal();
+        updateUI();
+    } else {
+        // 部分還款
+        if (Game.money > 0) {
+            const pay = Game.money;
+            if(confirm(`現金不足全額還清。要先還 $${pay.toLocaleString()} 嗎？`)){
+                Game.money = 0;
+                Game.personalLoan -= pay;
+                alert(`已償還部分債務，尚欠 $${Game.personalLoan.toLocaleString()}`);
+                closeModal();
+                updateUI();
+            }
+        } else {
+            alert("❌ 你沒錢還債！");
+        }
+    }
+}
 function nextYear() {
   // ===== 1. 防止重複執行 =====
   if (isProcessing) {
@@ -2301,12 +2441,44 @@ function nextYear() {
     // 初始化年份計數器
     if (!Game.yearsPassed) Game.yearsPassed = 0;
 
-    // 通膨系統
     updateInflation();
 
-    // 房貸扣款
+    // 🏦 1. 處理房貸扣款
     if (Game.mortgage && Game.mortgage.active) {
-      payMortgage();
+        const payment = Game.mortgage.yearlyPayment;
+        
+        // 記錄：無論錢夠不夠，時間都會過去
+        Game.mortgage.yearsLeft--;
+        Game.mortgage.remaining -= payment;
+
+        if (Game.money >= payment) {
+            Game.money -= payment;
+            log(`💸 繳納房貸 $${payment.toLocaleString()} (剩 ${Game.mortgage.yearsLeft} 年)`);
+        } else {
+            // 沒錢繳房貸 -> 變成負債
+            Game.money -= payment; 
+            Game.happy -= 10;
+            Game.health -= 5;
+            log(`⚠️ 沒錢繳房貸！欠款累積中... (-10快樂)`);
+        }
+
+        // 檢查是否還清
+        if (Game.mortgage.yearsLeft <= 0 || Game.mortgage.remaining <= 0) {
+            Game.mortgage.active = false;
+            log(`🎉 恭喜！房貸已全數繳清！房子是你的了！`);
+            Game.happy += 30;
+        }
+    }
+
+    // 💳 2. 處理信貸 (如果有)
+    if (Game.personalLoan && Game.personalLoan > 0) {
+        // 每年利息 10% 複利滾動 (高利貸很恐怖)
+        const interest = Math.floor(Game.personalLoan * 0.1);
+        Game.personalLoan += interest;
+        log(`📉 信貸利息滾動：債務增加 $${interest.toLocaleString()} (總欠款: $${Game.personalLoan.toLocaleString()})`);
+        
+        // 如果欠太多錢，快樂值狂掉
+        if (Game.personalLoan > 1000000) Game.happy -= 5;
     }
 
     // 子女成長
@@ -3942,6 +4114,30 @@ function addFriend() {
 }
 
 function renderShop() {
+    // ✨ 新增：銀行入口按鈕
+  const bankBtnHtml = `
+    <div style="margin-bottom: 20px; text-align: center;">
+        <button class="btn-main" style="background: linear-gradient(135deg, #1e3c72, #2a5298); width: 100%; padding: 15px; font-size: 1.1em; box-shadow: 0 4px 15px rgba(0,0,0,0.3);" 
+                onclick="showBankMenu()">
+            🏦 前往銀行 (貸款/還款)
+        </button>
+    </div>
+  `;
+  
+  // 先清空，再加入銀行按鈕
+  const carContainer = document.getElementById("car-shop");
+  // 為了美觀，我們把銀行按鈕插在車庫上面，或者你可以找個更好的位置
+  // 這裡我建議直接用 JS 插在 page-assets 的最上面
+  const assetPage = document.getElementById("page-assets");
+  
+  // 檢查是否已經有銀行按鈕，沒有才加 (避免重複)
+  if (!document.getElementById("btn-bank-entry")) {
+      const btnDiv = document.createElement("div");
+      btnDiv.id = "btn-bank-entry";
+      btnDiv.innerHTML = bankBtnHtml;
+      // 插在 card-header 之後
+      assetPage.insertBefore(btnDiv, assetPage.firstChild); 
+  }
   // 1. 車庫渲染
   let carHtml = "";
   CARS.forEach((car) => {
