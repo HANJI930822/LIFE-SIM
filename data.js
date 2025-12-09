@@ -1,0 +1,1666 @@
+const TALENTS = [
+        {
+          id: "t1",
+          name: "過目不忘",
+          desc: "學習效率+50%",
+          type: "good",
+          effect: (g) => {
+            g.learnBonus = 1.5;
+          },
+        },
+        {
+          id: "t2",
+          name: "天生神力",
+          desc: "健康衰退減半",
+          type: "good",
+          effect: (g) => {
+            g.healthDecay = 0.5;
+          },
+        },
+        {
+          id: "t3",
+          name: "萬人迷",
+          desc: "魅力+20，社交效果+30%",
+          type: "good",
+          effect: (g) => {
+            g.skills.charm += 20;
+            g.socialBonus = 1.3;
+          },
+        },
+        {
+          id: "t4",
+          name: "投資眼光",
+          desc: "被動收入+20%",
+          type: "good",
+          effect: (g) => {
+            g.incomeBonus = 1.2;
+          },
+        },
+        {
+          id: "t5",
+          name: "玻璃心",
+          desc: "快樂值下降加倍",
+          type: "bad",
+          effect: (g) => {
+            g.happyDecay = 2;
+          },
+        },
+        {
+          id: "t6",
+          name: "體弱多病",
+          desc: "初始健康-20",
+          type: "bad",
+          effect: (g) => {
+            g.health -= 20;
+          },
+        },
+        {
+          id: "t7",
+          name: "社交恐懼",
+          desc: "魅力-15",
+          type: "bad",
+          effect: (g) => {
+            g.skills.charm -= 15;
+          },
+        },
+        {
+          id: "t8",
+          name: "富二代心態",
+          desc: "工作收入-30%",
+          type: "bad",
+          effect: (g) => {
+            g.workPenalty = 0.7;
+          },
+        },
+        {
+          id: "t9",
+          name: "天賦異稟",
+          desc: "所有技能成長+20%",
+          type: "good",
+          effect: (g) => {
+            g.skillBonus = 1.2;
+          },
+        },
+        {
+          id: "t10",
+          name: "幸運星",
+          desc: "隨機事件正面結果+10%",
+          type: "good",
+          effect: (g) => {
+            g.luckBonus = 0.1;
+          },
+        },
+      ];
+      // ==========================================
+      // 🆕 新增：存檔系統 (已修正變數名稱 Game)
+      // ==========================================
+      const SAVE_KEY = "lifeSimV17_save";
+
+      function saveGame() {
+        const saveData = {
+          version: "17.0",
+          timestamp: Date.now(),
+          player: Game.name,
+          age: Game.age,
+          money: Game.money,
+          health: Game.health,
+          happy: Game.happy,
+          intel: Game.intel,
+          stamina: Game.stamina,
+          skills: { ...Game.skills },
+          job: Game.job,
+          origin: Game.origin,
+          traits: [...Game.traits],
+          talents: [...Game.talents],
+          inventory: [...Game.inventory],
+          npcs: Game.npcs.map((n) => ({ ...n })),
+          unlockedAchievements: [...Game.unlockedAchievements],
+          stats: { ...Game.stats },
+          lifeStage: Game.lifeStage,
+          partner: Game.partner,
+          gender: Game.gender,
+
+          // ✅ 補上這些遺漏的重要變數
+          children: Game.children || [],
+          mortgage: Game.mortgage || {},
+          inflationRate: Game.inflationRate || 1.0,
+          yearsPassed: Game.yearsPassed || 0,
+          debtYears: Game.debtYears || 0,
+          hasBeenInDebt: Game.hasBeenInDebt || false,
+        };
+
+        try {
+          localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+          if (typeof showPopup === "function")
+            showPopup("💾 存檔成功！", "green");
+          return true;
+        } catch (e) {
+          console.error("存檔錯誤:", e);
+          return false;
+        }
+      }
+
+      function loadGame() {
+        try {
+          const saved = localStorage.getItem(SAVE_KEY);
+          if (!saved) {
+            if (typeof showPopup === "function")
+              showPopup("❌ 沒有存檔記錄", "red");
+            else alert("❌ 沒有存檔記錄");
+            return false;
+          }
+
+          const data = JSON.parse(saved);
+
+          Game.name = data.player;
+          Game.age = data.age;
+          Game.money = data.money;
+          Game.health = data.health;
+          Game.happy = data.happy;
+          Game.intel = data.intel;
+          Game.stamina = data.stamina;
+          Game.skills = data.skills;
+          Game.job = data.job;
+          Game.origin = data.origin;
+          Game.traits = data.traits || [];
+          Game.talents = data.talents || [];
+          Game.inventory = data.inventory || [];
+          Game.npcs = data.npcs || [];
+          Game.unlockedAchievements = data.unlockedAchievements || [];
+          Game.stats = data.stats || {};
+          Game.lifeStage = data.lifeStage;
+          Game.partner = data.partner;
+          Game.gender = data.gender;
+
+          // ✅ 補上遺漏的讀取邏輯
+          Game.children = data.children || [];
+          Game.mortgage = data.mortgage || {
+            active: false,
+            totalAmount: 0,
+            remaining: 0,
+            monthlyPayment: 0,
+            years: 0,
+          };
+          Game.inflationRate = data.inflationRate || 1.0;
+          Game.yearsPassed = data.yearsPassed || 0;
+          Game.debtYears = data.debtYears || 0;
+          Game.hasBeenInDebt = data.hasBeenInDebt || false;
+
+          document.getElementById("scene-creation").style.display = "none";
+          document.getElementById("scene-game").classList.add("active");
+          document.getElementById("scene-game").style.display = "block";
+
+          updateUI();
+
+          const date = new Date(data.timestamp);
+          if (typeof showPopup === "function") {
+            showPopup(
+              `✅ 讀取成功！\n${date.toLocaleString("zh-TW")}`,
+              "green",
+            );
+          }
+          return true;
+        } catch (e) {
+          console.error("讀檔錯誤:", e);
+          alert("❌ 讀檔失敗");
+          return false;
+        }
+      }
+      // ===== 個人特質系統 =====
+      const TRAITS = [
+        // 38个特质
+        // ===== 20个性格特质 =====
+        {
+          id: "optimistic",
+          name: "🌟 樂觀主義者",
+          desc: "總是看到事情光明的一面",
+          detailedEffect: "快樂衰減 -30%\n初始快樂 +10",
+          category: "personality",
+          conflictWith: ["pessimistic"], // ✅ 与悲观冲突
+          effect: (g) => {
+            g.happyDecay *= 0.7;
+            g.happy += 10;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "pessimistic",
+          name: "😔 悲觀主義者",
+          desc: "容易陷入負面情緒",
+          detailedEffect: "快樂衰減 +30%\n智力 +5",
+          category: "personality",
+          isNegative: true, // ✅ 标记为负面特质
+          reward: { money: 50000, intel: 5 }, // ✅ 负面奖励
+          conflictWith: ["optimistic"],
+          effect: (g) => {
+            g.happyDecay *= 1.3;
+            g.intel += 5;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "extrovert",
+          name: "🎉 外向",
+          desc: "善於社交，容易交朋友",
+          detailedEffect: "社交效果 +50%\n魅力 +10\n初始好感 +5",
+          category: "personality",
+          conflictWith: ["introvert"],
+          effect: (g) => {
+            g.socialBonus *= 1.5;
+            g.skills.charm += 10;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "introvert",
+          name: "📚 內向",
+          desc: "喜歡獨處，深度思考",
+          detailedEffect: "學習效率 +30%\n溝通 -5\n魅力成長 -2\n初始智力 +20",
+          category: "personality",
+          isNegative: true,
+          reward: { intel: 20, money: 30000 },
+          conflictWith: ["extrovert"],
+          effect: (g) => {
+            g.learnBonus *= 1.3;
+            g.skills.communication -= 5;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "brave",
+          name: "💪 勇敢",
+          desc: "不畏艱難，勇於挑戰",
+          detailedEffect:
+            "健康 +10\n魅力 +5\n投資成功率 +30%\n風險工作收入 +5%",
+          category: "personality",
+          conflictWith: ["cautious"],
+          effect: (g) => {
+            g.health += 10;
+            g.skills.charm += 5;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "cautious",
+          name: "🛡️ 謹慎",
+          desc: "小心謹慎，規避風險",
+          detailedEffect: "健康衰減 -20%\n快樂 -5\n投資失敗損失 -50%",
+          category: "personality",
+          isNegative: true,
+          reward: { money: 40000, health: 15 },
+          conflictWith: ["brave", "impulsive"],
+          effect: (g) => {
+            g.healthDecay *= 0.8;
+            g.happy -= 5;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "ambitious",
+          name: "🔥 野心勃勃",
+          desc: "追求成功與財富",
+          detailedEffect: "收入加成 +20%\n快樂 -10\n工作收入 +30%",
+          category: "personality",
+          conflictWith: ["content", "laidback"],
+          effect: (g) => {
+            g.incomeBonus *= 1.2;
+            g.happy -= 10;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "content",
+          name: "😌 知足常樂",
+          desc: "容易感到滿足",
+          detailedEffect: "快樂 +15\n收入減少 -10%\n快樂衰減 -40%",
+          category: "personality",
+          conflictWith: ["ambitious", "competitive"],
+          effect: (g) => {
+            g.happy += 15;
+            g.incomeBonus *= 0.9;
+            g.happyDecay *= 0.6;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "stubborn",
+          name: "😤 固執",
+          desc: "堅持己見，不易改變",
+          detailedEffect: "智力 +5\n社交效果 -20%\n魅力 -5",
+          category: "personality",
+          isNegative: true,
+          reward: { intel: 10, money: 35000 },
+          conflictWith: ["flexible"],
+          effect: (g) => {
+            g.intel += 5;
+            g.socialBonus *= 0.8;
+            g.skills.charm -= 5;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "flexible",
+          name: "🌊 靈活",
+          desc: "適應力強，隨機應變",
+          detailedEffect: "溝通 +10\n魅力 +10\n社交效果 +20%",
+          category: "personality",
+          conflictWith: ["stubborn"],
+          effect: (g) => {
+            g.skills.communication += 10;
+            g.skills.charm += 10;
+            g.socialBonus *= 1.2;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "competitive",
+          name: "🏆 好勝",
+          desc: "不甘落後，力爭上游",
+          detailedEffect: "技能成長 +20%\n快樂 -5",
+          category: "personality",
+          conflictWith: ["laidback", "content"],
+          effect: (g) => {
+            g.skillBonus *= 1.2;
+            g.happy -= 5;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "laidback",
+          name: "😎 隨性",
+          desc: "不急不徐，隨遇而安",
+          detailedEffect: "快樂 +10\n技能成長 -10%\n健康衰減 -20%",
+          category: "personality",
+          isNegative: true,
+          reward: { happy: 15, money: 25000 },
+          conflictWith: ["competitive", "ambitious"],
+          effect: (g) => {
+            g.happy += 10;
+            g.skillBonus *= 0.9;
+            g.healthDecay *= 0.8;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "honest",
+          name: "🤝 誠實",
+          desc: "坦誠待人，值得信賴",
+          detailedEffect: "NPC好感成長 +5\n收入 -10%\n社交 +15%",
+          category: "personality",
+          conflictWith: ["cunning"],
+          effect: (g) => {
+            g.socialBonus *= 1.15;
+            g.incomeBonus *= 0.9;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "cunning",
+          name: "🦊 狡猾",
+          desc: "善於算計，懂得取巧",
+          detailedEffect: "收入加成 +30%\n快樂 -5\nNPC好感 -3",
+          category: "personality",
+          conflictWith: ["honest"],
+          effect: (g) => {
+            g.incomeBonus *= 1.3;
+            g.happy -= 5;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "impulsive",
+          name: "⚡ 衝動",
+          desc: "衝動行事，不計後果",
+          detailedEffect: "快樂 +5\n隨機事件機率 +50%\n投資波動 +30%",
+          category: "personality",
+          isNegative: true,
+          reward: { money: 45000, charm: 10 },
+          conflictWith: ["thoughtful", "cautious"],
+          effect: (g) => {
+            g.happy += 5;
+            g.luckBonus += 0.1;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "thoughtful",
+          name: "🤔 深思熟慮",
+          desc: "三思而後行",
+          detailedEffect: "智力 +8\n快樂 -3\n學習效率 +20%",
+          category: "personality",
+          conflictWith: ["impulsive"],
+          effect: (g) => {
+            g.intel += 8;
+            g.happy -= 3;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "romantic",
+          name: "💕 浪漫主義",
+          desc: "追求浪漫與情感",
+          detailedEffect: "魅力 +12\n快樂 +8\n戀愛成功率 +40%",
+          category: "personality",
+          conflictWith: ["realistic"],
+          effect: (g) => {
+            g.skills.charm += 12;
+            g.happy += 8;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "realistic",
+          name: "💼 現實主義",
+          desc: "注重實際利益",
+          detailedEffect: "智力 +5\n金融 +10\n快樂 -5",
+          category: "personality",
+          conflictWith: ["romantic"],
+          effect: (g) => {
+            g.intel += 5;
+            g.skills.finance += 10;
+            g.happy -= 5;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "humorous",
+          name: "😄 幽默風趣",
+          desc: "善於製造歡樂氣氛",
+          detailedEffect: "魅力 +15\n快樂 +10\n社交效果 +25%",
+          category: "personality",
+          conflictWith: ["serious"],
+          effect: (g) => {
+            g.skills.charm += 15;
+            g.happy += 10;
+            g.socialBonus *= 1.25;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "serious",
+          name: "😐 嚴肅",
+          desc: "做事認真，不苟言笑",
+          detailedEffect: "智力 +10\n魅力 -8\n工作效率 +20%",
+          category: "personality",
+          isNegative: true,
+          reward: { intel: 15, money: 40000 },
+          conflictWith: ["humorous"],
+          effect: (g) => {
+            g.intel += 10;
+            g.skills.charm -= 8;
+          },
+          unlock: "default",
+        },
+
+        // ===== 12个能力特质 =====
+        {
+          id: "quicklearner",
+          name: "🧠 快速學習",
+          desc: "學習能力超群",
+          detailedEffect: "學習效率 +40%\n技能成長 +50%",
+          category: "ability",
+          effect: (g) => {
+            g.learnBonus *= 1.4;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "athletic",
+          name: "🏃 運動健將",
+          desc: "體能優異",
+          detailedEffect: "健康 +15\n體力上限 +20\n初始體力 +50%",
+          category: "ability",
+          effect: (g) => {
+            g.health += 15;
+            g.maxStamina += 20;
+            g.stamina += 20;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "artistic",
+          name: "🎨 藝術天賦",
+          desc: "藝術感知力強",
+          detailedEffect: "藝術 +20\n魅力 +15\n藝術類職業收入 +50%",
+          category: "ability",
+          effect: (g) => {
+            g.skills.art += 20;
+            g.skills.charm += 15;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "charismatic",
+          name: "✨ 魅力非凡",
+          desc: "天生的領袖氣質",
+          detailedEffect: "魅力 +15\n社交效果 +30%\n初始好感 +3",
+          category: "ability",
+          effect: (g) => {
+            g.skills.charm += 15;
+            g.socialBonus *= 1.3;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "businessmind",
+          name: "💰 商業頭腦",
+          desc: "天生的商業嗅覺",
+          detailedEffect: "收入加成 +30%\n金融 +15\n創業成功率 +50%",
+          category: "ability",
+          effect: (g) => {
+            g.incomeBonus *= 1.3;
+            g.skills.finance += 15;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "techsavvy",
+          name: "💻 科技達人",
+          desc: "精通科技",
+          detailedEffect: "程式 +20\n智力 +5\n科技類職業收入 +30%",
+          category: "ability",
+          effect: (g) => {
+            g.skills.programming += 20;
+            g.intel += 5;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "medicaltalent",
+          name: "⚕️ 醫學天賦",
+          desc: "醫學潛力驚人",
+          detailedEffect: "醫療 +25\n智力 +8\n健康衰減 -15%",
+          category: "ability",
+          effect: (g) => {
+            g.skills.medical += 25;
+            g.intel += 8;
+            g.healthDecay *= 0.85;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "culinarygenius",
+          name: "👨‍🍳 廚藝天才",
+          desc: "料理天賦異稟",
+          detailedEffect: "廚藝 +30\n藝術 +10\n快樂 +5",
+          category: "ability",
+          effect: (g) => {
+            g.skills.cooking += 30;
+            g.skills.art += 10;
+            g.happy += 5;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "polyglot",
+          name: "🌍 語言天才",
+          desc: "精通多國語言",
+          detailedEffect: "溝通 +20\n魅力 +10\n收入加成 +15%",
+          category: "ability",
+          effect: (g) => {
+            g.skills.communication += 20;
+            g.skills.charm += 10;
+            g.incomeBonus *= 1.15;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "photographicmemory",
+          name: "📷 過目不忘",
+          desc: "超強記憶力",
+          detailedEffect: "智力 +15\n學習效率 +30%\n技能成長 +20%",
+          category: "ability",
+          effect: (g) => {
+            g.intel += 15;
+            g.learnBonus *= 1.3;
+            g.skillBonus *= 1.2;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "creative",
+          name: "💡 創意無限",
+          desc: "創意思維出眾",
+          detailedEffect: "藝術 +15\n程式 +10\n創業收入 +25%",
+          category: "ability",
+          effect: (g) => {
+            g.skills.art += 15;
+            g.skills.programming += 10;
+          },
+          unlock: "default",
+        },
+
+        {
+          id: "persuasive",
+          name: "🗣️ 說服力強",
+          desc: "口才絕佳",
+          detailedEffect: "溝通 +18\n魅力 +12\n社交效果 +20%",
+          category: "ability",
+          effect: (g) => {
+            g.skills.communication += 18;
+            g.skills.charm += 12;
+            g.socialBonus *= 1.2;
+          },
+          unlock: "default",
+        },
+
+        // ===== 6个特殊特质 =====
+        {
+          id: "lucky",
+          name: "🍀 幸運兒",
+          desc: "運氣極佳",
+          detailedEffect: "幸運加成 +20%\n隨機好事機率 +50%",
+          category: "special",
+          effect: (g) => {
+            g.luckBonus += 0.2;
+          },
+          unlock: "event",
+        },
+
+        {
+          id: "workaholic",
+          name: "💼 工作狂",
+          desc: "沉迷工作",
+          detailedEffect: "收入加成 +40%\n健康衰減 +30%",
+          category: "special",
+          effect: (g) => {
+            g.incomeBonus *= 1.4;
+            g.healthDecay *= 1.3;
+          },
+          unlock: "achievement",
+        },
+
+        {
+          id: "immortal",
+          name: "⏳ 長壽基因",
+          desc: "超長壽命",
+          detailedEffect: "健康衰減 -50%",
+          category: "special",
+          effect: (g) => {
+            g.healthDecay *= 0.5;
+          },
+          unlock: "age",
+        },
+
+        {
+          id: "geniusmind",
+          name: "🎓 天才心智",
+          desc: "智力超群",
+          detailedEffect: "智力 +30\n學習效率 +50%",
+          category: "special",
+          effect: (g) => {
+            g.intel += 30;
+            g.learnBonus *= 1.5;
+          },
+          unlock: "achievement",
+        },
+
+        {
+          id: "socialmaster",
+          name: "🌟 社交大師",
+          desc: "社交能力頂尖",
+          detailedEffect: "溝通 +30\n魅力 +20\n社交效果 x2",
+          category: "special",
+          effect: (g) => {
+            g.skills.communication += 30;
+            g.skills.charm += 20;
+            g.socialBonus *= 2;
+          },
+          unlock: "achievement",
+        },
+
+        {
+          id: "wealthy",
+          name: "💎 富可敵國",
+          desc: "財富驚人",
+          detailedEffect: "收入加成 x2\n快樂 +20",
+          category: "special",
+          effect: (g) => {
+            g.incomeBonus *= 2;
+            g.happy += 20;
+          },
+          unlock: "achievement",
+        },
+      ];
+
+      const ORIGINS = [
+        // ===== 基础出身 =====
+        {
+          id: "common",
+          name: "平凡",
+          desc: "普通的小康家庭",
+          parents: "公務員 & 老師",
+          money: 30000, // ✅ 原 50000 → 30000 (-40%)
+          intel: 50,
+          happy: 80,
+          yearlyMoney: 500, // ✅ 原 1000 → 500 (-50%)
+          buff: "無特殊加成",
+        },
+
+        {
+          id: "rich",
+          name: "富二代",
+          desc: "父母是成功的企業家",
+          parents: "CEO & 董事",
+          money: 3000000, // ✅ 原 5000000 → 3000000 (-40%)
+          intel: 40,
+          happy: 90,
+          yearlyMoney: 60000, // ✅ 原 100000 → 60000 (-40%)
+          buff: "每年被動收入 6萬，魅力 +10",
+        },
+
+        {
+          id: "genius",
+          name: "天才",
+          desc: "智商遠超常人",
+          parents: "研究員 & 教授",
+          money: -50000, // ⭐ 保持负债不变
+          intel: 120,
+          happy: 60,
+          yearlyMoney: 0, // ⭐ 本来就是 0
+          buff: "智商 +120，初始負債 5萬",
+        },
+
+        {
+          id: "star",
+          name: "星二代",
+          desc: "父母是知名藝人",
+          parents: "影帝 & 歌后",
+          money: 600000, // ✅ 原 1000000 → 600000 (-40%)
+          intel: 50,
+          happy: 70,
+          yearlyMoney: 30000, // ✅ 原 50000 → 30000 (-40%)
+          buff: "魅力自然高",
+        },
+
+        {
+          id: "scholar",
+          name: "書香世家",
+          desc: "知識分子家庭",
+          parents: "大學教授 & 圖書館長",
+          money: 120000, // ✅ 原 200000 → 120000 (-40%)
+          intel: 80,
+          happy: 75,
+          yearlyMoney: 3000, // ✅ 原 5000 → 3000 (-40%)
+          buff: "智商高，愛讀書",
+        },
+
+        {
+          id: "military",
+          name: "軍人世家",
+          desc: "軍人家庭背景",
+          parents: "將軍 & 軍醫",
+          money: 90000, // ✅ 原 150000 → 90000 (-40%)
+          intel: 60,
+          happy: 70,
+          yearlyMoney: 1800, // ✅ 原 3000 → 1800 (-40%)
+          buff: "健康 +20",
+        },
+
+        {
+          id: "doctor",
+          name: "醫生世家",
+          desc: "醫療背景家庭",
+          parents: "主任醫師 & 護理師",
+          money: 480000, // ✅ 原 800000 → 480000 (-40%)
+          intel: 85,
+          happy: 75,
+          yearlyMoney: 6000, // ✅ 原 10000 → 6000 (-40%)
+          buff: "醫學技能 +30",
+        },
+
+        // ===== 困难出身 =====
+        {
+          id: "farmer",
+          name: "農家",
+          desc: "務農家庭",
+          parents: "果農 & 菜農",
+          money: 12000, // ✅ 原 20000 → 12000 (-40%)
+          intel: 40,
+          happy: 85,
+          yearlyMoney: 300, // ✅ 原 500 → 300 (-40%)
+          buff: "健康 +15，快樂 +5",
+        },
+
+        {
+          id: "fisher",
+          name: "漁民",
+          desc: "漁村家庭",
+          parents: "漁民 & 漁民",
+          money: 18000, // ✅ 原 30000 → 18000 (-40%)
+          intel: 45,
+          happy: 80,
+          yearlyMoney: 600, // ✅ 原 1000 → 600 (-40%)
+          buff: "健康 +10",
+        },
+
+        {
+          id: "aboriginal",
+          name: "原住民",
+          desc: "原住民部落",
+          parents: "頭目 & 織布師",
+          money: 6000, // ✅ 原 10000 → 6000 (-40%)
+          intel: 45,
+          happy: 90,
+          yearlyMoney: 300, // ✅ 原 500 → 300 (-40%)
+          buff: "魅力 +15，藝術 +20，快樂 +10",
+        },
+
+        {
+          id: "immigrant",
+          name: "移民",
+          desc: "新移民家庭",
+          parents: "移工 & 移工",
+          money: 18000, // ✅ 原 30000 → 18000 (-40%)
+          intel: 55,
+          happy: 75,
+          yearlyMoney: 480, // ✅ 原 800 → 480 (-40%)
+          buff: "溝通 +20",
+        },
+
+        {
+          id: "singleparent",
+          name: "單親家庭",
+          desc: "單親撫養",
+          parents: "單親媽媽",
+          money: -12000, // ✅ 原 -20000 → -12000 (债务减少40%)
+          intel: 55,
+          happy: 65,
+          yearlyMoney: 0, // ⭐ 保持 0
+          buff: "堅強獨立",
+        },
+
+        // ===== 特殊出身 =====
+        {
+          id: "tech",
+          name: "科技新貴",
+          desc: "科技業父母",
+          parents: "PM & 工程師",
+          money: 300000, // ✅ 原 500000 → 300000 (-40%)
+          intel: 75,
+          happy: 70,
+          yearlyMoney: 9000, // ✅ 原 15000 → 9000 (-40%)
+          buff: "程式 +30",
+        },
+
+        {
+          id: "artist",
+          name: "藝術家庭",
+          desc: "藝術世家",
+          parents: "畫家 & 音樂家",
+          money: 48000, // ✅ 原 80000 → 48000 (-40%)
+          intel: 65,
+          happy: 85,
+          yearlyMoney: 1200, // ✅ 原 2000 → 1200 (-40%)
+          buff: "藝術 +40，魅力 +10",
+        },
+
+        {
+          id: "politician",
+          name: "政治世家",
+          desc: "政治人物家庭",
+          parents: "立委 & 市長",
+          money: 1200000, // ✅ 原 2000000 → 1200000 (-40%)
+          intel: 70,
+          happy: 75,
+          yearlyMoney: 18000, // ✅ 原 30000 → 18000 (-40%)
+          buff: "溝通 +25",
+        },
+
+        {
+          id: "orphan",
+          name: "孤兒",
+          desc: "從小在育幼院長大",
+          parents: "無",
+          money: 0, // ⭐ 保持 0
+          intel: 50,
+          happy: 50,
+          yearlyMoney: 0, // ⭐ 保持 0
+          buff: "堅韌不拔 +30",
+        },
+
+        {
+          id: "temple",
+          name: "宮廟世家",
+          desc: "宮廟管理家庭",
+          parents: "廟祝 & 乩童",
+          money: 180000, // ✅ 原 300000 → 180000 (-40%)
+          intel: 50,
+          happy: 80,
+          yearlyMoney: 3000, // ✅ 原 5000 → 3000 (-40%)
+          buff: "溝通 +15，快樂 +5",
+        },
+
+        {
+          id: "mafia",
+          name: "黑道世家",
+          desc: "黑道背景",
+          parents: "堂主 & 堂口大姐",
+          money: 300000, // ✅ 原 500000 → 300000 (-40%)
+          intel: 45,
+          happy: 60,
+          yearlyMoney: 12000, // ✅ 原 20000 → 12000 (-40%)
+          buff: "魅力 +20，健康 +15",
+        },
+
+        // ===== 頂級特殊出身 =====
+        {
+          id: "royal",
+          name: "皇族",
+          desc: "顯赫的皇室血統",
+          parents: "國王 & 王后",
+          money: 6000000, // ✅ 原 10000000 → 6000000 (-40%)
+          intel: 70,
+          happy: 60,
+          yearlyMoney: 120000, // ✅ 原 200000 → 120000 (-40%)
+          buff: "每年 12萬被動收入，魅力 +100",
+          special: "royal",
+        },
+
+        {
+          id: "hacker",
+          name: "駭客世家",
+          desc: "頂尖駭客家庭",
+          parents: "白帽駭客 & 資安專家",
+          money: 180000, // ✅ 原 300000 → 180000 (-40%)
+          intel: 100,
+          happy: 65,
+          yearlyMoney: 4800, // ✅ 原 8000 → 4800 (-40%)
+          buff: "程式能力 +50",
+          special: "hacker",
+        },
+
+        {
+          id: "detective",
+          name: "偵探世家",
+          desc: "名偵探家族",
+          parents: "名侦探 & 犯罪心理學家",
+          money: 108000, // ✅ 原 180000 → 108000 (-40%)
+          intel: 90,
+          happy: 70,
+          yearlyMoney: 2400, // ✅ 原 4000 → 2400 (-40%)
+          buff: "智商 +40",
+          special: "detective",
+        },
+
+        {
+          id: "cheffamily",
+          name: "名廚世家",
+          desc: "米其林家族",
+          parents: "米其林主廚 & 甜點師",
+          money: 300000, // ✅ 原 500000 → 300000 (-40%)
+          intel: 60,
+          happy: 85,
+          yearlyMoney: 7200, // ✅ 原 12000 → 7200 (-40%)
+          buff: "廚藝 +60，藝術 +20",
+          special: "chef",
+        },
+
+        {
+          id: "monk",
+          name: "修行世家",
+          desc: "佛門世家",
+          parents: "住持 & 法師",
+          money: 3000, // ✅ 原 5000 → 3000 (-40%)
+          intel: 75,
+          happy: 90,
+          yearlyMoney: 0, // ⭐ 保持 0
+          buff: "健康 +25，快樂 +10",
+          special: "monk",
+        },
+
+        {
+          id: "circus",
+          name: "馬戲團世家",
+          desc: "馬戲團家族",
+          parents: "團長 & 空中飛人",
+          money: 30000, // ✅ 原 50000 → 30000 (-40%)
+          intel: 50,
+          happy: 80,
+          yearlyMoney: 1200, // ✅ 原 2000 → 1200 (-40%)
+          buff: "魅力 +25，健康 +10",
+          special: "circus",
+        },
+
+        {
+          id: "diplomat",
+          name: "外交世家",
+          desc: "外交官家族",
+          parents: "大使 & 外交官",
+          money: 720000, // ✅ 原 1200000 → 720000 (-40%)
+          intel: 85,
+          happy: 75,
+          yearlyMoney: 15000, // ✅ 原 25000 → 15000 (-40%)
+          buff: "溝通 +35",
+          special: "diplomat",
+        },
+
+        {
+          id: "esports",
+          name: "電競世家",
+          desc: "電競冠軍家庭",
+          parents: "電競教練 & 職業選手",
+          money: 360000, // ✅ 原 600000 → 360000 (-40%)
+          intel: 65,
+          happy: 85,
+          yearlyMoney: 9000, // ✅ 原 15000 → 9000 (-40%)
+          buff: "反應力超群",
+          special: "esports",
+        },
+
+        {
+          id: "spy",
+          name: "間諜世家",
+          desc: "情報世家",
+          parents: "特務 & 情報員",
+          money: 480000, // ✅ 原 800000 → 480000 (-40%)
+          intel: 95,
+          happy: 60,
+          yearlyMoney: 12000, // ✅ 原 20000 → 12000 (-40%)
+          buff: "智商 +45",
+          special: "spy",
+        },
+
+        {
+          id: "archaeologist",
+          name: "考古世家",
+          desc: "考古學家家族",
+          parents: "考古學家 & 博物館長",
+          money: 150000, // ✅ 原 250000 → 150000 (-40%)
+          intel: 88,
+          happy: 78,
+          yearlyMoney: 3600, // ✅ 原 6000 → 3600 (-40%)
+          buff: "智商 +38",
+          special: "archaeologist",
+        },
+
+        {
+          id: "fashion",
+          name: "時尚世家",
+          desc: "時尚設計師家族",
+          parents: "時裝設計師 & 超模",
+          money: 1800000, // ✅ 原 3000000 → 1800000 (-40%)
+          intel: 60,
+          happy: 80,
+          yearlyMoney: 30000, // ✅ 原 50000 → 30000 (-40%)
+          buff: "魅力 +35，藝術 +25",
+          special: "fashion",
+        },
+
+        {
+          id: "scientistfamily",
+          name: "科學家族",
+          desc: "諾貝爾家族",
+          parents: "諾貝爾獎得主 & 研究員",
+          money: 900000, // ✅ 原 1500000 → 900000 (-40%)
+          intel: 130,
+          happy: 70,
+          yearlyMoney: 18000, // ✅ 原 30000 → 18000 (-40%)
+          buff: "智商 +80",
+          special: "scientist",
+        },
+      ];
+      // ===== 補上缺失的 LIFE_STAGES 定義 =====
+
+      const LIFE_STAGES = [
+        { min: 0, max: 2, name: "嬰兒期", icon: "👶" },
+        { min: 3, max: 5, name: "幼兒期", icon: "🧸" },
+        { min: 6, max: 12, name: "兒童期", icon: "🎒" },
+        { min: 13, max: 17, name: "青春期", icon: "🎧" },
+        { min: 18, max: 30, name: "青年期", icon: "💼" },
+        { min: 31, max: 50, name: "壯年期", icon: "👨‍💼" },
+        { min: 51, max: 65, name: "中年期", icon: "👓" },
+        { min: 66, max: 200, name: "老年期", icon: "👴" }, // 確保最大值夠大
+      ];
+      // ===== 補上缺失的 ACHIEVEMENTS 定義 =====
+      const ACHIEVEMENTS = [
+        {
+          id: "first_bucket",
+          name: "第一桶金",
+          desc: "擁有 100 萬現金",
+          icon: "💰",
+          check: (g) => g.money >= 1000000,
+        },
+        {
+          id: "multi_millionaire",
+          name: "千萬富翁",
+          desc: "擁有 1000 萬現金",
+          icon: "💎",
+          check: (g) => g.money >= 10000000,
+        },
+        {
+          id: "centenarian",
+          name: "百歲人瑞",
+          desc: "活到 100 歲",
+          icon: "🎂",
+          check: (g) => g.age >= 100,
+        },
+        {
+          id: "scholar",
+          name: "博學多聞",
+          desc: "獲得博士學位",
+          icon: "🎓",
+          check: (g) => g.education === "phd",
+        },
+        {
+          id: "top_charm",
+          name: "萬人迷",
+          desc: "魅力達到 100",
+          icon: "✨",
+          check: (g) => g.skills.charm >= 100,
+        },
+        {
+          id: "top_intel",
+          name: "愛因斯坦",
+          desc: "智力達到 100",
+          icon: "🧠",
+          check: (g) => g.intel >= 100,
+        },
+        {
+          id: "social_butterfly",
+          name: "社交名流",
+          desc: "擁有 10 個以上的朋友",
+          icon: "🦋",
+          check: (g) => g.npcs.length >= 10,
+        },
+        {
+          id: "happy_life",
+          name: "快樂人生",
+          desc: "快樂值維持 100",
+          icon: "😊",
+          check: (g) => g.happy >= 100,
+        },
+      ];
+      // ===== 📖 出身開場劇情 =====
+      const ORIGIN_STORY = {
+        common:
+          "你出生在一個平凡的家庭，父母看著你的眼神充滿慈愛，雖然家裡不富裕，但也不愁吃穿。牆上的日曆顯示著今天是發薪日，爸爸買了一個小蛋糕慶祝你的誕生。",
+        rich: "你出生在頂級私立醫院的豪華產房，窗外停著爸爸的司機和保鑣。你的搖籃是義大利進口的，旁邊堆滿了還沒拆封的名牌嬰兒用品。",
+        genius:
+          "你出生的那一刻沒有哭，而是睜大眼睛觀察著周圍。父母是頂尖研究員，他們看著你的眼神像是在看一個偉大的實驗數據，床邊放著微積分課本當作胎教音樂。",
+        star: "閃光燈閃個不停，你剛出生就登上了娛樂版頭條。雖然你還看不清楚，但周圍充滿了粉絲的尖叫聲和經紀人的講電話聲。",
+        scholar:
+          "家裡充滿了舊書的味道，父母正在輕聲討論要讓你先學論語還是莎士比亞。你的嬰兒床邊不是玩具，而是一座小小的書山。",
+        military:
+          "父親穿著軍裝抱起你，粗糙的手掌雖然溫暖但充滿厚繭。他看著你，彷彿已經看到了你未來穿上軍服、保家衛國的模樣。",
+        doctor:
+          "你出生在父母工作的醫院，護理師阿姨們輪流來抱你。空氣中瀰漫著消毒水的味道，這將是你未來最熟悉的氣味。",
+        farmer:
+          "清晨的雞啼聲迎接你的到來。窗外是一望無際的稻田，父母雖然汗流浹背，但看著你的笑容就像看著豐收的作物一樣燦爛。",
+        fisher:
+          "海浪拍打岸邊的聲音是你聽到的第一個旋律。空氣中帶著鹹鹹的海風，父親說你是海的女兒/兒子，將來要征服這片大海。",
+        aboriginal:
+          "部落的長老為你唱起古老的祝福歌謠，祖靈的庇佑環繞著你。你在山林的懷抱中誕生，註定擁有與自然溝通的天賦。",
+        immigrant:
+          "父母用你不熟悉的家鄉話輕聲哄著你。雖然在這個新國度一切都很陌生且艱難，但他們看著你的眼神充滿了對新生活的希望。",
+        singleparent:
+          "媽媽緊緊抱著你，雖然只有她一個人，但她的懷抱比任何地方都溫暖。她輕聲承諾，會給你雙倍的愛。",
+        tech: "你的第一張照片是用最新的原型機拍的。家裡到處都是電路板和螢幕，父母正在討論要寫一個 AI 程式來幫你換尿布。",
+        artist:
+          "家裡播放著古典樂，牆上掛滿了父母的畫作。你抓周抓到了一支畫筆，父母開心地說你是天生的藝術家。",
+        politician:
+          "你的滿月酒席上冠蓋雲集，立委、議員們輪流抱著你拍照。你還不懂事，就已經成為了父母建立親民形象的最佳助選員。",
+        orphan:
+          "你是個被遺落在育幼院門口的孩子，院長奶奶收留了你。雖然沒有父母的疼愛，但這裡有很多和你一樣的兄弟姊妹。",
+        temple:
+          "晨鐘暮鼓是你生命的節奏。你在繚繞的香火中長大，信徒們都說你看起來特別有靈氣，彷彿是神明賜予的孩子。",
+        mafia:
+          "滿屋子刺青的叔叔伯伯圍著你看，雖然他們長相兇狠，但遞過來的紅包卻特別厚。父親說，只要有他在，沒人敢欺負你。",
+        royal:
+          "皇家禮炮鳴響，全國慶祝你的誕生。你躺在鑲金的搖籃裡，管家阿爾弗雷德正在為你準備溫熱的牛奶，你註定生而不凡。",
+        hacker:
+          "你的房間沒有窗戶，只有多個螢幕發出的幽光。父母教你的第一個字不是「爸爸」，而是「sudo」。",
+        detective:
+          "家裡總是充滿謎團，父母看你的眼神像是在審視嫌疑犯。你在充滿邏輯與推理的環境下長大，學會的第一件事是觀察細節。",
+        cheffamily:
+          "廚房傳來的香氣是你童年的記憶。你的奶瓶裡裝的不是普通牛奶，而是經過父母精心調配的頂級配方。",
+        monk: "你在深山的古剎中醒來，師父慈悲地看著你。這裡沒有塵世的喧囂，只有風吹過松林的聲音，你將走上一條修行的道路。",
+        circus:
+          "你的搖籃是空中的吊床，周圍是大象和獅子。掌聲和歡呼聲是你習以為常的背景音，你的童年註定充滿驚奇。",
+        diplomat:
+          "你的護照上蓋滿了各國的印章。從小你就習慣在不同的國家醒來，聽著不同的語言，世界就是你的遊樂場。",
+        esports:
+          "鍵盤的敲擊聲是你聽過最美妙的音樂。父母是傳奇選手，他們看著你的手指，期待著你繼承他們的APM（手速）。",
+        spy: "家裡有很多不能打開的抽屜和祕密房間。父母總是突然消失又突然出現，你從小就學會了保守秘密。",
+        archaeologist:
+          "你的玩具是鏟子和刷子。父母帶回來的不是伴手禮，而是千年前的化石碎片，歷史的塵埃是你童年的養分。",
+        fashion:
+          "你的尿布是高級訂製款。從小你就坐在時裝秀的第一排，鎂光燈是你最熟悉的朋友，時尚早已融入你的血液。",
+        scientistfamily:
+          "家裡的書架上擺滿了諾貝爾獎章。父母對你的期許不是賺大錢，而是解開宇宙的奧祕。",
+      };
+
+      // ✅ 修正與合併後的 finishCharacterCreation 函數
+      function finishCharacterCreation() {
+        // 1. 將選擇的特質加入遊戲
+        // 注意：這裡使用 TRAITS (全大寫) 和 selectedTraits (全域變數)
+        Game.traits = selectedTraits.map((id) =>
+          TRAITS.find((t) => t.id === id),
+        );
+        Game.unlockedTraits = [...selectedTraits];
+
+        // 2. 應用特質效果與計算補償
+        let rewardMessages = [];
+        Game.traits.forEach((trait) => {
+          // 應用效果
+          if (trait.effect) {
+            trait.effect(Game);
+          }
+
+          // 計算負面特質獎勵
+          if (trait.isNegative && trait.reward) {
+            if (trait.reward.money) {
+              Game.money += trait.reward.money;
+              rewardMessages.push(
+                `💰 補償金 +$${trait.reward.money.toLocaleString()}`,
+              );
+            }
+            if (trait.reward.intel) {
+              Game.intel += trait.reward.intel;
+              rewardMessages.push(`🧠 智力 +${trait.reward.intel}`);
+            }
+            if (trait.reward.health) {
+              Game.health += trait.reward.health;
+              rewardMessages.push(`❤️ 健康 +${trait.reward.health}`);
+            }
+            if (trait.reward.happy) {
+              Game.happy += trait.reward.happy;
+              rewardMessages.push(`😊 快樂 +${trait.reward.happy}`);
+            }
+            if (trait.reward.charm) {
+              Game.skills.charm += trait.reward.charm;
+              rewardMessages.push(`✨ 魅力 +${trait.reward.charm}`);
+            }
+          }
+        });
+
+        // 3. 顯示補償訊息 (如果有)
+        if (rewardMessages.length > 0) {
+          alert(`🎁 負面特質補償獎勵：\n\n${rewardMessages.join("\n")}`);
+        }
+
+        // 4. 切換介面：隱藏創角，顯示遊戲主畫面
+        document.getElementById("scene-creation").style.display = "none";
+        const gameScene = document.getElementById("scene-game");
+        gameScene.style.display = "block";
+        gameScene.classList.add("active");
+
+        // 5. 初始化遊戲各項顯示
+        updateUI();
+        renderJobs();
+        renderShop();
+        renderSocial();
+        renderAchievements();
+        renderStats();
+
+        // 6. 寫入第一筆日誌
+        log(`👶 ${Game.name} 出生了！`);
+        log(`🏠 出身：${Game.origin}`);
+        log(`🎁 天賦：${Game.talents.map((t) => t.name).join("、")}`);
+        log(`✨ 特質：${Game.traits.map((t) => t.name).join("、")}`);
+
+        // 7. ✅ 觸發開場劇情 (最重要的部分)
+        // 這裡使用 setTimeout 延遲 500毫秒，確保介面切換完成後才彈出，體驗較好
+        if (
+          typeof ORIGIN_STORY !== "undefined" &&
+          ORIGIN_STORY[Game.originId]
+        ) {
+          setTimeout(() => {
+            showModal("📖 人生篇章開啟", ORIGIN_STORY[Game.originId], [
+              { text: "開始冒險", action: () => closeModal() },
+            ]);
+            log(ORIGIN_STORY[Game.originId]);
+          }, 500);
+        }
+      }
+      const JOBS = [
+        {
+          id: "none",
+          name: "無業",
+          salary: 0,
+          requirement: {},
+          effect: null,
+          desc: "待業中",
+        },
+
+        {
+          id: "clerk",
+          name: "辦事員",
+          salary: 25000,
+          requirement: { intel: 40 },
+          effect: (g) => {
+            g.happy -= 2;
+          },
+          desc: "處理日常文書工作",
+        },
+
+        {
+          id: "engineer",
+          name: "工程師",
+          salary: 50000,
+          requirement: { intel: 80, programming: 70 },
+          traitBonus: {
+            techsavvy: { salary: 1.3, desc: "科技達人薪資加成 30%" },
+            quicklearner: { salary: 1.2, desc: "快速學習者薪資加成 20%" },
+            introvert: { salary: 1.1, desc: "內向者薪資加成 10%" },
+          },
+          effect: (g) => {
+            g.skills.programming += 2;
+            g.happy -= 5;
+            g.health -= 3;
+          },
+          desc: "開發軟體系統",
+        },
+
+        {
+          id: "doctor",
+          name: "醫生",
+          salary: 120000,
+          requirement: { intel: 120, medical: 80 },
+          requiredTrait: "athletic",
+          traitBonus: { athletic: { salary: 1.2, desc: "運動健將薪資加成" } },
+          effect: (g) => {
+            g.health -= 5;
+            g.skills.medical += 3;
+          },
+          desc: "救死扶傷的神聖職業",
+        },
+
+        {
+          id: "artist",
+          name: "藝術家",
+          salary: 28000,
+          requirement: { art: 70, charm: 60 },
+          traitBonus: {
+            artistic: { salary: 1.5, desc: "藝術天賦薪資加成 50%" },
+            pessimistic: { salary: 1.3, desc: "悲觀主義者薪資加成 30%" },
+          },
+          effect: (g) => {
+            g.happy += 10;
+            g.skills.art += 3;
+          },
+          desc: "用藝術表達自我",
+        },
+
+        {
+          id: "teacher",
+          name: "教師",
+          salary: 38000,
+          requirement: { intel: 70, communication: 60 },
+          traitBonus: {
+            extrovert: { salary: 1.2, desc: "外向者薪資加成" },
+            charismatic: { salary: 1.15, desc: "魅力非凡薪資加成" },
+            optimistic: { salary: 1.1, desc: "樂觀主義者薪資加成 10%" },
+          },
+          effect: (g) => {
+            g.happy += 5;
+            g.skills.communication += 2;
+          },
+          desc: "教育下一代",
+        },
+
+        {
+          id: "entrepreneur",
+          name: "創業家",
+          salary: 80000,
+          requirement: { intel: 90, finance: 70, charm: 70 },
+          traitBonus: {
+            businessmind: { salary: 1.5, desc: "商業頭腦薪資加成" },
+            brave: { salary: 1.3, desc: "勇敢者薪資加成" },
+            lucky: { salary: 1.4, desc: "幸運兒薪資加成" },
+            optimistic: { salary: 1.2, desc: "樂觀主義者薪資加成 20%" },
+          },
+          effect: (g) => {
+            const fluctuation = Math.floor(Math.random() * 120000) - 60000; // ✅ 加大波動 -60k ~ +60k
+            g.money += fluctuation;
+            g.happy -= 15;
+            g.health -= 8;
+            if (fluctuation > 0)
+              log(`📈 創業獲利 +${fluctuation.toLocaleString()}`);
+            else log(`📉 創業虧損 ${Math.abs(fluctuation).toLocaleString()}`);
+          },
+          desc: "高風險高報酬的創業之路",
+        },
+
+        {
+          id: "influencer",
+          name: "網紅",
+          salary: 60000,
+          requirement: { charm: 90, communication: 70 },
+          requiredTrait: "extrovert",
+          traitBonus: {
+            extrovert: { salary: 1.3, desc: "外向者薪資加成" },
+            charismatic: { salary: 1.4, desc: "魅力非凡薪資加成" },
+            artistic: { salary: 1.2, desc: "藝術天賦薪資加成" },
+            optimistic: { salary: 1.15, desc: "樂觀主義者薪資加成 15%" },
+          },
+          effect: (g) => {
+            g.skills.charm += 2;
+            g.happy += 8;
+            g.money += Math.floor(Math.random() * 40000) - 10000; // ✅ 收入波動 -10k ~ +30k
+          },
+          desc: "依賴流量的不穩定職業",
+        },
+
+        {
+          id: "scientist",
+          name: "科學家",
+          salary: 65000,
+          requirement: { intel: 110 },
+          traitBonus: {
+            geniusmind: { salary: 1.5, desc: "天才心智薪資加成" },
+            introvert: { salary: 1.2, desc: "內向者薪資加成" },
+            quicklearner: { salary: 1.3, desc: "快速學習者薪資加成 30%" },
+          },
+          effect: (g) => {
+            g.intel += 5;
+            g.happy += 3;
+          },
+          desc: "探索未知的真理",
+        },
+
+        {
+          id: "lawyer",
+          name: "律師",
+          salary: 100000,
+          requirement: { intel: 100, communication: 80 },
+          effect: (g) => {
+            g.skills.communication += 3;
+            g.happy -= 8;
+          },
+          desc: "為正義辯護",
+        },
+
+        {
+          id: "chef",
+          name: "廚師",
+          salary: 42000,
+          requirement: { cooking: 80, art: 40 },
+          effect: (g) => {
+            g.skills.cooking += 3;
+            g.happy += 5;
+          },
+          desc: "烹飪美食的藝術家",
+        },
+
+        {
+          id: "pilot",
+          name: "機師",
+          salary: 135000,
+          requirement: { intel: 90, health: 80 },
+          effect: (g) => {
+            g.health -= 5;
+            g.happy += 3;
+          },
+          desc: "翱翔天際的職業",
+        },
+
+        {
+          id: "athlete",
+          name: "運動員",
+          salary: 70000,
+          requirement: { health: 90, charm: 60 },
+          effect: (g) => {
+            g.health += 3;
+            if (g.age > 35) {
+              g.happy -= 10;
+              log("⚠️ 運動員年齡過大，職業生涯走下坡");
+            }
+          },
+          desc: "35 歲後職業生涯走下坡",
+        },
+
+        {
+          id: "police",
+          name: "警察",
+          salary: 45000,
+          requirement: { health: 70, communication: 50 },
+          effect: (g) => {
+            g.health -= 3;
+            g.happy -= 5;
+          },
+          desc: "維護社會治安",
+        },
+
+        {
+          id: "designer",
+          name: "設計師",
+          salary: 48000,
+          requirement: { art: 80, programming: 40 },
+          effect: (g) => {
+            g.skills.art += 3;
+            g.happy += 3;
+          },
+          desc: "創造視覺美學",
+        },
+
+        // ===== 特殊出身專屬職業 =====
+        {
+          id: "hackerpro",
+          name: "駭客",
+          salary: 180000,
+          requirement: { intel: 100, programming: 100 },
+          originRequired: "hacker",
+          effect: (g) => {
+            g.skills.programming += 5;
+            g.money += Math.floor(Math.random() * 400000) - 100000; // ✅ 大波動 -100k ~ +300k
+          },
+          desc: "高風險的灰色地帶",
+        },
+
+        {
+          id: "royaladvisor",
+          name: "皇室顧問",
+          salary: 200000,
+          requirement: { intel: 110, communication: 90 },
+          originRequired: "royal",
+          effect: (g) => {
+            g.skills.charm += 3;
+            g.happy += 10;
+          },
+          desc: "服務皇室的榮耀",
+        },
+
+        {
+          id: "esportsplayer",
+          name: "電競選手",
+          salary: 100000,
+          requirement: { intel: 70 },
+          originRequired: "esports",
+          effect: (g) => {
+            if (g.age > 28) {
+              g.happy -= 15;
+              log("⚠️ 電競選手年齡過大，反應速度下降");
+            } else {
+              g.happy += 15;
+            }
+          },
+          desc: "25 歲巔峰期",
+        },
+
+        {
+          id: "spyagent",
+          name: "間諜",
+          salary: 140000,
+          requirement: { intel: 100, health: 80 },
+          originRequired: "spy",
+          effect: (g) => {
+            g.health -= 8;
+            g.money += Math.floor(Math.random() * 250000) - 50000; // ✅ 危險津貼波動
+          },
+          desc: "危險的祕密任務",
+        },
+
+        {
+          id: "michelinchef",
+          name: "米其林廚師",
+          salary: 120000,
+          requirement: { cooking: 100, art: 60 },
+          originRequired: "cheffamily",
+          effect: (g) => {
+            g.skills.cooking += 5;
+            g.skills.art += 2;
+            g.happy += 8;
+          },
+          desc: "頂級料理大師",
+        },
+      ];
+      // ==========================================
+      // 🆕 新增：職業晉升系統
+      // ==========================================
+      const JOB_PROMOTIONS = {
+        實習生: {
+          next: "正職員工",
+          requirement: { age: 22, intel: 60, communication: 30 },
+          salaryIncrease: 10000,
+        },
+        正職員工: {
+          next: "資深員工",
+          requirement: { age: 28, intel: 80, communication: 50, workYears: 5 },
+          salaryIncrease: 20000,
+        },
+        資深員工: {
+          next: "主管",
+          requirement: { age: 35, intel: 100, leadership: 60, workYears: 10 },
+          salaryIncrease: 40000,
+        },
+        主管: {
+          next: "部門經理",
+          requirement: { age: 40, intel: 120, leadership: 80, workYears: 15 },
+          salaryIncrease: 80000,
+        },
+        部門經理: {
+          next: "總經理",
+          requirement: { age: 45, intel: 150, leadership: 100, workYears: 20 },
+          salaryIncrease: 150000,
+        },
+      };
