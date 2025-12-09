@@ -76,25 +76,25 @@ let Game = {
   luckBonus: 0,
 };
 function getStatName(key) {
-    const map = {
-        money: "💰 金錢",
-        health: "❤️ 健康",
-        happy: "😊 快樂",
-        intel: "🧠 智力",
-        stamina: "⚡ 體力",
-        jobYears: "⏳ 年資",
-        // 技能類
-        programming: "💻 程式",
-        art: "🎨 藝術",
-        medical: "⚕️ 醫療",
-        cooking: "🍳 烹飪",
-        finance: "📈 理財",
-        communication: "🗣️ 溝通",
-        charm: "✨ 魅力",
-        leadership: "🚩 領導",
-        management: "💼 管理",
-    };
-    return map[key] || key; // 如果找不到對應的中文，就回傳原本的英文
+  const map = {
+    money: "💰 金錢",
+    health: "❤️ 健康",
+    happy: "😊 快樂",
+    intel: "🧠 智力",
+    stamina: "⚡ 體力",
+    jobYears: "⏳ 年資",
+    // 技能類
+    programming: "💻 程式",
+    art: "🎨 藝術",
+    medical: "⚕️ 醫療",
+    cooking: "🍳 烹飪",
+    finance: "📈 理財",
+    communication: "🗣️ 溝通",
+    charm: "✨ 魅力",
+    leadership: "🚩 領導",
+    management: "💼 管理",
+  };
+  return map[key] || key; // 如果找不到對應的中文，就回傳原本的英文
 }
 let activeEvent = null;
 let selectedOriginId = "common";
@@ -500,7 +500,7 @@ function startGame() {
   }
   // 應用天賦效果
   Game.talents.forEach((t) => t.effect(Game));
-generateTurnActions();
+  generateTurnActions();
   // ✅ 開始特質選擇流程
   currentTraitStep = 0;
   selectedTraits = [];
@@ -1286,106 +1286,116 @@ function updateUI() {
 // game.js - 請新增此函數
 
 function generateTurnActions() {
-    let pool = [];
-    
-    // 根據年齡決定動作庫
-    // 防呆：確保 ACTIONS_POOL 存在 (在 data.js 中)
-    if (typeof ACTIONS_POOL === 'undefined') {
-        console.error("ACTIONS_POOL 未定義！請檢查 data.js");
-        return;
+  let pool = [];
+
+  // 根據年齡決定動作庫
+  // 防呆：確保 ACTIONS_POOL 存在 (在 data.js 中)
+  if (typeof ACTIONS_POOL === "undefined") {
+    console.error("ACTIONS_POOL 未定義！請檢查 data.js");
+    return;
+  }
+
+  if (Game.age <= 2) pool = ACTIONS_POOL.infant;
+  else if (Game.age <= 5) pool = ACTIONS_POOL.toddler;
+  else if (Game.age <= 12) pool = ACTIONS_POOL.child;
+  else if (Game.age <= 17) pool = ACTIONS_POOL.teen;
+  else pool = ACTIONS_POOL.adult;
+
+  if (!pool) pool = [];
+
+  // 過濾符合條件的動作 (例如有工作才能上班)
+  const validActions = pool.filter((a) => {
+    if (a.condition && !a.condition(Game)) return false;
+    return true;
+  });
+
+  // 隨機打亂
+  const shuffled = validActions.sort(() => 0.5 - Math.random());
+
+  // 取前 6 個
+  currentTurnActions = shuffled.slice(0, 6);
+
+  // ✨ 保底機制：確保至少有一個「低消耗」動作，避免卡死
+  const hasFreeAction = currentTurnActions.some(
+    (a) =>
+      (!a.cost.money || a.cost.money === 0) && a.cost.stamina <= Game.stamina,
+  );
+
+  if (!hasFreeAction) {
+    // 強制塞入一個簡單動作 (優先找睡覺、休息、打工)
+    const freeAction = pool.find(
+      (a) =>
+        (!a.cost.money || a.cost.money === 0) &&
+        (a.id === "sleep" || a.id === "rest" || a.id === "side_hustle"),
+    );
+    if (freeAction) {
+      currentTurnActions[5] = freeAction; // 替換最後一個
     }
+  }
 
-    if (Game.age <= 2) pool = ACTIONS_POOL.infant;
-    else if (Game.age <= 5) pool = ACTIONS_POOL.toddler;
-    else if (Game.age <= 12) pool = ACTIONS_POOL.child;
-    else if (Game.age <= 17) pool = ACTIONS_POOL.teen;
-    else pool = ACTIONS_POOL.adult;
-
-    if (!pool) pool = [];
-
-    // 過濾符合條件的動作 (例如有工作才能上班)
-    const validActions = pool.filter(a => {
-        if (a.condition && !a.condition(Game)) return false;
-        return true;
-    });
-
-    // 隨機打亂
-    const shuffled = validActions.sort(() => 0.5 - Math.random());
-    
-    // 取前 6 個
-    currentTurnActions = shuffled.slice(0, 6);
-    
-    // ✨ 保底機制：確保至少有一個「低消耗」動作，避免卡死
-    const hasFreeAction = currentTurnActions.some(a => (!a.cost.money || a.cost.money === 0) && a.cost.stamina <= Game.stamina);
-    
-    if (!hasFreeAction) {
-        // 強制塞入一個簡單動作 (優先找睡覺、休息、打工)
-        const freeAction = pool.find(a => 
-            (!a.cost.money || a.cost.money === 0) && 
-            (a.id === 'sleep' || a.id === 'rest' || a.id === 'side_hustle')
-        );
-        if (freeAction) {
-            currentTurnActions[5] = freeAction; // 替換最後一個
-        }
+  // 成年後，強制把「上班/找工作」加在第一個 (方便操作)
+  if (Game.age >= 18) {
+    const workAction =
+      pool.find((a) => a.id === "work") ||
+      pool.find((a) => a.id === "find_job");
+    // 如果隨機列表裡沒有工作，就替換第一個
+    if (workAction && !currentTurnActions.find((a) => a.id === workAction.id)) {
+      currentTurnActions[0] = workAction;
     }
-
-    // 成年後，強制把「上班/找工作」加在第一個 (方便操作)
-    if (Game.age >= 18) {
-        const workAction = pool.find(a => a.id === 'work') || pool.find(a => a.id === 'find_job');
-        // 如果隨機列表裡沒有工作，就替換第一個
-        if (workAction && !currentTurnActions.find(a => a.id === workAction.id)) {
-            currentTurnActions[0] = workAction;
-        }
-    }
+  }
 }
 // game.js - 請替換原本的 updateActionButtons
 
 function updateActionButtons() {
-    const btns = document.getElementById("action-buttons");
-    if (!btns) return;
+  const btns = document.getElementById("action-buttons");
+  if (!btns) return;
 
-    // 如果 currentTurnActions 是空的（剛讀檔或剛開始），生成一次
-    if (!currentTurnActions || currentTurnActions.length === 0) {
-        generateTurnActions();
+  // 如果 currentTurnActions 是空的（剛讀檔或剛開始），生成一次
+  if (!currentTurnActions || currentTurnActions.length === 0) {
+    generateTurnActions();
+  }
+
+  let html = "";
+
+  currentTurnActions.forEach((act) => {
+    // 安全檢查：避免 undefined
+    const staminaCost = act.cost?.stamina || 0;
+    const moneyCost = act.cost?.money || 0;
+
+    let costText = `⚡-${staminaCost}`;
+
+    if (moneyCost > 0) {
+      // 錢也會通膨顯示
+      const realCost = getInflatedPrice(moneyCost);
+      const costDisplay =
+        realCost >= 10000
+          ? `$${(realCost / 10000).toFixed(1)}萬`
+          : `$${realCost}`;
+      costText += ` / 💸-${costDisplay}`;
     }
 
-    let html = "";
-    
-    currentTurnActions.forEach(act => {
-        // 安全檢查：避免 undefined
-        const staminaCost = act.cost?.stamina || 0;
-        const moneyCost = act.cost?.money || 0;
+    // 檢查是否禁用
+    let disabled = "";
+    let style = "";
 
-        let costText = `⚡-${staminaCost}`;
-        
-        if (moneyCost > 0) {
-            // 錢也會通膨顯示
-            const realCost = getInflatedPrice(moneyCost);
-            const costDisplay = realCost >= 10000 ? `$${(realCost/10000).toFixed(1)}萬` : `$${realCost}`;
-            costText += ` / 💸-${costDisplay}`;
-        }
+    // 體力檢查 (只要還有體力就亮著，點下去再檢查夠不夠，避免 5 體力無法點 5 體力動作的問題)
+    if (Game.stamina <= 0) {
+      disabled = "disabled";
+      style = "opacity:0.5;";
+    }
 
-        // 檢查是否禁用
-        let disabled = "";
-        let style = "";
-        
-        // 體力檢查 (只要還有體力就亮著，點下去再檢查夠不夠，避免 5 體力無法點 5 體力動作的問題)
-        if (Game.stamina <= 0) { 
-            disabled = "disabled"; 
-            style = "opacity:0.5;"; 
-        }
-        
-        html += `
+    html += `
             <button onclick="action('${act.id}')" ${disabled} style="${style} position:relative;">
                 <div style="font-weight:bold;">${act.name}</div>
                 <div class="cost-tag" style="font-size:0.8em; opacity:0.8;">${costText}</div>
             </button>
         `;
-    });
+  });
 
-    if (html === "") html = "<div style='color:#aaa; padding:10px;'>本回合無可用行動...</div>";
+  if (html === "")
+    html = "<div style='color:#aaa; padding:10px;'>本回合無可用行動...</div>";
 
-    btns.innerHTML = html;
+  btns.innerHTML = html;
 }
 function getActionName(type) {
   const actionNames = {
@@ -1450,98 +1460,111 @@ function rnd(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 function action(actId) {
-    if (isProcessing) return;
-    
-    // 1. 尋找動作
-    let act = currentTurnActions.find(a => a.id === actId);
-    
-    // 備用搜尋 (防呆)
-    if (!act) {
-        for (const key in ACTIONS_POOL) {
-            const found = ACTIONS_POOL[key].find(a => a.id === actId);
-            if (found) { act = found; break; }
-        }
+  if (isProcessing) return;
+
+  // 1. 尋找動作
+  let act = currentTurnActions.find((a) => a.id === actId);
+
+  // 備用搜尋 (防呆)
+  if (!act) {
+    for (const key in ACTIONS_POOL) {
+      const found = ACTIONS_POOL[key].find((a) => a.id === actId);
+      if (found) {
+        act = found;
+        break;
+      }
     }
-    
-    if (!act) return console.error("❌ 找不到動作 ID:", actId);
+  }
 
-    // 2. 檢查資源消耗
-    const staminaCost = act.cost && act.cost.stamina ? act.cost.stamina : 0;
-    if (Game.stamina < staminaCost) return showPopup("❌ 體力不足！", "red");
+  if (!act) return console.error("❌ 找不到動作 ID:", actId);
 
-    let realMoneyCost = 0;
-    if (act.cost && act.cost.money) {
-        realMoneyCost = getInflatedPrice(act.cost.money);
-        if (Game.money < realMoneyCost) return showPopup(`💸 金錢不足！需要 $${realMoneyCost.toLocaleString()}`, "red");
+  // 2. 檢查資源消耗
+  const staminaCost = act.cost && act.cost.stamina ? act.cost.stamina : 0;
+  if (Game.stamina < staminaCost) return showPopup("❌ 體力不足！", "red");
+
+  let realMoneyCost = 0;
+  if (act.cost && act.cost.money) {
+    realMoneyCost = getInflatedPrice(act.cost.money);
+    if (Game.money < realMoneyCost)
+      return showPopup(
+        `💸 金錢不足！需要 $${realMoneyCost.toLocaleString()}`,
+        "red",
+      );
+  }
+
+  // 鎖定狀態
+  isProcessing = true;
+
+  // 3. 執行消耗
+  Game.stamina -= staminaCost;
+  if (realMoneyCost > 0) Game.money -= realMoneyCost;
+  Game.totalActions++;
+
+  // 4. 執行效果 (並收集數值變化)
+  let resultMsg = "";
+  // 我們需要攔截效果函數裡的數值變化，但因為效果函數是直接修改 Game 物件，
+  // 最簡單的方法是比較執行前後的 Game 狀態，或者手動記錄。
+  // 為了簡化且不改動 data.js，我們這裡用一個小技巧：
+  // 在 data.js 的 effect 裡通常只會修改屬性。
+  // 我們這裡手動解析 data.js 裡的 effect 寫法比較困難，
+  // 所以我們改用「手動記錄變化」的方式，這需要修改 data.js 的結構會太大工程。
+  // ✅ 替代方案：我們再次執行一次 effect 邏輯來計算，或是讓 effect 回傳變化。
+  // 但因為你的 data.js 已經寫死了直接修改 g[key]，我們採用「快照比較法」。
+
+  const snapshot = { ...Game, skills: { ...Game.skills } }; // 淺拷貝狀態
+
+  try {
+    if (act.effect) {
+      resultMsg = act.effect(Game);
     }
+  } catch (e) {
+    console.error("Action Error:", e);
+    resultMsg = "發生未知錯誤";
+  }
 
-    // 鎖定狀態
-    isProcessing = true;
+  // 5. 計算變化並顯示 (中文化)
+  const changes = [];
 
-    // 3. 執行消耗
-    Game.stamina -= staminaCost;
-    if (realMoneyCost > 0) Game.money -= realMoneyCost;
-    Game.totalActions++;
+  // 檢查消耗顯示
+  if (staminaCost > 0)
+    changes.push(`${getStatName("stamina")} -${staminaCost}`);
+  if (realMoneyCost > 0)
+    changes.push(`${getStatName("money")} -${realMoneyCost.toLocaleString()}`);
 
-    // 4. 執行效果 (並收集數值變化)
-    let resultMsg = "";
-    // 我們需要攔截效果函數裡的數值變化，但因為效果函數是直接修改 Game 物件，
-    // 最簡單的方法是比較執行前後的 Game 狀態，或者手動記錄。
-    // 為了簡化且不改動 data.js，我們這裡用一個小技巧：
-    // 在 data.js 的 effect 裡通常只會修改屬性。
-    // 我們這裡手動解析 data.js 裡的 effect 寫法比較困難，
-    // 所以我們改用「手動記錄變化」的方式，這需要修改 data.js 的結構會太大工程。
-    // ✅ 替代方案：我們再次執行一次 effect 邏輯來計算，或是讓 effect 回傳變化。
-    // 但因為你的 data.js 已經寫死了直接修改 g[key]，我們採用「快照比較法」。
-    
-    const snapshot = { ...Game, skills: { ...Game.skills } }; // 淺拷貝狀態
+  // 檢查屬性變化
+  ["money", "health", "happy", "intel"].forEach((key) => {
+    const diff = Game[key] - snapshot[key];
+    // 排除掉剛剛扣除的錢 (避免重複顯示)
+    if (key === "money" && diff === -realMoneyCost) return;
 
-    try {
-        if (act.effect) {
-            resultMsg = act.effect(Game);
-        }
-    } catch (e) {
-        console.error("Action Error:", e);
-        resultMsg = "發生未知錯誤";
+    if (diff !== 0) {
+      changes.push(
+        `${getStatName(key)} ${diff > 0 ? "+" : ""}${key === "money" ? diff.toLocaleString() : diff}`,
+      );
     }
+  });
 
-    // 5. 計算變化並顯示 (中文化)
-    const changes = [];
-    
-    // 檢查消耗顯示
-    if (staminaCost > 0) changes.push(`${getStatName('stamina')} -${staminaCost}`);
-    if (realMoneyCost > 0) changes.push(`${getStatName('money')} -${realMoneyCost.toLocaleString()}`);
-
-    // 檢查屬性變化
-    ['money', 'health', 'happy', 'intel'].forEach(key => {
-        const diff = Game[key] - snapshot[key];
-        // 排除掉剛剛扣除的錢 (避免重複顯示)
-        if (key === 'money' && diff === -realMoneyCost) return; 
-        
-        if (diff !== 0) {
-            changes.push(`${getStatName(key)} ${diff > 0 ? "+" : ""}${key === 'money' ? diff.toLocaleString() : diff}`);
-        }
-    });
-
-    // 檢查技能變化
-    Object.keys(Game.skills).forEach(key => {
-        const diff = Game.skills[key] - snapshot.skills[key];
-        if (diff !== 0) {
-            changes.push(`${getStatName(key)} ${diff > 0 ? "+" : ""}${diff}`);
-        }
-    });
-
-    // 6. 記錄日誌與彈出提示
-    log(`${act.name}：${resultMsg}`);
-    
-    // 顯示數值變化浮動視窗 (只在有變化時顯示)
-    if (changes.length > 0) {
-        showChanges(changes);
+  // 檢查技能變化
+  Object.keys(Game.skills).forEach((key) => {
+    const diff = Game.skills[key] - snapshot.skills[key];
+    if (diff !== 0) {
+      changes.push(`${getStatName(key)} ${diff > 0 ? "+" : ""}${diff}`);
     }
-    
-    updateUI();
-    
-    setTimeout(() => { isProcessing = false; }, 300);
+  });
+
+  // 6. 記錄日誌與彈出提示
+  log(`${act.name}：${resultMsg}`);
+
+  // 顯示數值變化浮動視窗 (只在有變化時顯示)
+  if (changes.length > 0) {
+    showChanges(changes);
+  }
+
+  updateUI();
+
+  setTimeout(() => {
+    isProcessing = false;
+  }, 300);
 }
 // 新增函數
 function triggerOriginEvent() {
@@ -2255,35 +2278,35 @@ function payMortgage() {
 }
 
 function buyHouseWithMortgage(house) {
-    // 計算通膨後的房價
-    const realPrice = getInflatedPrice(house.price);
-    // 頭期款 30%
-    const downPayment = Math.floor(realPrice * 0.3);
-    // 貸款本金
-    const principal = realPrice - downPayment;
-    
-    // 設定房貸利率 (2.5% ~ 4.0% 隨機浮動)
-    const interestRate = (Math.random() * 0.015 + 0.025);
-    
-    // 貸款 20 年，計算本利和 (簡單單利計算，方便玩家理解)
-    // 總利息 = 本金 * 利率 * 年數
-    const totalInterest = Math.floor(principal * interestRate * 20);
-    const totalDebt = principal + totalInterest;
-    const yearlyPayment = Math.floor(totalDebt / 20);
+  // 計算通膨後的房價
+  const realPrice = getInflatedPrice(house.price);
+  // 頭期款 30%
+  const downPayment = Math.floor(realPrice * 0.3);
+  // 貸款本金
+  const principal = realPrice - downPayment;
 
-    // 檢查頭期款
-    if (Game.money < downPayment) {
-        return alert(`❌ 頭期款不足！\n需要現金 $${downPayment.toLocaleString()}`);
-    }
+  // 設定房貸利率 (2.5% ~ 4.0% 隨機浮動)
+  const interestRate = Math.random() * 0.015 + 0.025;
 
-    // 檢查是否已有房貸 (簡化版：一次只能背一個房貸)
-    if (Game.mortgage && Game.mortgage.active) {
-        return alert("❌ 你已經有房貸了，請先還清！");
-    }
+  // 貸款 20 年，計算本利和 (簡單單利計算，方便玩家理解)
+  // 總利息 = 本金 * 利率 * 年數
+  const totalInterest = Math.floor(principal * interestRate * 20);
+  const totalDebt = principal + totalInterest;
+  const yearlyPayment = Math.floor(totalDebt / 20);
 
-    showModal(
-        "🏦 銀行房貸試算",
-        `
+  // 檢查頭期款
+  if (Game.money < downPayment) {
+    return alert(`❌ 頭期款不足！\n需要現金 $${downPayment.toLocaleString()}`);
+  }
+
+  // 檢查是否已有房貸 (簡化版：一次只能背一個房貸)
+  if (Game.mortgage && Game.mortgage.active) {
+    return alert("❌ 你已經有房貸了，請先還清！");
+  }
+
+  showModal(
+    "🏦 銀行房貸試算",
+    `
         <div style="text-align:left; font-size:0.95em; line-height:1.8;">
             <div style="color:var(--gold); font-weight:bold; font-size:1.1em;">🏠 ${house.name}</div>
             <hr style="border:0; border-top:1px solid #555; margin:5px 0;">
@@ -2297,49 +2320,51 @@ function buyHouseWithMortgage(house) {
             <div style="color:#aaa; font-size:0.8em;">(含利息總還款：$${totalDebt.toLocaleString()})</div>
         </div>
         `,
-        [
-            {
-                text: "✍️ 簽約購買",
-                action: () => {
-                    Game.money -= downPayment;
-                    Game.inventory.push(house.id);
-                    Game.happy += house.happy;
-                    
-                    // 記錄詳細房貸資訊
-                    Game.mortgage = {
-                        active: true,
-                        name: house.name,
-                        totalDebt: totalDebt,      // 總債務
-                        remaining: totalDebt,      // 剩餘債務
-                        yearlyPayment: yearlyPayment, // 每年還款
-                        yearsLeft: 20,             // 剩餘年數
-                        interestRate: interestRate // 記錄利率
-                    };
+    [
+      {
+        text: "✍️ 簽約購買",
+        action: () => {
+          Game.money -= downPayment;
+          Game.inventory.push(house.id);
+          Game.happy += house.happy;
 
-                    log(`🏠 貸款買下了 ${house.name}！背負債務 $${totalDebt.toLocaleString()}`);
-                    closeModal();
-                    updateUI();
-                    renderShop();
-                }
-            },
-            {
-                text: "再考慮一下",
-                action: () => closeModal()
-            }
-        ]
-    );
+          // 記錄詳細房貸資訊
+          Game.mortgage = {
+            active: true,
+            name: house.name,
+            totalDebt: totalDebt, // 總債務
+            remaining: totalDebt, // 剩餘債務
+            yearlyPayment: yearlyPayment, // 每年還款
+            yearsLeft: 20, // 剩餘年數
+            interestRate: interestRate, // 記錄利率
+          };
+
+          log(
+            `🏠 貸款買下了 ${house.name}！背負債務 $${totalDebt.toLocaleString()}`,
+          );
+          closeModal();
+          updateUI();
+          renderShop();
+        },
+      },
+      {
+        text: "再考慮一下",
+        action: () => closeModal(),
+      },
+    ],
+  );
 }
 // game.js - 新增銀行介面功能
 
 function showBankMenu() {
-    let html = `<div style="padding:10px;">`;
-    
-    // === 1. 房貸區塊 ===
-    html += `<h3 style="color:var(--gold); border-bottom:1px solid #555; padding-bottom:5px; margin-bottom:10px;">🏠 房屋貸款</h3>`;
-    
-    if (Game.mortgage && Game.mortgage.active) {
-        const m = Game.mortgage;
-        html += `
+  let html = `<div style="padding:10px;">`;
+
+  // === 1. 房貸區塊 ===
+  html += `<h3 style="color:var(--gold); border-bottom:1px solid #555; padding-bottom:5px; margin-bottom:10px;">🏠 房屋貸款</h3>`;
+
+  if (Game.mortgage && Game.mortgage.active) {
+    const m = Game.mortgage;
+    html += `
             <div class="job-card" style="margin-bottom:15px; border-color:var(--orange);">
                 <div style="font-weight:bold; font-size:1.1em; margin-bottom:5px;">標的：${m.name}</div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; font-size:0.9em; color:#ddd;">
@@ -2352,105 +2377,111 @@ function showBankMenu() {
                 </div>
             </div>
         `;
-    } else {
-        html += `<div style="color:#aaa; text-align:center; padding:15px;">目前沒有房貸</div>`;
-    }
+  } else {
+    html += `<div style="color:#aaa; text-align:center; padding:15px;">目前沒有房貸</div>`;
+  }
 
-    // === 2. 信貸區塊 (新增功能) ===
-    html += `<h3 style="color:var(--gold); border-bottom:1px solid #555; padding-bottom:5px; margin-bottom:10px; margin-top:20px;">💳 信用貸款</h3>`;
-    
-    // 檢查是否有欠信貸
-    if (Game.personalLoan && Game.personalLoan > 0) {
-        html += `
+  // === 2. 信貸區塊 (新增功能) ===
+  html += `<h3 style="color:var(--gold); border-bottom:1px solid #555; padding-bottom:5px; margin-bottom:10px; margin-top:20px;">💳 信用貸款</h3>`;
+
+  // 檢查是否有欠信貸
+  if (Game.personalLoan && Game.personalLoan > 0) {
+    html += `
             <div class="job-card" style="margin-bottom:15px;">
                 <div style="color:var(--red); font-weight:bold; margin-bottom:10px;">尚欠銀行：$${Game.personalLoan.toLocaleString()}</div>
                 <div style="font-size:0.85em; color:#aaa; margin-bottom:10px;">利息高達 10%，建議盡快還清！</div>
                 <button class="btn-main" onclick="repayPersonalLoan()">💸 還款</button>
             </div>
         `;
-    } else {
-        // 計算可貸額度 (年收入的 2 倍 + 資產證明)
-        const loanLimit = Math.floor((Game.yearlyMoney * 3) + (Game.money * 0.5) + 50000); 
-        html += `
+  } else {
+    // 計算可貸額度 (年收入的 2 倍 + 資產證明)
+    const loanLimit = Math.floor(
+      Game.yearlyMoney * 3 + Game.money * 0.5 + 50000,
+    );
+    html += `
             <div style="margin-bottom:10px;">
                 <div style="font-size:0.9em; margin-bottom:5px;">可貸額度：$${loanLimit.toLocaleString()}</div>
                 <button class="btn-buy" onclick="takePersonalLoan(${loanLimit})">申請信貸 (急用)</button>
             </div>
             <div style="font-size:0.8em; color:#aaa;">*信貸年利率 10%，需在 5 年內還清</div>
         `;
-    }
+  }
 
-    html += `</div>`;
+  html += `</div>`;
 
-    showModal("🏦 銀行服務", html, [{ text: "離開", action: () => closeModal() }]);
+  showModal("🏦 銀行服務", html, [
+    { text: "離開", action: () => closeModal() },
+  ]);
 }
 
 // === 提前還清房貸 ===
 function repayMortgageEarly() {
-    const m = Game.mortgage;
-    if (!m || !m.active) return;
+  const m = Game.mortgage;
+  if (!m || !m.active) return;
 
-    // 提前還款優惠：扣除剩餘利息的一半 (當作違約金或手續費折扣)
-    // 簡單算法：直接還剩餘本金
-    const payAmount = m.remaining;
+  // 提前還款優惠：扣除剩餘利息的一半 (當作違約金或手續費折扣)
+  // 簡單算法：直接還剩餘本金
+  const payAmount = m.remaining;
 
-    if (Game.money >= payAmount) {
-        if (confirm(`確定要花費 $${payAmount.toLocaleString()} 還清房貸嗎？`)) {
-            Game.money -= payAmount;
-            Game.mortgage.active = false;
-            Game.mortgage.remaining = 0;
-            Game.happy += 15;
-            log(`🎉 恭喜！你還清了 ${m.name} 的所有貸款！無債一身輕！`);
-            closeModal();
-            updateUI();
-        }
-    } else {
-        alert(`❌ 現金不足！需要 $${payAmount.toLocaleString()}`);
+  if (Game.money >= payAmount) {
+    if (confirm(`確定要花費 $${payAmount.toLocaleString()} 還清房貸嗎？`)) {
+      Game.money -= payAmount;
+      Game.mortgage.active = false;
+      Game.mortgage.remaining = 0;
+      Game.happy += 15;
+      log(`🎉 恭喜！你還清了 ${m.name} 的所有貸款！無債一身輕！`);
+      closeModal();
+      updateUI();
     }
+  } else {
+    alert(`❌ 現金不足！需要 $${payAmount.toLocaleString()}`);
+  }
 }
 
 // === 申請信貸 ===
 function takePersonalLoan(limit) {
-    // 彈出輸入框詢問金額
-    const amountStr = prompt(`請輸入借款金額 (最高 $${limit})`, limit);
-    const amount = parseInt(amountStr);
+  // 彈出輸入框詢問金額
+  const amountStr = prompt(`請輸入借款金額 (最高 $${limit})`, limit);
+  const amount = parseInt(amountStr);
 
-    if (!amount || isNaN(amount) || amount <= 0) return;
-    if (amount > limit) return alert("❌ 超過可貸額度！");
+  if (!amount || isNaN(amount) || amount <= 0) return;
+  if (amount > limit) return alert("❌ 超過可貸額度！");
 
-    Game.money += amount;
-    // 信貸記錄在 Game.personalLoan
-    Game.personalLoan = (Game.personalLoan || 0) + Math.floor(amount * 1.1); // 直接加 10% 利息算入總債務
-    
-    log(`💳 向銀行借了 $${amount.toLocaleString()} (含息需還 $${Math.floor(amount*1.1).toLocaleString()})`);
-    closeModal();
-    updateUI();
+  Game.money += amount;
+  // 信貸記錄在 Game.personalLoan
+  Game.personalLoan = (Game.personalLoan || 0) + Math.floor(amount * 1.1); // 直接加 10% 利息算入總債務
+
+  log(
+    `💳 向銀行借了 $${amount.toLocaleString()} (含息需還 $${Math.floor(amount * 1.1).toLocaleString()})`,
+  );
+  closeModal();
+  updateUI();
 }
 
 // === 還信貸 ===
 function repayPersonalLoan() {
-    const debt = Game.personalLoan;
-    if (Game.money >= debt) {
-        Game.money -= debt;
-        Game.personalLoan = 0;
-        alert("✅ 信貸已還清！");
+  const debt = Game.personalLoan;
+  if (Game.money >= debt) {
+    Game.money -= debt;
+    Game.personalLoan = 0;
+    alert("✅ 信貸已還清！");
+    closeModal();
+    updateUI();
+  } else {
+    // 部分還款
+    if (Game.money > 0) {
+      const pay = Game.money;
+      if (confirm(`現金不足全額還清。要先還 $${pay.toLocaleString()} 嗎？`)) {
+        Game.money = 0;
+        Game.personalLoan -= pay;
+        alert(`已償還部分債務，尚欠 $${Game.personalLoan.toLocaleString()}`);
         closeModal();
         updateUI();
+      }
     } else {
-        // 部分還款
-        if (Game.money > 0) {
-            const pay = Game.money;
-            if(confirm(`現金不足全額還清。要先還 $${pay.toLocaleString()} 嗎？`)){
-                Game.money = 0;
-                Game.personalLoan -= pay;
-                alert(`已償還部分債務，尚欠 $${Game.personalLoan.toLocaleString()}`);
-                closeModal();
-                updateUI();
-            }
-        } else {
-            alert("❌ 你沒錢還債！");
-        }
+      alert("❌ 你沒錢還債！");
     }
+  }
 }
 function nextYear() {
   // ===== 1. 防止重複執行 =====
@@ -2515,40 +2546,44 @@ function nextYear() {
 
     // 🏦 1. 處理房貸扣款
     if (Game.mortgage && Game.mortgage.active) {
-        const payment = Game.mortgage.yearlyPayment;
-        
-        // 記錄：無論錢夠不夠，時間都會過去
-        Game.mortgage.yearsLeft--;
-        Game.mortgage.remaining -= payment;
+      const payment = Game.mortgage.yearlyPayment;
 
-        if (Game.money >= payment) {
-            Game.money -= payment;
-            log(`💸 繳納房貸 $${payment.toLocaleString()} (剩 ${Game.mortgage.yearsLeft} 年)`);
-        } else {
-            // 沒錢繳房貸 -> 變成負債
-            Game.money -= payment; 
-            Game.happy -= 10;
-            Game.health -= 5;
-            log(`⚠️ 沒錢繳房貸！欠款累積中... (-10快樂)`);
-        }
+      // 記錄：無論錢夠不夠，時間都會過去
+      Game.mortgage.yearsLeft--;
+      Game.mortgage.remaining -= payment;
 
-        // 檢查是否還清
-        if (Game.mortgage.yearsLeft <= 0 || Game.mortgage.remaining <= 0) {
-            Game.mortgage.active = false;
-            log(`🎉 恭喜！房貸已全數繳清！房子是你的了！`);
-            Game.happy += 30;
-        }
+      if (Game.money >= payment) {
+        Game.money -= payment;
+        log(
+          `💸 繳納房貸 $${payment.toLocaleString()} (剩 ${Game.mortgage.yearsLeft} 年)`,
+        );
+      } else {
+        // 沒錢繳房貸 -> 變成負債
+        Game.money -= payment;
+        Game.happy -= 10;
+        Game.health -= 5;
+        log(`⚠️ 沒錢繳房貸！欠款累積中... (-10快樂)`);
+      }
+
+      // 檢查是否還清
+      if (Game.mortgage.yearsLeft <= 0 || Game.mortgage.remaining <= 0) {
+        Game.mortgage.active = false;
+        log(`🎉 恭喜！房貸已全數繳清！房子是你的了！`);
+        Game.happy += 30;
+      }
     }
 
     // 💳 2. 處理信貸 (如果有)
     if (Game.personalLoan && Game.personalLoan > 0) {
-        // 每年利息 10% 複利滾動 (高利貸很恐怖)
-        const interest = Math.floor(Game.personalLoan * 0.1);
-        Game.personalLoan += interest;
-        log(`📉 信貸利息滾動：債務增加 $${interest.toLocaleString()} (總欠款: $${Game.personalLoan.toLocaleString()})`);
-        
-        // 如果欠太多錢，快樂值狂掉
-        if (Game.personalLoan > 1000000) Game.happy -= 5;
+      // 每年利息 10% 複利滾動 (高利貸很恐怖)
+      const interest = Math.floor(Game.personalLoan * 0.1);
+      Game.personalLoan += interest;
+      log(
+        `📉 信貸利息滾動：債務增加 $${interest.toLocaleString()} (總欠款: $${Game.personalLoan.toLocaleString()})`,
+      );
+
+      // 如果欠太多錢，快樂值狂掉
+      if (Game.personalLoan > 1000000) Game.happy -= 5;
     }
 
     // 子女成長
@@ -2617,37 +2652,39 @@ function nextYear() {
       log(`${emergency.name}，支出 ${realCost.toLocaleString()} 元`);
     }
     if (Game.relationships) {
-        Game.relationships.forEach(npc => {
-            // 好感度 > 60 的朋友，且沒有生病
-            if (npc.relation >= 60 && !npc.isSick && Math.random() < 0.2) {
-                let giftName = "";
-                let giftMoney = 0;
-                
-                // 根據關係與職業給予不同獎勵
-                if (npc.type === "spouse") {
-                    giftName = "愛心便當";
-                    Game.stamina = Math.min(Game.maxStamina, Game.stamina + 30);
-                    Game.happy += 10;
-                } else if (npc.relation >= 90) {
-                    giftName = "高級生日禮物";
-                    giftMoney = 8000;
-                    Game.happy += 15;
-                } else {
-                    giftName = "新年紅包";
-                    giftMoney = 2000;
-                    Game.happy += 5;
-                }
+      Game.relationships.forEach((npc) => {
+        // 好感度 > 60 的朋友，且沒有生病
+        if (npc.relation >= 60 && !npc.isSick && Math.random() < 0.2) {
+          let giftName = "";
+          let giftMoney = 0;
 
-                // 隨通膨調整金額
-                if (giftMoney > 0) {
-                    giftMoney = Math.floor(giftMoney * (Game.inflationRate || 1));
-                    Game.money += giftMoney;
-                    log(`🎁 好友 ${npc.name} 送你 ${giftName} (+$${giftMoney.toLocaleString()})`);
-                } else {
-                    log(`🎁 ${npc.name} 送你 ${giftName} (恢復體力/快樂)`);
-                }
-            }
-        });
+          // 根據關係與職業給予不同獎勵
+          if (npc.type === "spouse") {
+            giftName = "愛心便當";
+            Game.stamina = Math.min(Game.maxStamina, Game.stamina + 30);
+            Game.happy += 10;
+          } else if (npc.relation >= 90) {
+            giftName = "高級生日禮物";
+            giftMoney = 8000;
+            Game.happy += 15;
+          } else {
+            giftName = "新年紅包";
+            giftMoney = 2000;
+            Game.happy += 5;
+          }
+
+          // 隨通膨調整金額
+          if (giftMoney > 0) {
+            giftMoney = Math.floor(giftMoney * (Game.inflationRate || 1));
+            Game.money += giftMoney;
+            log(
+              `🎁 好友 ${npc.name} 送你 ${giftName} (+$${giftMoney.toLocaleString()})`,
+            );
+          } else {
+            log(`🎁 ${npc.name} 送你 ${giftName} (恢復體力/快樂)`);
+          }
+        }
+      });
     }
     // NPC 生命週期更新
     if (Game.relationships) {
@@ -2718,7 +2755,7 @@ function nextYear() {
     updateUI();
     const mapPage = document.getElementById("page-map");
     if (mapPage && mapPage.classList.contains("active")) {
-        renderMap();
+      renderMap();
     }
     if (typeof renderChildrenList === "function") {
       renderChildrenList();
@@ -2959,9 +2996,18 @@ function generateNPC(type) {
   if (!templates || templates.length === 0) return null;
 
   const template = templates[Math.floor(Math.random() * templates.length)];
-  
+
   // 隨機分配一個職業給 NPC (讓他們更真實)
-  const jobs = ["工程師", "設計師", "老師", "業務", "會計", "護理師", "公務員", "店員"];
+  const jobs = [
+    "工程師",
+    "設計師",
+    "老師",
+    "業務",
+    "會計",
+    "護理師",
+    "公務員",
+    "店員",
+  ];
   const randomJob = jobs[Math.floor(Math.random() * jobs.length)];
 
   const npc = {
@@ -2976,7 +3022,7 @@ function generateNPC(type) {
     metAt: Game.age,
     lastInteraction: Game.age,
     health: 100,
-    isSick: false
+    isSick: false,
   };
 
   return npc;
@@ -3002,9 +3048,9 @@ function interactWithNPC(npcId, interactionType) {
   if (!npc) return;
 
   // 🔴 特殊處理：如果是約會，開啟地點選擇選單
-  if (interactionType === 'date') {
-      showDateMenu(npc);
-      return;
+  if (interactionType === "date") {
+    showDateMenu(npc);
+    return;
   }
 
   const interaction = NPC_INTERACTIONS[interactionType];
@@ -3012,7 +3058,11 @@ function interactWithNPC(npcId, interactionType) {
 
   // 檢查體力與金錢
   if (Game.stamina < interaction.cost) return alert("⚡ 體力不足！");
-  if (interaction.moneyChange < 0 && Game.money < Math.abs(interaction.moneyChange)) return alert("💸 金錢不足！");
+  if (
+    interaction.moneyChange < 0 &&
+    Game.money < Math.abs(interaction.moneyChange)
+  )
+    return alert("💸 金錢不足！");
 
   // 執行消耗
   Game.stamina -= interaction.cost;
@@ -3020,9 +3070,10 @@ function interactWithNPC(npcId, interactionType) {
 
   // 計算關係變化 (含特質加成)
   let relationChange = interaction.relationChange;
-  if (Game.traits.some(t => t.id === "charismatic")) relationChange += 3;
-  if (Game.traits.some(t => t.id === "socialmaster")) relationChange = Math.floor(relationChange * 1.5);
-  
+  if (Game.traits.some((t) => t.id === "charismatic")) relationChange += 3;
+  if (Game.traits.some((t) => t.id === "socialmaster"))
+    relationChange = Math.floor(relationChange * 1.5);
+
   // 更新關係
   npc.relation = Math.max(0, Math.min(100, npc.relation + relationChange));
   npc.lastInteraction = Game.age;
@@ -3030,96 +3081,119 @@ function interactWithNPC(npcId, interactionType) {
   // 🗣️ 獲取動態對話
   let dialog = "";
   const personality = npc.personality || "friendly";
-  
+
   // 如果關係很好，有機率觸發特殊對話
   if (npc.relation > 80 && Math.random() > 0.5) {
-      const bestLines = NPC_DIALOGUES.chat.high_relation;
-      dialog = bestLines[Math.floor(Math.random() * bestLines.length)];
+    const bestLines = NPC_DIALOGUES.chat.high_relation;
+    dialog = bestLines[Math.floor(Math.random() * bestLines.length)];
   } else {
-      // 根據互動類型與性格找對話
-      const lines = NPC_DIALOGUES[interactionType]?.[personality] || NPC_DIALOGUES.chat.friendly;
-      if (Array.isArray(lines)) {
-          dialog = lines[Math.floor(Math.random() * lines.length)];
-      } else {
-          dialog = lines;
-      }
+    // 根據互動類型與性格找對話
+    const lines =
+      NPC_DIALOGUES[interactionType]?.[personality] ||
+      NPC_DIALOGUES.chat.friendly;
+    if (Array.isArray(lines)) {
+      dialog = lines[Math.floor(Math.random() * lines.length)];
+    } else {
+      dialog = lines;
+    }
   }
 
   // 顯示結果
   const msg = `你與 ${npc.name} ${interaction.desc}。`;
   const changes = [`💗 好感 +${relationChange}`];
-  if (interaction.moneyChange !== 0) changes.push(`💰 ${interaction.moneyChange}`);
-  
+  if (interaction.moneyChange !== 0)
+    changes.push(`💰 ${interaction.moneyChange}`);
+
   log(msg, changes);
-  
+
   // 彈出對話視窗 (增加代入感)
   showModal(
-      `${npc.name} 說：`, 
-      `<div style="font-size:1.2em; color:var(--gold); margin:10px 0;">"${dialog}"</div>
+    `${npc.name} 說：`,
+    `<div style="font-size:1.2em; color:var(--gold); margin:10px 0;">"${dialog}"</div>
        <div style="font-size:0.9em; color:#aaa;">(好感度變為 ${npc.relation})</div>`,
-      [{ text: "關閉", action: () => { closeModal(); updateUI(); renderSocial(); } }]
+    [
+      {
+        text: "關閉",
+        action: () => {
+          closeModal();
+          updateUI();
+          renderSocial();
+        },
+      },
+    ],
   );
 }
 
 // ✨ 新增：顯示約會地點選單
 function showDateMenu(npc) {
-    let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
-    
-    DATE_LOCATIONS.forEach(loc => {
-        const canGo = npc.relation >= loc.minRelation;
-        const isLoversOnly = loc.loversOnly && npc.type !== 'lover' && npc.type !== 'spouse';
-        const disabled = !canGo || isLoversOnly;
-        
-        let color = "var(--green)";
-        let status = "";
-        
-        if (isLoversOnly) { color = "var(--red)"; status = "(限戀人)"; }
-        else if (!canGo) { color = "gray"; status = `(需好感 ${loc.minRelation})`; }
+  let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
 
-        html += `
-            <div class="job-card" style="padding:15px; border:2px solid ${disabled ? '#444' : 'var(--accent)'}; opacity:${disabled?0.6:1};">
+  DATE_LOCATIONS.forEach((loc) => {
+    const canGo = npc.relation >= loc.minRelation;
+    const isLoversOnly =
+      loc.loversOnly && npc.type !== "lover" && npc.type !== "spouse";
+    const disabled = !canGo || isLoversOnly;
+
+    let color = "var(--green)";
+    let status = "";
+
+    if (isLoversOnly) {
+      color = "var(--red)";
+      status = "(限戀人)";
+    } else if (!canGo) {
+      color = "gray";
+      status = `(需好感 ${loc.minRelation})`;
+    }
+
+    html += `
+            <div class="job-card" style="padding:15px; border:2px solid ${disabled ? "#444" : "var(--accent)"}; opacity:${disabled ? 0.6 : 1};">
                 <div style="display:flex; justify-content:space-between;">
-                    <div style="font-weight:bold; color:${disabled ? '#888' : 'var(--gold)'};">${loc.name} ${status}</div>
+                    <div style="font-weight:bold; color:${disabled ? "#888" : "var(--gold)"};">${loc.name} ${status}</div>
                     <div style="color:var(--orange);">$${loc.cost.toLocaleString()}</div>
                 </div>
                 <div style="font-size:0.85em; color:#aaa; margin:5px 0;">${loc.desc}</div>
-                ${!disabled ? `<button class="btn-main" onclick="goOnDate('${npc.id}', '${loc.id}')">出發</button>` : ''}
+                ${!disabled ? `<button class="btn-main" onclick="goOnDate('${npc.id}', '${loc.id}')">出發</button>` : ""}
             </div>
         `;
-    });
-    
-    html += `</div>`;
-    showModal(`💕 選擇與 ${npc.name} 的約會地點`, html, [{text:"取消", action:()=>closeModal()}]);
+  });
+
+  html += `</div>`;
+  showModal(`💕 選擇與 ${npc.name} 的約會地點`, html, [
+    { text: "取消", action: () => closeModal() },
+  ]);
 }
 
 // ✨ 新增：執行約會
 function goOnDate(npcId, locId) {
-    const npc = Game.npcs.find(n => n.id === npcId);
-    const loc = DATE_LOCATIONS.find(l => l.id === locId);
-    
-    if (!npc || !loc) return;
-    if (Game.money < loc.cost) return alert("錢不夠！");
-    if (Game.stamina < 25) return alert("體力不足！");
+  const npc = Game.npcs.find((n) => n.id === npcId);
+  const loc = DATE_LOCATIONS.find((l) => l.id === locId);
 
-    Game.money -= loc.cost;
-    Game.stamina -= 25;
-    
-    Game.happy += loc.effect.happy;
-    npc.relation = Math.min(100, npc.relation + loc.effect.relation);
-    npc.lastInteraction = Game.age;
+  if (!npc || !loc) return;
+  if (Game.money < loc.cost) return alert("錢不夠！");
+  if (Game.stamina < 25) return alert("體力不足！");
 
-    closeModal();
-    
-    // 約會結果顯示
-    log(`💕 與 ${npc.name} 去 ${loc.name} 約會，度過了美好時光！`, [`😊 快樂 +${loc.effect.happy}`, `💗 好感 +${loc.effect.relation}`]);
-    
-    // 機率觸發告白
-    if (npc.relation >= 90 && npc.type === "romantic" && Math.random() > 0.6) {
-        setTimeout(() => showConfessionEvent(npc), 500);
-    }
-    
-    updateUI();
-    renderSocial();
+  Game.money -= loc.cost;
+  Game.stamina -= 25;
+
+  Game.happy += loc.effect.happy;
+  npc.relation = Math.min(100, npc.relation + loc.effect.relation);
+  npc.lastInteraction = Game.age;
+
+  closeModal();
+
+  // 約會結果顯示
+  log(`💕 與 ${npc.name} 去 ${loc.name} 約會，度過了美好時光！`, [
+    `😊 快樂 +${loc.effect.happy}`,
+    `💗 好感 +${loc.effect.relation}`,
+  ]);
+
+  // 機率觸發告白
+  if (npc.relation >= 90 && npc.type === "romantic" && Math.random() > 0.6) {
+    setTimeout(() => showConfessionEvent(npc), 500);
+  }
+
+  updateUI();
+  renderSocial();
 }
 
 function showConfessionEvent(npc) {
@@ -3283,37 +3357,97 @@ function canEnterEducation(eduId) {
   return true;
 }
 
+// game.js - 替換 enterEducation
+
 function enterEducation(eduId, majorId = null) {
   const edu = EDUCATION_LEVELS.find((e) => e.id === eduId);
   if (!edu) return;
 
+  // 1. 基礎檢查 (年齡、前置學歷)
   if (!canEnterEducation(eduId)) {
-    alert("⚠️ 不符合入學條件！");
-    return;
+    return alert("⚠️ 不符合基礎入學條件（年齡或學歷）！");
   }
 
-  // 扣除學費
-  if (edu.cost) {
-    Game.money -= edu.cost;
-  }
+  // 2. 科系門檻檢查
+  let major = null;
+  let totalCost = edu.cost || 0;
 
-  Game.isStudying = true;
-  Game.studyProgress = 0;
-
-  let eduName = edu.name;
   if (majorId) {
     const majors = MAJORS[eduId];
-    const major = majors?.find((m) => m.id === majorId);
-    if (major) {
-      Game.major = majorId;
-      eduName += ` - ${major.name}`;
+    major = majors?.find((m) => m.id === majorId);
+
+    if (major && major.requirement) {
+      // 檢查所有科系要求
+      let pass = true;
+      let failReason = [];
+
+      Object.keys(major.requirement).forEach((key) => {
+        const reqVal = major.requirement[key];
+        let currentVal = 0;
+        let label = key;
+
+        if (key === "money") {
+          // 如果科系有額外費用/財力證明
+          if (Game.money < reqVal) {
+            pass = false;
+            failReason.push(`財力不足 (需 $${reqVal})`);
+          }
+          // 這裡假設 money requirement 就是額外學費
+          totalCost = reqVal;
+          return;
+        } else {
+          currentVal =
+            Game[key] !== undefined ? Game[key] : Game.skills[key] || 0;
+          label = typeof getStatName === "function" ? getStatName(key) : key;
+        }
+
+        if (currentVal < reqVal) {
+          pass = false;
+          failReason.push(`${label} 不足 (${currentVal}/${reqVal})`);
+        }
+      });
+
+      if (!pass) {
+        return alert(`❌ 申請被退回！\n原因：${failReason.join("、")}`);
+      }
     }
   }
 
-  log(`📚 開始就讀${eduName}`);
-  showModal("🎓 入學通知", `恭喜你進入${eduName}！\n努力學習吧！`, [
-    { text: "開始學習", action: () => closeModal() },
-  ]);
+  // 3. 扣除學費
+  if (totalCost > 0) {
+    if (Game.money < totalCost)
+      return alert(`💸 學費不足！需要 $${totalCost.toLocaleString()}`);
+    Game.money -= totalCost;
+  }
+
+  // 4. 入學成功處理
+  Game.isStudying = true;
+  Game.studyProgress = 0;
+  Game.education = eduId; // 先標記為該階段 (或可用 temp 變數，畢業才給，看設計)
+  // 修正設計：通常是畢業才拿到學歷。這裡我們先標記「正在讀」，畢業函數再正式更新 Game.education 為該 id
+  // 但為了相容原本邏輯 (canEnterEducation 檢查的是 Game.education)，
+  // 我們可以暫時不改 Game.education，而是用 Game.currentStudyingEdu = eduId 來記錄
+  // 但為了簡化，且保持你原本的邏輯，我們先不動這裡，只更新 major
+
+  if (majorId) {
+    Game.major = majorId;
+  } else {
+    Game.major = null;
+  }
+
+  let eduDisplayName = edu.name;
+  if (major) eduDisplayName += ` - ${major.name}`;
+
+  log(`📚 成功入學：${eduDisplayName} (學費 -$${totalCost.toLocaleString()})`);
+
+  // 關閉所有選單
+  closeModal();
+
+  showModal(
+    "🎉 入學通知",
+    `恭喜你錄取 <b>${eduDisplayName}</b>！\n\n請前往「地圖 > 學校」或使用「認真讀書」來累積學分。`,
+    [{ text: "開始學習", action: () => closeModal() }],
+  );
 
   updateUI();
 }
@@ -3380,14 +3514,25 @@ function graduateEducation() {
 }
 
 function showEducationMenu() {
-  let html = '<div style="padding: 20px;">';
-  html += `<h2 style="color: var(--gold); margin-bottom: 20px;">🎓 教育系統</h2>`;
-  html += `<p style="color: var(--text-dim); margin-bottom: 15px;">當前學歷：${EDUCATION_LEVELS.find((e) => e.id === Game.education)?.name || "無"}</p>`;
+  let html = '<div style="padding: 10px;">';
+  html += `<h3 style="color: var(--gold); margin-bottom: 20px; text-align:center;">🎓 教育系統</h3>`;
+
+  // 顯示當前學歷狀態
+  const currentEduName =
+    EDUCATION_LEVELS.find((e) => e.id === Game.education)?.name || "無";
+  const majorName = Game.major
+    ? ` (${MAJORS.university.concat(MAJORS.master, MAJORS.phd).find((m) => m.id === Game.major)?.name || ""})`
+    : "";
+
+  html += `<div style="background:rgba(255,255,255,0.1); padding:10px; border-radius:8px; margin-bottom:20px; text-align:center;">
+      <div style="color:var(--text-dim); font-size:0.9em;">當前學歷</div>
+      <div style="font-size:1.2em; font-weight:bold; color:var(--white);">${currentEduName}${majorName}</div>
+  </div>`;
 
   if (Game.isStudying) {
     html += `<div style="margin-bottom: 20px;">`;
-    html += `<p style="color: var(--blue);">📚 學習中... ${Math.floor(Game.studyProgress)}%</p>`;
-    html += `<div style="background: #333; height: 20px; border-radius: 10px; overflow: hidden; margin-top: 10px;">`;
+    html += `<p style="color: var(--blue);">📚 學習進度: ${Math.floor(Game.studyProgress)}%</p>`;
+    html += `<div style="background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px;">`;
     html += `<div style="width: ${Game.studyProgress}%; height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.3s;"></div>`;
     html += `</div></div>`;
   }
@@ -3402,38 +3547,122 @@ function showEducationMenu() {
       (e) => e.id === Game.education,
     );
     const isCompleted = currentEduIndex >= index;
+    const isStudyingThis =
+      Game.isStudying && EDUCATION_LEVELS[currentEduIndex + 1]?.id === edu.id;
 
-    let statusColor = isCompleted
-      ? "var(--green)"
-      : canEnter
-        ? "var(--blue)"
-        : "var(--red)";
-    let statusText = isCompleted
-      ? "✅ 已完成"
-      : canEnter
-        ? "可入學"
-        : "❌ 未達標";
+    let statusHtml = "";
+    let onClickAction = "";
+    let cardStyle = "opacity: 0.6;";
 
-    html += `<div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border-left: 3px solid ${statusColor};">`;
-    html += `<div style="display: flex; justify-content: space-between; align-items: center;">`;
-    html += `<div>`;
-    html += `<div style="font-size: 1.1em; font-weight: bold; color: var(--gold);">${edu.name}</div>`;
-    html += `<div style="font-size: 0.85em; color: var(--text-dim); margin-top: 5px;">`;
-    html += `最低年齡: ${edu.minAge}歲`;
-    if (edu.requirement?.intel) html += ` | 智力需求: ${edu.requirement.intel}`;
-    if (edu.cost) html += ` | 學費: $${edu.cost.toLocaleString()}`;
-    html += `</div></div>`;
-    html += `<div style="color: ${statusColor}; font-weight: bold;">${statusText}</div>`;
-    html += `</div></div>`;
+    if (isCompleted) {
+      statusHtml = `<span style="color:var(--green)">✅ 已完成</span>`;
+      cardStyle = "border-left: 3px solid var(--green);";
+    } else if (isStudyingThis) {
+      statusHtml = `<span style="color:var(--blue)">📚 就讀中</span>`;
+      cardStyle =
+        "border-left: 3px solid var(--blue); background:rgba(33, 150, 243, 0.1);";
+    } else if (canEnter) {
+      // 如果該學歷有科系選擇 (MAJORS 裡有對應 key)
+      if (MAJORS[edu.id]) {
+        statusHtml = `<button class="btn-main" style="padding:5px 15px; font-size:0.9em;" onclick="showMajorSelection('${edu.id}')">選擇科系</button>`;
+      } else {
+        // 沒有科系 (如小學、國中)，直接入學
+        statusHtml = `<button class="btn-main" style="padding:5px 15px; font-size:0.9em;" onclick="enterEducation('${edu.id}')">申請入學</button>`;
+      }
+      cardStyle = "border-left: 3px solid var(--gold); opacity: 1;";
+    } else {
+      statusHtml = `<span style="color:var(--red)">🔒 未達標</span>`;
+      cardStyle = "border-left: 3px solid var(--red); opacity: 0.5;";
+    }
+
+    html += `
+        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; ${cardStyle} display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div style="font-size: 1.1em; font-weight: bold; color: var(--white);">${edu.name}</div>
+                <div style="font-size: 0.8em; color: var(--text-dim); margin-top: 4px;">
+                    需 ${edu.minAge} 歲 | 學費 $${(edu.cost || 0).toLocaleString()}
+                </div>
+            </div>
+            <div>${statusHtml}</div>
+        </div>`;
   });
 
   html += "</div></div>";
 
-  showModal("🎓 教育系統", html, [
+  showModal("🎓 升學規劃", html, [
     { text: "關閉", action: () => closeModal() },
   ]);
 }
+function showMajorSelection(eduId) {
+  const majors = MAJORS[eduId];
+  if (!majors) return;
 
+  const eduLevel = EDUCATION_LEVELS.find((e) => e.id === eduId);
+  let html = `<div style="padding:10px;">`;
+  html += `<div style="text-align:center; margin-bottom:15px; color:var(--text-dim);">請選擇要申請的 ${eduLevel.name} 科系</div>`;
+  html += `<div style="display:flex; flex-direction:column; gap:12px;">`;
+
+  majors.forEach((major) => {
+    // 檢查條件
+    let canApply = true;
+    let reqText = "";
+
+    if (major.requirement) {
+      Object.keys(major.requirement).forEach((key) => {
+        const reqVal = major.requirement[key];
+        // 取得當前數值
+        let currentVal = 0;
+        let label = "";
+
+        if (key === "money") {
+          // 學費檢查 (如果有特定科系學費)
+          // 這裡通常是檢查玩家現金，但入學是扣錢不是看門檻
+          // 不過有些貴族科系可能需要財力證明
+          currentVal = Game.money;
+          label = "財力";
+        } else if (key === "minAge") {
+          currentVal = Game.age;
+          label = "年齡";
+        } else {
+          // 屬性或技能
+          currentVal =
+            Game[key] !== undefined ? Game[key] : Game.skills[key] || 0;
+          // 翻譯
+          label =
+            typeof getStatName === "function"
+              ? getStatName(key).replace(/.* /, "")
+              : key;
+        }
+
+        if (currentVal < reqVal) canApply = false;
+        const color = currentVal >= reqVal ? "var(--green)" : "var(--red)";
+        const status = currentVal >= reqVal ? "✅" : "❌";
+
+        reqText += `<span style="font-size:0.8em; color:${color}; margin-right:8px;">${status} ${label}: ${currentVal}/${reqVal}</span>`;
+      });
+    }
+
+    html += `
+            <div class="job-card" style="cursor:default; border: 2px solid ${canApply ? "var(--blue)" : "#444"}; opacity:${canApply ? 1 : 0.7};">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <div style="font-weight:bold; color:var(--gold);">${major.name}</div>
+                    ${canApply ? `<button class="btn-main" style="padding:2px 10px; font-size:0.8em;" onclick="enterEducation('${eduId}', '${major.id}')">申請</button>` : '<span style="color:var(--red); font-size:0.8em;">條件不符</span>'}
+                </div>
+                <div style="font-size:0.85em; color:#ddd; margin-bottom:8px;">${major.desc}</div>
+                <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:5px;">
+                    <div style="font-size:0.8em; color:#aaa; margin-bottom:3px;">📋 入學門檻：</div>
+                    <div>${reqText}</div>
+                </div>
+            </div>
+        `;
+  });
+
+  html += `</div></div>`;
+
+  showModal(`📝 選擇主修 (${eduLevel.name})`, html, [
+    { text: "返回", action: () => showEducationMenu() },
+  ]);
+}
 function renderAchievements() {
   let html = "";
 
@@ -3492,9 +3721,7 @@ function showAchievementToast(name) {
     }, 500);
   }, 3000);
 }
-
 function renderJobs() {
-  // 過濾可用職業（排除 none 和出身限定職業）
   const availableJobs = JOBS.filter((job) => {
     if (job.id === "none") return false;
     if (job.originRequired && job.originRequired !== Game.originId)
@@ -3508,31 +3735,69 @@ function renderJobs() {
     return;
   }
 
-  // 確保索引不超出範圍
   if (currentJobIndex >= availableJobs.length) currentJobIndex = 0;
   if (currentJobIndex < 0) currentJobIndex = availableJobs.length - 1;
 
   const job = availableJobs[currentJobIndex];
-
-  // 檢查是否符合條件
   let canApply = true;
   let reqText = "";
 
   if (job.requirement) {
     Object.keys(job.requirement).forEach((key) => {
       const required = job.requirement[key];
-      const current =
-        key === "intel"
-          ? Game.intel
-          : key === "health"
-            ? Game.health
-            : Game.skills[key] || 0;
 
-      if (current < required) canApply = false;
+      // ✅ 新增：檢查學歷 (major)
+      if (key === "major") {
+        // required 是一個陣列，例如 ['medicine', 'med_master']
+        // 檢查 Game.major 是否在其中
+        const hasMajor = required.includes(Game.major);
+        if (!hasMajor) canApply = false;
 
-      const emoji = key === "intel" ? "🧠" : key === "health" ? "❤️" : "📊";
-      const status = current >= required ? "✅" : "❌";
-      reqText += `<div style="margin: 3px 0;">${status} ${emoji} ${key}: ${current}/${required}</div>`;
+        // 顯示科系名稱 (這裡簡單對應幾個主要的，或是顯示通用名稱)
+        let majorName = "特定科系";
+        if (required.includes("medicine")) majorName = "醫學系";
+        else if (required.includes("law")) majorName = "法律系";
+        else if (required.includes("cs")) majorName = "資工/電機";
+        else if (required.includes("business")) majorName = "商學院";
+        else if (required.includes("education")) majorName = "教育系";
+        else if (required.includes("art")) majorName = "藝術系";
+        else if (required.includes("mba")) majorName = "MBA";
+        else if (required.includes("cs_master")) majorName = "碩士學位";
+
+        const status = hasMajor ? "✅" : "❌";
+        reqText += `<div style="margin: 3px 0;">${status} 🎓 學歷: 需${majorName}</div>`;
+      }
+      // 檢查其他數值
+      else {
+        let current = 0;
+        let emoji = "";
+        let label = "";
+
+        if (key === "minAge") {
+          current = Game.age;
+          emoji = "🎂";
+          label = "最低年齡";
+        } else if (key === "intel") {
+          current = Game.intel;
+          emoji = "🧠";
+          label = "智力";
+        } else if (key === "health") {
+          current = Game.health;
+          emoji = "❤️";
+          label = "健康";
+        } else {
+          current = Game.skills[key] || 0;
+          emoji = "📊";
+          label =
+            typeof getStatName === "function"
+              ? getStatName(key).replace(/.* /, "")
+              : key;
+        }
+
+        if (current < required) canApply = false;
+        const status = current >= required ? "✅" : "❌";
+        reqText += `<div style="margin: 3px 0;">${status} ${emoji} ${label}: ${current}/${required}</div>`;
+      }
     });
   } else {
     reqText = '<div style="color: var(--green);">✅ 無特殊要求</div>';
@@ -3540,24 +3805,12 @@ function renderJobs() {
 
   const isCurrentJob = Game.jobId === job.id;
 
+  // ... (以下 HTML 生成部分保持不變) ...
   let html = `
               <div style="position: relative; min-height: 350px;">
-                  <!-- 左右切換按鈕 -->
-                  <button onclick="prevJob()"
-                          style="position: absolute; left: -10px; top: 50%; transform: translateY(-50%);
-                                 width: 50px; height: 50px; border-radius: 50%; font-size: 1.5em;
-                                 background: linear-gradient(135deg, #444, #555); z-index: 10;">
-                      ◀
-                  </button>
+                  <button onclick="prevJob()" style="position: absolute; left: -10px; top: 50%; transform: translateY(-50%); width: 50px; height: 50px; border-radius: 50%; font-size: 1.5em; background: linear-gradient(135deg, #444, #555); z-index: 10;">◀</button>
+                  <button onclick="nextJob()" style="position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: 50px; height: 50px; border-radius: 50%; font-size: 1.5em; background: linear-gradient(135deg, #444, #555); z-index: 10;">▶</button>
 
-                  <button onclick="nextJob()"
-                          style="position: absolute; right: -10px; top: 50%; transform: translateY(-50%);
-                                 width: 50px; height: 50px; border-radius: 50%; font-size: 1.5em;
-                                 background: linear-gradient(135deg, #444, #555); z-index: 10;">
-                      ▶
-                  </button>
-
-                  <!-- 職業卡片 -->
                   <div style="padding: 0 60px;">
                       <div class="job-card" style="background: linear-gradient(135deg, #2a2a3e, #3a3a4e);
                            border: 3px solid ${isCurrentJob ? "var(--gold)" : canApply ? "var(--blue)" : "var(--red)"};
@@ -3586,32 +3839,15 @@ function renderJobs() {
                               </div>
                               ${reqText}
                           </div>
-
-                          ${
-                            !canApply && !isCurrentJob
-                              ? '<div style="text-align: center; margin-top: 15px; padding: 12px; background: var(--red); border-radius: 8px; font-weight: bold;">❌ 條件不符，無法應徵</div>'
-                              : ""
-                          }
-
-                          ${
-                            canApply && !isCurrentJob
-                              ? '<div style="text-align: center; margin-top: 15px; padding: 12px; background: var(--green); color: black; border-radius: 8px; font-weight: bold; animation: pulse 2s infinite;">👆 點擊卡片應徵此職業</div>'
-                              : ""
-                          }
-
-                          ${
-                            isCurrentJob
-                              ? '<div style="text-align: center; margin-top: 15px; padding: 12px; background: var(--gold); color: black; border-radius: 8px; font-weight: bold;">✅ 這是你目前的工作</div>'
-                              : ""
-                          }
+                          
+                          ${!canApply && !isCurrentJob ? '<div style="text-align: center; margin-top: 15px; padding: 12px; background: var(--red); border-radius: 8px; font-weight: bold;">❌ 條件不符，無法應徵</div>' : ""}
+                          ${canApply && !isCurrentJob ? '<div style="text-align: center; margin-top: 15px; padding: 12px; background: var(--green); color: black; border-radius: 8px; font-weight: bold; animation: pulse 2s infinite;">👆 點擊卡片應徵此職業</div>' : ""}
+                          ${isCurrentJob ? '<div style="text-align: center; margin-top: 15px; padding: 12px; background: var(--gold); color: black; border-radius: 8px; font-weight: bold;">✅ 這是你目前的工作</div>' : ""}
                       </div>
 
-                      <!-- 頁碼指示器 -->
                       <div style="text-align: center; margin-top: 15px; color: var(--text-dim); font-size: 0.9em;">
                           職業 ${currentJobIndex + 1} / ${availableJobs.length}
-                          <div style="margin-top: 8px; font-size: 0.85em;">
-                              💡 左右切換查看更多職業
-                          </div>
+                          <div style="margin-top: 8px; font-size: 0.85em;">💡 左右切換查看更多職業</div>
                       </div>
                   </div>
               </div>
@@ -3620,12 +3856,12 @@ function renderJobs() {
   document.getElementById("job-list").innerHTML = html;
 }
 
-// ✅ 修正後的 selectJob 函數
+// game.js - 替換 selectJob 函數
+
 function selectJob(jobId) {
   const job = JOBS.find((j) => j.id === jobId);
   if (!job) return;
 
-  // 檢查特質需求
   if (job.requiredTrait) {
     const hasTrait = Game.traits.some((t) => t.id === job.requiredTrait);
     if (!hasTrait) {
@@ -3636,19 +3872,45 @@ function selectJob(jobId) {
     }
   }
 
-  // 檢查技能需求
   let canApply = true;
   let missingReqs = [];
+
+  // ✅ 檢查所有條件 (包含 minAge 和 major)
+  if (job.requirement.minAge && Game.age < job.requirement.minAge) {
+    canApply = false;
+    missingReqs.push(`年齡 ${job.requirement.minAge}歲`);
+  }
+
+  // 🎓 學歷檢查
+  if (job.requirement.major) {
+    const hasMajor = job.requirement.major.includes(Game.major);
+    if (!hasMajor) {
+      canApply = false;
+      missingReqs.push(`相關學歷 (如: ${job.requirement.major[0]})`);
+    }
+  }
 
   if (job.requirement.intel && Game.intel < job.requirement.intel) {
     canApply = false;
     missingReqs.push(`智力 ${job.requirement.intel}`);
   }
 
+  if (job.requirement.health && Game.health < job.requirement.health) {
+    canApply = false;
+    missingReqs.push(`健康 ${job.requirement.health}`);
+  }
+
   Object.keys(job.requirement).forEach((skill) => {
-    if (skill !== "intel" && Game.skills[skill] < job.requirement[skill]) {
+    if (
+      !["intel", "health", "minAge", "major"].includes(skill) &&
+      Game.skills[skill] < job.requirement[skill]
+    ) {
       canApply = false;
-      missingReqs.push(`${skill} ${job.requirement[skill]}`);
+      const label =
+        typeof getStatName === "function"
+          ? getStatName(skill).replace(/.* /, "")
+          : skill;
+      missingReqs.push(`${label} ${job.requirement[skill]}`);
     }
   });
 
@@ -3657,7 +3919,6 @@ function selectJob(jobId) {
     return;
   }
 
-  // 計算特質加成
   let finalSalary = job.salary;
   let bonusMessages = [];
 
@@ -3671,10 +3932,10 @@ function selectJob(jobId) {
     });
   }
 
-  // 更新遊戲狀態
   Game.jobId = jobId;
   Game.jobYears = 0;
-  Game.job = "實習生"; // ✨【關鍵修復】初始化職稱，讓升遷系統有起點
+  Game.job = "實習生";
+  Game.salaryBonus = 0;
 
   let message = `🎉 成功應徵 ${job.name}！\n月薪：$${Math.floor(finalSalary).toLocaleString()}`;
   if (bonusMessages.length > 0) {
@@ -3684,6 +3945,7 @@ function selectJob(jobId) {
   log(message);
   alert(message);
   updateUI();
+  renderJobs();
 }
 
 function renderSocial() {
@@ -4187,106 +4449,67 @@ function addFriend() {
 }
 
 function renderShop() {
-    // ✨ 新增：銀行入口按鈕
+  // 銀行入口按鈕 (保持不變)
   const bankBtnHtml = `
     <div style="margin-bottom: 20px; text-align: center;">
-        <button class="btn-main" style="background: linear-gradient(135deg, #1e3c72, #2a5298); width: 100%; padding: 15px; font-size: 1.1em; box-shadow: 0 4px 15px rgba(0,0,0,0.3);" 
-                onclick="showBankMenu()">
+        <button class="btn-main" style="background: linear-gradient(135deg, #1e3c72, #2a5298); width: 100%; padding: 15px; font-size: 1.1em; box-shadow: 0 4px 15px rgba(0,0,0,0.3);" onclick="showBankMenu()">
             🏦 前往銀行 (貸款/還款)
         </button>
     </div>
   `;
-  
-  const carContainer = document.getElementById("car-shop");
   const assetPage = document.getElementById("page-assets");
-  
-  // 檢查是否已經有銀行按鈕，沒有才加 (避免重複)
   if (!document.getElementById("btn-bank-entry")) {
-      const btnDiv = document.createElement("div");
-      btnDiv.id = "btn-bank-entry";
-      btnDiv.innerHTML = bankBtnHtml;
-      // 插在 card-header 之後
-      assetPage.insertBefore(btnDiv, assetPage.firstChild); 
+    const btnDiv = document.createElement("div");
+    btnDiv.id = "btn-bank-entry";
+    btnDiv.innerHTML = bankBtnHtml;
+    assetPage.insertBefore(btnDiv, assetPage.firstChild);
   }
-  // 1. 車庫渲染
-  let carHtml = "";
-  CARS.forEach((car) => {
-    const owned = Game.inventory.includes(car.id);
-    // 🔥 計算通膨後的價格
-    const currentPrice = getInflatedPrice(car.price);
 
-    carHtml += `
+  const renderCard = (item, type) => {
+    const owned = Game.inventory.includes(item.id);
+    const currentPrice = getInflatedPrice(item.price);
+    const priceDisplay =
+      currentPrice >= 10000
+        ? `$${(currentPrice / 10000).toFixed(0)}萬`
+        : `$${currentPrice.toLocaleString()}`;
+
+    let effectText = "";
+    // 優先顯示 desc，如果沒有則顯示數值
+    if (item.desc) {
+      effectText = item.desc; // 例如 "體力上限 +20"
+    } else {
+      if (item.charm) effectText += `✨ 魅力 +${item.charm} `;
+      if (item.happy) effectText += `😊 快樂 +${item.happy} `;
+    }
+
+    if (item.passive) {
+      const currentRent = getInflatedPrice(item.passive);
+      effectText += ` | 💰 租金 $${currentRent.toLocaleString()}/月`;
+    }
+
+    return `
       <div class="job-card" style="cursor: default;">
-          <div class="job-name">${car.name} ${owned ? "✓ (已擁有)" : ""}</div>
-          <div class="job-salary">✨ 魅力 +${car.charm}</div>
-          <div style="font-size: 0.85em; color: var(--text-dim); margin: 5px 0;">
-              ${car.desc}
-          </div>
+          <div class="job-name">${item.name} ${owned ? "✓ (已擁有)" : ""}</div>
+          <div class="job-salary" style="font-size: 0.9em; color: var(--green);">${effectText}</div>
           <div style="margin-top: 8px;">
-              <button class="btn-buy" onclick="buyItem('${car.id}')" ${owned ? "disabled" : ""}>
-                  購買 $${(currentPrice / 10000).toFixed(0)}萬
+              <button class="btn-buy" onclick="buyItem('${item.id}')" ${owned ? "disabled" : ""}>
+                  購買 ${priceDisplay}
               </button>
+              ${type === "house" && !owned ? `<button class="btn-main" style="margin-left:5px; font-size:0.8em; padding: 5px 10px;" onclick="buyHouseWithMortgage(HOUSES.find(h=>h.id==='${item.id}'))">貸款</button>` : ""}
           </div>
       </div>
     `;
-  });
+  };
 
-  // 2. 房產渲染
-  let houseHtml = "";
-  HOUSES.forEach((house) => {
-    const owned = Game.inventory.includes(house.id);
-    // 🔥 計算通膨後的價格與租金
-    const currentPrice = getInflatedPrice(house.price);
-    const currentRent = getInflatedPrice(house.passive);
-
-    houseHtml += `
-      <div class="job-card" style="cursor: default;">
-          <div class="job-name">${house.name} ${owned ? "✓ (已擁有)" : ""}</div>
-          <div class="job-salary">
-              😊 快樂 +${house.happy} | 💰 被動收入 $${currentRent.toLocaleString()}/月
-          </div>
-          <div style="font-size: 0.85em; color: var(--text-dim); margin: 5px 0;">
-              ${house.desc}
-          </div>
-          <div style="margin-top: 8px;">
-              <button class="btn-buy" onclick="buyItem('${house.id}')" ${owned ? "disabled" : ""}>
-                  購買 $${(currentPrice / 10000).toFixed(0)}萬
-              </button>
-              ${!owned ? `<button class="btn-main" style="margin-left:5px; font-size:0.8em; padding: 5px 10px;" onclick="buyHouseWithMortgage(HOUSES.find(h=>h.id==='${house.id}'))">貸款</button>` : ""}
-          </div>
-      </div>
-    `;
-  });
-
-  // 3. 奢侈品渲染
-  let luxHtml = "";
-  LUXURIES.forEach((lux) => {
-    const owned = Game.inventory.includes(lux.id);
-    // 🔥 計算通膨後的價格
-    const currentPrice = getInflatedPrice(lux.price);
-
-    luxHtml += `
-      <div class="job-card" style="cursor: default;">
-          <div class="job-name">${lux.name} ${owned ? "✓ (已擁有)" : ""}</div>
-          <div class="job-salary">
-              ${lux.charm ? `✨ 魅力 +${lux.charm}` : ""}
-              ${lux.happy ? `😊 快樂 +${lux.happy}` : ""}
-          </div>
-          <div style="font-size: 0.85em; color: var(--text-dim); margin: 5px 0;">
-              ${lux.desc}
-          </div>
-          <div style="margin-top: 8px;">
-              <button class="btn-buy" onclick="buyItem('${lux.id}')" ${owned ? "disabled" : ""}>
-                  購買 $${(currentPrice / 10000).toFixed(0)}萬
-              </button>
-          </div>
-      </div>
-    `;
-  });
-
-  document.getElementById("car-shop").innerHTML = carHtml;
-  document.getElementById("house-shop").innerHTML = houseHtml;
-  document.getElementById("luxury-shop").innerHTML = luxHtml;
+  document.getElementById("car-shop").innerHTML = CARS.map((c) =>
+    renderCard(c, "car"),
+  ).join("");
+  document.getElementById("house-shop").innerHTML = HOUSES.map((h) =>
+    renderCard(h, "house"),
+  ).join("");
+  document.getElementById("luxury-shop").innerHTML = LUXURIES.map((l) =>
+    renderCard(l, "lux"),
+  ).join("");
 }
 
 function buyItem(id) {
@@ -4298,30 +4521,31 @@ function buyItem(id) {
   if (!item) return;
   if (Game.inventory.includes(id)) return alert("已擁有");
 
-  // 🔥 關鍵修改：計算當前通膨後的價格
   const realPrice = getInflatedPrice(item.price);
 
   if (Game.money < realPrice) {
     return alert(`錢不夠！需要 $${realPrice.toLocaleString()}`);
   }
 
-  // 增加確認視窗，避免誤買高價物品
   if (
     confirm(`確定要花費 $${realPrice.toLocaleString()} 購買 ${item.name} 嗎？`)
   ) {
     Game.money -= realPrice;
     Game.inventory.push(id);
 
-    if (car) {
-      Game.skills.charm += car.charm;
-      log(`🏎️ 購買了 ${car.name}`);
-    } else if (house) {
-      Game.happy += house.happy;
-      log(`🏘️ 購買了 ${house.name}`);
+    // ✨ 關鍵修改：支援通用效果 (effect)
+    if (item.effect) {
+      const msg = item.effect(Game);
+      log(`🛍️ 購買了 ${item.name}：${msg}`);
     } else {
-      if (lux.charm) Game.skills.charm += lux.charm;
-      if (lux.happy) Game.happy += lux.happy;
-      log(`💎 購買了 ${lux.name}`);
+      // 舊版屬性加成 (兼容)
+      if (car) Game.skills.charm += car.charm;
+      if (house) Game.happy += house.happy;
+      if (lux) {
+        if (lux.charm) Game.skills.charm += lux.charm;
+        if (lux.happy) Game.happy += lux.happy;
+      }
+      log(`🛍️ 購買了 ${item.name}`);
     }
 
     checkAchievements();
@@ -4329,7 +4553,6 @@ function buyItem(id) {
     renderShop();
   }
 }
-
 function renderStats() {
   const highestSkill = Object.keys(Game.skills).reduce((a, b) =>
     Game.skills[a] > Game.skills[b] ? a : b,
@@ -4375,8 +4598,8 @@ function nav(page, event) {
   event.currentTarget.classList.add("active");
 
   // 更新特定頁面的資料
-  if (page === 'map') {
-      renderMap();
+  if (page === "map") {
+    renderMap();
   }
   if (page === "profile") {
     // ✅ 成就统计
@@ -4953,7 +5176,7 @@ function loadGame() {
     Game.debtYears = data.debtYears || 0;
     Game.hasBeenInDebt = data.hasBeenInDebt || false;
     if (!currentTurnActions || currentTurnActions.length === 0) {
-        generateTurnActions(); 
+      generateTurnActions();
     }
     document.getElementById("scene-creation").style.display = "none";
     document.getElementById("scene-game").classList.add("active");
@@ -4980,9 +5203,9 @@ function showModal(title, description, actions) {
   // 1. 優化：支援 HTML 內容 (讓 <br> 換行或顏色標籤生效)
   const descEl = document.getElementById("ev-desc");
   if (description && description.includes("<")) {
-      descEl.innerHTML = description;
+    descEl.innerHTML = description;
   } else {
-      descEl.textContent = description;
+    descEl.textContent = description;
   }
 
   // 取得舊按鈕
@@ -4993,7 +5216,7 @@ function showModal(title, description, actions) {
   // 這是解決「按鈕點擊無效」或「重複觸發」最有效的方法
   const newBtnA = oldBtnA.cloneNode(true);
   const newBtnB = oldBtnB.cloneNode(true);
-  
+
   // 在 DOM 中用新按鈕替換舊按鈕
   oldBtnA.parentNode.replaceChild(newBtnA, oldBtnA);
   oldBtnB.parentNode.replaceChild(newBtnB, oldBtnB);
@@ -5025,24 +5248,26 @@ function showModal(title, description, actions) {
 function renderMap() {
   const grid = document.getElementById("map-grid");
   const locActionDiv = document.getElementById("location-actions");
-  if(!grid) return;
+  if (!grid) return;
 
   grid.innerHTML = "";
-  
-  const currentLoc = LOCATIONS.find(l => l.id === Game.currentLocation);
-  
+
+  const currentLoc = LOCATIONS.find((l) => l.id === Game.currentLocation);
+
   // 更新上方標題
-  if(document.getElementById("current-location")) {
-      document.getElementById("current-location").textContent = currentLoc ? currentLoc.name : "未知";
+  if (document.getElementById("current-location")) {
+    document.getElementById("current-location").textContent = currentLoc
+      ? currentLoc.name
+      : "未知";
   }
 
   // 渲染九宮格
-  LOCATIONS.forEach(loc => {
+  LOCATIONS.forEach((loc) => {
     const isCurrent = Game.currentLocation === loc.id;
     const cell = document.createElement("div");
     cell.className = `map-cell ${isCurrent ? "current" : ""}`;
     cell.onclick = () => travelTo(loc.id); // 點擊移動
-    
+
     cell.innerHTML = `
       <div class="map-icon">${loc.icon}</div>
       <div class="map-name">${loc.name}</div>
@@ -5061,148 +5286,230 @@ function renderMap() {
 }
 
 // 🚕 移動邏輯
+// game.js - 替換原本的 travelTo
 
 function travelTo(locId) {
-  if (locId === Game.currentLocation) return; // 已經在這裡
+  if (locId === Game.currentLocation) return;
 
   const travelCost = 10;
-  
+
   if (Game.stamina < travelCost) {
     return showPopup("❌ 體力不足，無法移動！", "red");
   }
 
-  const targetName = LOCATIONS.find(l=>l.id===locId).name;
+  const targetName = LOCATIONS.find((l) => l.id === locId).name;
 
   if (confirm(`要前往【${targetName}】嗎？\n(消耗 ${travelCost} 體力)`)) {
     Game.stamina -= travelCost;
     Game.currentLocation = locId;
-    
-    const changes = [`${getStatName('stamina')} -${travelCost}`];
-    
-    // 🎲 移動隨機事件 (15% 機率)
+
+    // ✨ 顯示移動消耗 (中文)
+    const changes = [`${getStatName("stamina")} -${travelCost}`];
+
+    // 🎲 移動隨機事件
     if (Math.random() < 0.15) {
-       const event = Math.random();
-       if(event < 0.5) {
-           log("🚕 移動途中塞車了，心情變差...", [`${getStatName('happy')} -5`]);
-           Game.happy -= 5;
-           changes.push(`${getStatName('happy')} -5`);
-       } else {
-           log("🍀 路上撿到 100 元！", [`${getStatName('money')} +100`]);
-           Game.money += 100;
-           changes.push(`${getStatName('money')} +100`);
-       }
+      const event = Math.random();
+      if (event < 0.5) {
+        log("🚕 移動途中塞車了，心情變差...", [`${getStatName("happy")} -5`]);
+        Game.happy -= 5;
+        changes.push(`${getStatName("happy")} -5`);
+      } else {
+        log("🍀 路上撿到 100 元！", [`${getStatName("money")} +100`]);
+        Game.money += 100;
+        changes.push(`${getStatName("money")} +100`);
+      }
     }
 
-    // ✨ 顯示數值變化 (中文)
-    showChanges(changes);
-
+    showChanges(changes); // 彈出浮動提示
     updateUI();
-    renderMap(); // 重新渲染地圖以更新狀態 (目前位置標記)
+    renderMap();
+  }
+}
+
+function travelTo(locId) {
+  if (locId === Game.currentLocation) return;
+
+  const travelCost = 10;
+
+  if (Game.stamina < travelCost) {
+    return showPopup("❌ 體力不足，無法移動！", "red");
+  }
+
+  const targetName = LOCATIONS.find((l) => l.id === locId).name;
+
+  if (confirm(`要前往【${targetName}】嗎？\n(消耗 ${travelCost} 體力)`)) {
+    Game.stamina -= travelCost;
+    Game.currentLocation = locId;
+
+    // ✨ 顯示移動消耗 (中文)
+    const changes = [`${getStatName("stamina")} -${travelCost}`];
+
+    // 🎲 移動隨機事件
+    if (Math.random() < 0.15) {
+      const event = Math.random();
+      if (event < 0.5) {
+        log("🚕 移動途中塞車了，心情變差...", [`${getStatName("happy")} -5`]);
+        Game.happy -= 5;
+        changes.push(`${getStatName("happy")} -5`);
+      } else {
+        log("🍀 路上撿到 100 元！", [`${getStatName("money")} +100`]);
+        Game.money += 100;
+        changes.push(`${getStatName("money")} +100`);
+      }
+    }
+
+    showChanges(changes); // 彈出浮動提示
+    updateUI();
+    renderMap();
   }
 }
 
 // 🔘 地點功能按鈕 (整合原本的 action)
+
 function renderLocationButtons(locId) {
   const container = document.getElementById("loc-btn-container");
   container.innerHTML = "";
 
-  let btns = "";
+  // 1. 定義每個地點可用的 Action ID 列表
+  let actionIds = [];
 
-  // 根據地點生成不同的按鈕
   switch (locId) {
     case "home":
-      btns += `<button class="btn-main" onclick="action('sleep')">😴 睡覺補眠</button>`;
-      btns += `<button class="btn-main" onclick="action('play_game')">🎮 打電動</button>`;
-      btns += `<button class="btn-main" onclick="action('clean_house')">🧹 大掃除</button>`;
+      actionIds = ["sleep_home", "clean_home", "play_game"];
       break;
-
     case "mall":
-      btns += `<button class="btn-buy" onclick="renderShop(); nav('assets', event)">🛍️ 逛商店 (買車/房)</button>`;
-      btns += `<button class="btn-main" onclick="action('luxury_meal')">🍣 吃大餐 ($5,000)</button>`;
-      btns += `<button class="btn-main" onclick="action('online_shopping')">📦 購物舒壓</button>`;
+      // 特殊按鈕：商店頁面 (手動添加)
+      container.innerHTML += `<button class="btn-buy" onclick="renderShop(); nav('assets', event)">🛍️ 逛商店 (買車/房)</button>`;
+      actionIds = ["luxury_meal", "online_shopping"];
       break;
-
     case "cbd":
-      btns += `<button class="btn-main" style="background:var(--blue)" onclick="showBankMenu()">🏦 銀行 (貸款/還款)</button>`;
-      btns += `<button class="btn-main" onclick="action('invest')">📈 股票投資</button>`;
-      btns += `<button class="btn-main" onclick="action('crypto')">🪙 加密貨幣</button>`;
+      // 特殊按鈕：銀行頁面
+      container.innerHTML += `<button class="btn-main" style="background:var(--blue)" onclick="showBankMenu()">🏦 銀行 (貸款/還款)</button>`;
+      actionIds = ["invest", "crypto"];
       break;
-
     case "hospital":
-      btns += `<button class="btn-main" style="background:var(--red)" onclick="action('hospital')">🏥 看醫生 ($3,000)</button>`;
-      btns += `<button class="btn-main" onclick="action('gym')">💪 健身房</button>`;
+      actionIds = ["see_doctor", "rehab", "gym"];
       break;
-
     case "school":
-      btns += `<button class="btn-main" onclick="showEducationMenu()">🎓 學校教務處</button>`;
-      btns += `<button class="btn-main" onclick="action('learn_skill')">📖 進修課程</button>`;
-      btns += `<button class="btn-main" onclick="action('read_book')">📚 圖書館看書</button>`;
+      // 特殊按鈕：教育選單
+      container.innerHTML += `<button class="btn-main" onclick="showEducationMenu()">🎓 教務處 (入學/升學)</button>`;
+
+      // 判斷是否為學生，顯示不同按鈕
+      if (Game.isStudying) {
+        actionIds.push("attend_class", "school_lunch", "library");
+      } else {
+        actionIds.push("library", "learn_skill");
+      }
       break;
-      
     case "temple":
-      btns += `<button class="btn-main" style="background:var(--gold); color:black;" onclick="pray()">🙏 拜拜求籤 ($500)</button>`;
-      btns += `<button class="btn-main" onclick="action('volunteer')">🤝 志工服務</button>`;
+      actionIds = ["pray_god", "volunteer"];
       break;
-      
     case "park":
-      btns += `<button class="btn-main" onclick="action('sports')">⚽ 運動</button>`;
-      btns += `<button class="btn-main" onclick="meetFriend()">👋 尋找路人聊天</button>`;
+      actionIds = ["sports", "meet_friend"]; // meet_friend 是特殊函數，稍後手動加
       break;
-      
     case "club_area":
-      btns += `<button class="btn-main" style="background:var(--purple)" onclick="action('night_club')">🕺 進入夜店</button>`;
-      btns += `<button class="btn-main" onclick="action('casino')">🎲 地下賭場</button>`;
-      btns += `<button class="btn-main" onclick="action('socialize')">🍻 居酒屋</button>`;
+      actionIds = ["night_club_map", "casino_map", "socialize"];
       break;
-      
     case "airport":
-      btns += `<button class="btn-main" onclick="action('travel')">✈️ 出國旅遊 ($50,000)</button>`;
+      actionIds = ["travel"];
       break;
   }
 
-  container.innerHTML = btns || "<div style='color:#aaa; text-align:center;'>這裡目前沒什麼事可做...</div>";
+  // 2. 自動生成按鈕 (讀取 ACTIONS_POOL 獲得正確消耗數值)
+  let html = container.innerHTML;
+
+  actionIds.forEach((actId) => {
+    // 搜尋動作資料 (從所有池子找)
+    let act = null;
+    for (const key in ACTIONS_POOL) {
+      act = ACTIONS_POOL[key].find((a) => a.id === actId);
+      if (act) break;
+    }
+
+    if (act) {
+      // 計算顯示的消耗文字
+      const staminaCost = act.cost?.stamina || 0;
+      const moneyCost = act.cost?.money || 0;
+
+      let costText = "";
+      if (staminaCost > 0) costText += `⚡-${staminaCost} `;
+      else if (staminaCost < 0) costText += `⚡+${Math.abs(staminaCost)} `; // 負消耗=恢復
+
+      if (moneyCost > 0) {
+        const realCost = getInflatedPrice(moneyCost);
+        const costDisplay =
+          realCost >= 10000
+            ? `$${(realCost / 10000).toFixed(1)}萬`
+            : `$${realCost}`;
+        costText += `💸-${costDisplay}`;
+      }
+
+      // 判斷是否禁用
+      let disabled = "";
+      let style = "";
+      if (Game.stamina < staminaCost && staminaCost > 0) {
+        disabled = "disabled";
+        style = "opacity:0.5;";
+      }
+
+      html += `
+            <button class="btn-main" onclick="action('${act.id}')" ${disabled} style="${style}">
+                ${act.name} <span class="cost-tag" style="font-size:0.8em; opacity:0.8;">${costText}</span>
+            </button>
+        `;
+    }
+  });
+
+  // 3. 補上手動定義的特殊按鈕 (如公園遇人)
+  if (locId === "park") {
+    html += `<button class="btn-main" onclick="meetFriend()">👋 尋找路人 <span class="cost-tag">⚡-15</span></button>`;
+  }
+
+  container.innerHTML =
+    html ||
+    "<div style='color:#aaa; text-align:center;'>這裡目前沒什麼事可做...</div>";
 }
 
 // 🙏 新增：拜拜功能
 function pray() {
-    if(Game.money < 500) return alert("香油錢不足！");
-    if(isProcessing) return;
-    
-    Game.money -= 500;
-    Game.stamina -= 10;
-    isProcessing = true;
-    
-    const r = Math.random();
-    let msg = "";
-    if(r < 0.2) {
-        Game.luckBonus += 0.05;
-        msg = "大吉！感覺運氣變好了！(幸運+5%)";
-    } else if (r < 0.5) {
-        Game.happy += 10;
-        msg = "中吉，心情平靜。(快樂+10)";
-    } else {
-        msg = "末吉，但求平安。";
-    }
-    
-    log(`🙏 在寺廟拜拜：${msg}`);
-    updateUI();
-    setTimeout(()=>isProcessing=false, 300);
+  if (Game.money < 500) return alert("香油錢不足！");
+  if (isProcessing) return;
+
+  Game.money -= 500;
+  Game.stamina -= 10;
+  isProcessing = true;
+
+  const r = Math.random();
+  let msg = "";
+  if (r < 0.2) {
+    Game.luckBonus += 0.05;
+    msg = "大吉！感覺運氣變好了！(幸運+5%)";
+  } else if (r < 0.5) {
+    Game.happy += 10;
+    msg = "中吉，心情平靜。(快樂+10)";
+  } else {
+    msg = "末吉，但求平安。";
+  }
+
+  log(`🙏 在寺廟拜拜：${msg}`);
+  updateUI();
+  setTimeout(() => (isProcessing = false), 300);
 }
 
 // 👋 新增：公園遇人
 function meetFriend() {
-    if(Game.stamina < 15) return alert("體力不足");
-    if(isProcessing) return;
+  if (Game.stamina < 15) return alert("體力不足");
+  if (isProcessing) return;
 
-    Game.stamina -= 15;
-    isProcessing = true;
-    
-    if(Math.random() < 0.4) {
-        addFriend(); // 呼叫原本的交朋友函數
-    } else {
-        log("🌳 在公園晃了一圈，沒遇到認識的人。", ["體力-15"]);
-    }
-    updateUI();
-    setTimeout(()=>isProcessing=false, 300);
+  Game.stamina -= 15;
+  isProcessing = true;
+
+  if (Math.random() < 0.4) {
+    addFriend(); // 呼叫原本的交朋友函數
+  } else {
+    log("🌳 在公園晃了一圈，沒遇到認識的人。", ["體力-15"]);
+  }
+  updateUI();
+  setTimeout(() => (isProcessing = false), 300);
 }
 initCreation();

@@ -2260,24 +2260,139 @@ const JOBS = [
     effect: null,
     desc: "待業中",
   },
+
+  // === 🟢 基礎/兼職工作 (無學歷限制) ===
+  {
+    id: "part_time",
+    name: "便利商店店員",
+    salary: 26000,
+    requirement: { minAge: 16, health: 50 },
+    effect: (g) => {
+      g.happy += 2;
+    },
+    desc: "歡迎光臨！適合學生的打工。",
+  },
+  {
+    id: "delivery",
+    name: "外送員",
+    salary: 35000,
+    requirement: { minAge: 18, health: 70 },
+    effect: (g) => {
+      g.health -= 5;
+    },
+    desc: "多勞多得，但風吹日曬很辛苦。",
+  },
+  {
+    id: "security",
+    name: "保全",
+    salary: 38000,
+    requirement: { minAge: 20, health: 80 },
+    effect: (g) => {
+      g.health -= 2;
+      g.intel -= 1;
+    },
+    desc: "日夜顛倒，守護大樓安全。",
+  },
+
+  // === 🔵 一般正職 (部分有科系加分或限制) ===
   {
     id: "clerk",
     name: "行政人員",
     salary: 32000,
-    requirement: { intel: 40 },
+    requirement: { minAge: 20, intel: 40 },
     effect: (g) => {
       g.happy -= 2;
     },
-    desc: "穩定的辦公室工作",
+    desc: "穩定的辦公室工作。",
   },
+  {
+    id: "police",
+    name: "警察",
+    salary: 65000,
+    requirement: { minAge: 20, health: 70, communication: 50 },
+    effect: (g) => {
+      g.health -= 3;
+      g.happy -= 5;
+    },
+    desc: "人民保母，含危險加給。",
+  },
+
+  {
+    id: "banker",
+    name: "銀行行員",
+    salary: 50000,
+    // 限制：商學院相關
+    requirement: {
+      minAge: 22,
+      finance: 40,
+      intel: 60,
+      major: ["business", "economics", "mba"],
+    },
+    effect: (g) => {
+      g.skills.finance += 2;
+    },
+    desc: "需具備金融背景。",
+  },
+  {
+    id: "teacher",
+    name: "教師",
+    salary: 55000,
+    // 限制：教育系
+    requirement: {
+      minAge: 23,
+      intel: 70,
+      communication: 60,
+      major: ["education"],
+    },
+    traitBonus: {
+      extrovert: { salary: 1.2, desc: "外向加成" },
+      charismatic: { salary: 1.15, desc: "魅力加成" },
+    },
+    effect: (g) => {
+      g.happy += 5;
+      g.skills.communication += 2;
+    },
+    desc: "需修習教育學程。",
+  },
+  {
+    id: "designer",
+    name: "設計師",
+    salary: 45000,
+    // 限制：藝術系
+    requirement: { minAge: 22, art: 80, major: ["art"] },
+    effect: (g) => {
+      g.skills.art += 3;
+      g.happy += 3;
+    },
+    desc: "需具備設計相關學歷。",
+  },
+  {
+    id: "chef",
+    name: "主廚",
+    salary: 55000,
+    requirement: { minAge: 25, cooking: 80, art: 40 }, // 廚師通常看技術，這裡不強制綁學歷
+    effect: (g) => {
+      g.skills.cooking += 3;
+      g.happy += 5;
+    },
+    desc: "餐廳的靈魂人物。",
+  },
+
+  // === 🟣 專業/高薪工作 (嚴格學歷限制) ===
   {
     id: "engineer",
     name: "工程師",
     salary: 75000,
-    requirement: { intel: 80, programming: 70 },
+    // 限制：資工、電機相關 (含碩博)
+    requirement: {
+      minAge: 22,
+      intel: 80,
+      programming: 70,
+      major: ["cs", "engineering", "cs_master", "cs_phd"],
+    },
     traitBonus: {
-      techsavvy: { salary: 1.3, desc: "科技達人薪資加成 30%" },
-      quicklearner: { salary: 1.2, desc: "快速學習者薪資加成 20%" },
+      techsavvy: { salary: 1.3, desc: "科技達人加成" },
+      quicklearner: { salary: 1.2, desc: "快速學習加成" },
       introvert: { salary: 1.1, desc: "內向者薪資加成 10%" },
     },
     effect: (g) => {
@@ -2285,63 +2400,115 @@ const JOBS = [
       g.happy -= 5;
       g.health -= 3;
     },
-    desc: "高薪但爆肝的科技業",
+    desc: "限理工科系畢業。",
+  },
+  {
+    id: "lawyer",
+    name: "律師",
+    salary: 150000,
+    // 限制：法律系
+    requirement: { minAge: 25, intel: 100, communication: 80, major: ["law"] },
+    effect: (g) => {
+      g.skills.communication += 3;
+      g.happy -= 8;
+    },
+    desc: "限法律系畢業，需通過國考。",
+  },
+  {
+    id: "pilot",
+    name: "機師",
+    salary: 250000,
+    // 機師通常不限科系，但門檻極高
+    requirement: { minAge: 24, intel: 90, health: 90 },
+    effect: (g) => {
+      g.health -= 5;
+      g.happy += 3;
+    },
+    desc: "夢幻的高薪職業，體檢嚴格。",
   },
   {
     id: "doctor",
     name: "主治醫師",
     salary: 180000,
-    requirement: { intel: 120, medical: 80 },
+    // 限制：醫學系相關 (含碩博)
+    requirement: {
+      minAge: 28,
+      intel: 120,
+      medical: 80,
+      major: ["medicine", "med_master", "med_phd"],
+    },
     requiredTrait: "athletic",
-    traitBonus: { athletic: { salary: 1.2, desc: "運動健將薪資加成" } },
     effect: (g) => {
       g.health -= 5;
       g.skills.medical += 3;
     },
-    desc: "社會地位極高的職業",
+    desc: "限醫學系畢業，救死扶傷。",
   },
+  {
+    id: "scientist",
+    name: "科學家",
+    salary: 85000,
+    // 限制：需有碩士以上學歷 (任何科系的碩博)
+    requirement: {
+      minAge: 26,
+      intel: 110,
+      major: ["cs_master", "med_master", "mba", "cs_phd", "med_phd"],
+    },
+    effect: (g) => {
+      g.intel += 5;
+      g.happy += 3;
+    },
+    desc: "需具備碩士以上學位。",
+  },
+  {
+    id: "consultant",
+    name: "高級顧問",
+    salary: 120000,
+    // 限制：MBA
+    requirement: {
+      minAge: 35,
+      intel: 90,
+      leadership: 60,
+      management: 60,
+      major: ["mba"],
+    },
+    effect: (g) => {
+      g.skills.management += 2;
+    },
+    desc: "限 MBA 畢業。",
+  },
+
+  // === 🟡 特殊/自由業 (看特質不看學歷) ===
   {
     id: "artist",
     name: "藝術家",
     salary: 35000,
-    requirement: { art: 70, charm: 60 },
-    traitBonus: {
-      artistic: { salary: 1.5, desc: "藝術天賦薪資加成 50%" },
-      pessimistic: { salary: 1.3, desc: "悲觀主義者薪資加成 30%" },
-    },
+    requirement: { minAge: 18, art: 70, charm: 60 },
+    traitBonus: { artistic: { salary: 1.5, desc: "藝術天賦加成" } },
     effect: (g) => {
       g.happy += 10;
       g.skills.art += 3;
     },
-    desc: "收入不穩定的創作生活",
+    desc: "收入不穩定的創作生活。",
   },
   {
-    id: "teacher",
-    name: "教師",
-    salary: 55000,
-    requirement: { intel: 70, communication: 60 },
-    traitBonus: {
-      extrovert: { salary: 1.2, desc: "外向者薪資加成" },
-      charismatic: { salary: 1.15, desc: "魅力非凡薪資加成" },
-      optimistic: { salary: 1.1, desc: "樂觀主義者薪資加成 10%" },
-    },
+    id: "influencer",
+    name: "網紅",
+    salary: 80000,
+    requirement: { minAge: 18, charm: 90, communication: 70 },
+    traitBonus: { charismatic: { salary: 1.4, desc: "魅力非凡加成" } },
     effect: (g) => {
-      g.happy += 5;
-      g.skills.communication += 2;
+      g.skills.charm += 2;
+      g.happy += 8;
+      g.money += Math.floor(Math.random() * 60000) - 20000;
     },
-    desc: "作育英才的鐵飯碗",
+    desc: "流量變現，收入波動大。",
   },
   {
     id: "entrepreneur",
     name: "創業家",
     salary: 90000,
-    requirement: { intel: 90, finance: 70, charm: 70 },
-    traitBonus: {
-      businessmind: { salary: 1.5, desc: "商業頭腦薪資加成" },
-      brave: { salary: 1.3, desc: "勇敢者薪資加成" },
-      lucky: { salary: 1.4, desc: "幸運兒薪資加成" },
-      optimistic: { salary: 1.2, desc: "樂觀主義者薪資加成 20%" },
-    },
+    requirement: { minAge: 22, intel: 90, finance: 70, charm: 70 },
     effect: (g) => {
       const fluctuation = Math.floor(Math.random() * 200000) - 80000;
       g.money += fluctuation;
@@ -2350,81 +2517,13 @@ const JOBS = [
       if (fluctuation > 0) log(`📈 創業獲利 +${fluctuation.toLocaleString()}`);
       else log(`📉 創業虧損 ${Math.abs(fluctuation).toLocaleString()}`);
     },
-    desc: "高風險高報酬",
-  },
-  {
-    id: "influencer",
-    name: "網紅",
-    salary: 80000,
-    requirement: { charm: 90, communication: 70 },
-    requiredTrait: "extrovert",
-    traitBonus: {
-      extrovert: { salary: 1.3, desc: "外向者薪資加成" },
-      charismatic: { salary: 1.4, desc: "魅力非凡薪資加成" },
-      artistic: { salary: 1.2, desc: "藝術天賦薪資加成" },
-      optimistic: { salary: 1.15, desc: "樂觀主義者薪資加成 15%" },
-    },
-    effect: (g) => {
-      g.skills.charm += 2;
-      g.happy += 8;
-      g.money += Math.floor(Math.random() * 60000) - 20000;
-    },
-    desc: "流量變現的時代",
-  },
-  {
-    id: "scientist",
-    name: "科學家",
-    salary: 85000,
-    requirement: { intel: 110 },
-    traitBonus: {
-      geniusmind: { salary: 1.5, desc: "天才心智薪資加成" },
-      introvert: { salary: 1.2, desc: "內向者薪資加成" },
-      quicklearner: { salary: 1.3, desc: "快速學習者薪資加成 30%" },
-    },
-    effect: (g) => {
-      g.intel += 5;
-      g.happy += 3;
-    },
-    desc: "探索未知的真理",
-  },
-  {
-    id: "lawyer",
-    name: "律師",
-    salary: 150000,
-    requirement: { intel: 100, communication: 80 },
-    effect: (g) => {
-      g.skills.communication += 3;
-      g.happy -= 8;
-    },
-    desc: "高工時高報酬",
-  },
-  {
-    id: "chef",
-    name: "主廚",
-    salary: 55000,
-    requirement: { cooking: 80, art: 40 },
-    effect: (g) => {
-      g.skills.cooking += 3;
-      g.happy += 5;
-    },
-    desc: "餐廳的靈魂人物",
-  },
-  {
-    id: "pilot",
-    name: "機師",
-    salary: 250000,
-    requirement: { intel: 90, health: 80 },
-    effect: (g) => {
-      g.health -= 5;
-      g.happy += 3;
-    },
-    desc: "夢幻的高薪職業",
+    desc: "高風險高報酬。",
   },
   {
     id: "athlete",
     name: "職業運動員",
     salary: 80000,
-    requirement: { health: 90, charm: 60 },
+    requirement: { minAge: 18, health: 90, charm: 60 },
     effect: (g) => {
       g.health += 3;
       if (g.age > 35) {
@@ -2432,37 +2531,15 @@ const JOBS = [
         log("⚠️ 運動員年齡過大，職業生涯走下坡");
       }
     },
-    desc: "35 歲後職業生涯走下坡",
-  },
-  {
-    id: "police",
-    name: "警察",
-    salary: 65000,
-    requirement: { health: 70, communication: 50 },
-    effect: (g) => {
-      g.health -= 3;
-      g.happy -= 5;
-    },
-    desc: "含加給的優渥薪資",
-  },
-  {
-    id: "designer",
-    name: "設計師",
-    salary: 45000,
-    requirement: { art: 80, programming: 40 },
-    effect: (g) => {
-      g.skills.art += 3;
-      g.happy += 3;
-    },
-    desc: "燃燒熱情的職業",
+    desc: "吃青春飯，35 歲後走下坡。",
   },
 
-  // 特殊出身職業
+  // === 🔥 出身限定職業 (保持不變) ===
   {
     id: "hackerpro",
     name: "黑帽駭客",
     salary: 200000,
-    requirement: { intel: 100, programming: 100 },
+    requirement: { minAge: 18, intel: 100, programming: 100 },
     originRequired: "hacker",
     effect: (g) => {
       g.skills.programming += 5;
@@ -2474,7 +2551,7 @@ const JOBS = [
     id: "royaladvisor",
     name: "皇室顧問",
     salary: 300000,
-    requirement: { intel: 110, communication: 90 },
+    requirement: { minAge: 25, intel: 110, communication: 90 },
     originRequired: "royal",
     effect: (g) => {
       g.skills.charm += 3;
@@ -2486,7 +2563,7 @@ const JOBS = [
     id: "esportsplayer",
     name: "電競選手",
     salary: 100000,
-    requirement: { intel: 70 },
+    requirement: { minAge: 16, intel: 70 },
     originRequired: "esports",
     effect: (g) => {
       if (g.age > 28) {
@@ -2502,7 +2579,7 @@ const JOBS = [
     id: "spyagent",
     name: "特務",
     salary: 180000,
-    requirement: { intel: 100, health: 80 },
+    requirement: { minAge: 20, intel: 100, health: 80 },
     originRequired: "spy",
     effect: (g) => {
       g.health -= 8;
@@ -2514,7 +2591,7 @@ const JOBS = [
     id: "michelinchef",
     name: "米其林主廚",
     salary: 200000,
-    requirement: { cooking: 100, art: 60 },
+    requirement: { minAge: 28, cooking: 100, art: 60 },
     originRequired: "cheffamily",
     effect: (g) => {
       g.skills.cooking += 5;
@@ -2692,88 +2769,99 @@ const TAIWAN_SCHOOLS = {
 };
 const MAJORS = {
   university: [
-    {
-      id: "cs",
-      name: "資訊工程學系",
-      skills: { programming: 30 },
-      intel: 10,
+    { 
+      id: "medicine", name: "醫學系", 
+      desc: "錄取分數極高，畢業後可從醫。",
+      skills: { medical: 40 }, intel: 20, 
+      requirement: { intel: 130, money: 500000 }, // 智力要求高，學費貴
     },
-    {
-      id: "business",
-      name: "企業管理學系",
-      skills: { finance: 30, communication: 20 },
-      intel: 5,
+    { 
+      id: "law", name: "法律系", 
+      desc: "邏輯與口才的試煉場。",
+      skills: { communication: 25 }, intel: 15, 
+      requirement: { intel: 110, communication: 40 } // 需智力與溝通
     },
-    {
-      id: "medicine",
-      name: "醫學系",
-      skills: { medical: 40 },
-      intel: 20,
-      requirement: 85,
+    { 
+      id: "cs", name: "資訊工程系", 
+      desc: "爆肝寫程式，未來的工程師。",
+      skills: { programming: 30 }, intel: 10, 
+      requirement: { intel: 100 }
     },
-    {
-      id: "art",
-      name: "藝術學系",
-      skills: { art: 35, charm: 15 },
-      intel: 5,
+    { 
+      id: "business", name: "企業管理系", 
+      desc: "學習商業運作與理財。",
+      skills: { finance: 30, communication: 20 }, intel: 5, 
+      requirement: { intel: 90, finance: 20 }
     },
-    {
-      id: "engineering",
-      name: "電機工程學系",
-      skills: { programming: 20, communication: 10 },
-      intel: 15,
+    { 
+      id: "engineering", name: "電機工程系", 
+      desc: "硬體與軟體的結合。",
+      skills: { programming: 20, communication: 10 }, intel: 15, 
+      requirement: { intel: 95 }
     },
-    {
-      id: "education",
-      name: "教育學系",
-      skills: { communication: 30 },
-      intel: 10,
+    { 
+      id: "art", name: "藝術設計系", 
+      desc: "燃燒靈魂的創作殿堂。",
+      skills: { art: 35, charm: 15 }, intel: 5, 
+      requirement: { art: 60 } // 看重術科(藝術)
     },
-    {
-      id: "law",
-      name: "法律學系",
-      skills: { communication: 25 },
-      intel: 15,
+    { 
+      id: "education", name: "教育學系", 
+      desc: "培育未來的老師。",
+      skills: { communication: 30 }, intel: 10, 
+      requirement: { intel: 85, communication: 30 }
     },
-    {
-      id: "economics",
-      name: "經濟學系",
-      skills: { finance: 35 },
-      intel: 12,
+    { 
+      id: "economics", name: "經濟學系", 
+      desc: "研究市場與金錢流動。",
+      skills: { finance: 35 }, intel: 12, 
+      requirement: { intel: 90 }
     },
   ],
   master: [
-    {
-      id: "mba",
-      name: "MBA 企管碩士",
-      skills: { finance: 40, communication: 30 },
-      intel: 15,
+    { 
+      id: "mba", name: "MBA 企管碩士", 
+      desc: "晉升管理階層的跳板。",
+      skills: { finance: 40, management: 30 }, intel: 15, 
+      requirement: { intel: 110, finance: 50, management: 20 }
     },
-    {
-      id: "cs_master",
-      name: "資工碩士",
-      skills: { programming: 45 },
-      intel: 20,
+    { 
+      id: "cs_master", name: "資工碩士", 
+      desc: "深造演算法與AI技術。",
+      skills: { programming: 45 }, intel: 20, 
+      requirement: { intel: 120, programming: 60 }
     },
-    {
-      id: "med_master",
-      name: "醫學碩士",
-      skills: { medical: 55 },
-      intel: 25,
+    { 
+      id: "med_master", name: "醫學碩士", 
+      desc: "醫學研究的進階領域。",
+      skills: { medical: 55 }, intel: 25, 
+      requirement: { intel: 140, medical: 60 }
+    },
+    { 
+      id: "art_master", name: "藝術碩士", 
+      desc: "藝術造詣的極致追求。",
+      skills: { art: 50 }, intel: 10, 
+      requirement: { art: 100 }
     },
   ],
   phd: [
-    {
-      id: "cs_phd",
-      name: "資工博士",
-      skills: { programming: 60 },
-      intel: 30,
+    { 
+      id: "cs_phd", name: "資工博士", 
+      desc: "電腦科學的頂尖研究。",
+      skills: { programming: 60 }, intel: 30, 
+      requirement: { intel: 150, programming: 100 }
     },
-    {
-      id: "med_phd",
-      name: "醫學博士",
-      skills: { medical: 70 },
-      intel: 35,
+    { 
+      id: "med_phd", name: "醫學博士", 
+      desc: "醫學界的權威。",
+      skills: { medical: 70 }, intel: 35, 
+      requirement: { intel: 160, medical: 100 }
+    },
+    { 
+      id: "law_phd", name: "法學博士", 
+      desc: "法律學術的巔峰。",
+      skills: { communication: 60 }, intel: 30, 
+      requirement: { intel: 150, communication: 100 }
     },
   ],
 };
@@ -2816,54 +2904,12 @@ const CARS = [
   },
 ];
 const HOUSES = [
-  {
-    id: "house1",
-    name: "老舊套房",
-    price: 8500000,
-    happy: 5,
-    passive: 15000,
-    desc: "市區的小蝸居",
-  },
-  {
-    id: "house2",
-    name: "電梯大樓",
-    price: 25000000,
-    happy: 15,
-    passive: 35000,
-    desc: "標準的三房兩廳",
-  },
-  {
-    id: "house3",
-    name: "市區透天",
-    price: 45000000,
-    happy: 25,
-    passive: 60000,
-    desc: "稀有的市區透天",
-  },
-  {
-    id: "house4",
-    name: "郊區別墅",
-    price: 80000000,
-    happy: 40,
-    passive: 100000,
-    desc: "有車庫和花園",
-  },
-  {
-    id: "house5",
-    name: "信義區豪宅",
-    price: 350000000,
-    happy: 60,
-    passive: 300000,
-    desc: "俯瞰城市夜景",
-  },
-  {
-    id: "house6",
-    name: "私人莊園",
-    price: 2000000000,
-    happy: 100,
-    passive: 1000000,
-    desc: "富可敵國的象徵",
-  },
+  { id: "house1", name: "老舊套房", price: 5000000, happy: 5, passive: 12000, desc: "市區的小蝸居" },
+  { id: "house2", name: "電梯大樓", price: 15000000, happy: 15, passive: 28000, desc: "標準的三房兩廳" },
+  { id: "house3", name: "市區透天", price: 30000000, happy: 25, passive: 45000, desc: "稀有的市區透天" },
+  { id: "house4", name: "郊區別墅", price: 60000000, happy: 40, passive: 80000, desc: "有車庫和花園" },
+  { id: "house5", name: "信義區豪宅", price: 150000000, happy: 60, passive: 200000, desc: "俯瞰城市夜景" },
+  { id: "house6", name: "私人莊園", price: 800000000, happy: 100, passive: 800000, desc: "富可敵國的象徵" },
 ];
 const LUXURIES = [
   {
@@ -2902,6 +2948,21 @@ const LUXURIES = [
     charm: 100,
     happy: 50,
     desc: "終極奢華",
+  },
+  { 
+      id: "gym_card", name: "終身健身卡", price: 50000, 
+      desc: "體力上限 +20", 
+      effect: (g) => { g.maxStamina += 20; g.stamina += 20; return "體力上限提升了！"; } 
+  },
+  { 
+      id: "massage_chair", name: "天王按摩椅", price: 250000, 
+      desc: "體力上限 +50", 
+      effect: (g) => { g.maxStamina += 50; g.stamina += 50; return "全身舒暢，體力大增！"; } 
+  },
+  { 
+      id: "medical_bed", name: "高科技睡眠艙", price: 2000000, 
+      desc: "體力上限 +100，健康+20", 
+      effect: (g) => { g.maxStamina += 100; g.stamina += 100; g.health += 20; return "睡眠品質達到極致！"; } 
   },
 ];
 const NPC_TEMPLATES = {
@@ -3397,154 +3458,201 @@ const DATE_LOCATIONS = [
     loversOnly: true,
   },
 ];
-const calc = (min, max, bonus = 1) => Math.floor((Math.random() * (max - min + 1) + min) * bonus);
+const calc = (min, max, bonus = 1) =>
+  Math.floor((Math.random() * (max - min + 1) + min) * bonus);
+
 const ACTIONS_POOL = {
-  // 👶 嬰兒期 (0-2歲) - 充滿本能與混亂
+  // 👶 嬰兒期
   infant: [
-    { id: "cry", name: "😭 哭鬧", cost: { stamina: 10 }, effect: (g) => { g.happy += calc(3, 6); return "肺活量+1，爸媽崩潰了"; } },
-    { id: "sleep", name: "😴 睡覺", cost: { stamina: 20 }, effect: (g) => { g.health += calc(2, 5); g.happy += calc(2, 4); return "夢到了奶奶海"; } },
-    { id: "play_toy", name: "🧸 玩玩具", cost: { stamina: 15 }, effect: (g) => { g.happy += calc(6, 12); g.intel += calc(0, 1); return "把玩具咬得全是口水"; } },
-    { id: "act_cute", name: "🥺 賣萌", cost: { stamina: 15 }, effect: (g) => { g.skills.charm += calc(2, 4, g.skillBonus); g.happy += 5; if(Math.random()<0.3){ g.money+=500; return "爸媽被萌到了，給了零用錢！"; } return "大家都說你可愛"; } },
-    { id: "explore", name: "🏠 探索", cost: { stamina: 20 }, effect: (g) => { g.intel += calc(2, 5, g.learnBonus); return "發現沙發底下有枚硬幣"; } },
-    { id: "learn_speak", name: "🗣️ 學說話", cost: { stamina: 25 }, effect: (g) => { g.skills.communication += calc(2, 5, g.skillBonus); g.intel += 2; return "叫出了第一聲爸爸/媽媽！"; } },
-    { id: "crawl", name: "🐛 爬行", cost: { stamina: 30 }, effect: (g) => { g.health += 5; return "在家裡飆車"; } },
-    { id: "milk", name: "🍼 喝奶奶", cost: { stamina: 10 }, effect: (g) => { g.health += 3; g.happy += 3; return "飽足感 MAX"; } },
-    { id: "stare", name: "👀 發呆", cost: { stamina: 5 }, effect: (g) => { g.intel += 1; return "思考嬰兒人生的意義..."; } },
-    { id: "poop", name: "💩 便便", cost: { stamina: 20 }, effect: (g) => { g.health += 2; g.happy += 5; return "通體舒暢！但需要換尿布"; } },
-    { id: "bite", name: "🦷 咬東西", cost: { stamina: 15 }, effect: (g) => { g.health += 1; return "正在長牙齒，什麼都想咬"; } },
-    { id: "roll", name: "🔄 翻身", cost: { stamina: 25 }, effect: (g) => { g.health += 3; return "世界旋轉了起來"; } },
+    { id: "cry", name: "😭 哭鬧", cost: { stamina: 10 }, effect: (g) => { g.happy += calc(2, 4); return "發洩情緒"; } }, // 3-6 -> 2-4
+    { id: "sleep", name: "😴 睡覺", cost: { stamina: 20 }, effect: (g) => { g.health += calc(1, 3); g.happy += calc(1, 3); return "睡得香甜"; } },
+    { id: "play_toy", name: "🧸 玩玩具", cost: { stamina: 15 }, effect: (g) => { g.happy += calc(4, 8); g.intel += calc(0, 1); return "玩得開心"; } },
+    { id: "act_cute", name: "🥺 賣萌", cost: { stamina: 15 }, effect: (g) => { g.skills.charm += calc(1, 2, g.skillBonus); g.happy += 3; if(Math.random()<0.2){ g.money+=200; return "獲得零用錢！"; } return "大家說你可愛"; } }, // 數值減半
+    { id: "explore", name: "🏠 探索", cost: { stamina: 20 }, effect: (g) => { g.intel += calc(1, 3, g.learnBonus); return "發現新角落"; } },
+    { id: "learn_speak", name: "🗣️ 學說話", cost: { stamina: 25 }, effect: (g) => { g.skills.communication += calc(1, 3, g.skillBonus); g.intel += 1; return "叫了聲爸爸"; } },
+    { id: "crawl", name: "🐛 爬行", cost: { stamina: 30 }, effect: (g) => { g.health += 3; return "鍛鍊小手小腳"; } },
+    { id: "milk", name: "🍼 喝奶奶", cost: { stamina: 10 }, effect: (g) => { g.health += 2; g.happy += 2; return "好喝"; } },
+    { id: "stare", name: "👀 發呆", cost: { stamina: 5 }, effect: (g) => { g.intel += 1; return "思考人生..."; } },
+    { id: "poop", name: "💩 便便", cost: { stamina: 20 }, effect: (g) => { g.health += 1; g.happy += 3; return "通體舒暢"; } },
+    { id: "bite", name: "🦷 咬東西", cost: { stamina: 15 }, effect: (g) => { g.health += 1; return "正在長牙"; } },
+    { id: "roll", name: "🔄 翻身", cost: { stamina: 25 }, effect: (g) => { g.health += 2; return "世界旋轉了"; } },
   ],
 
-  // 🧸 幼兒期 (3-5歲) - 好奇心爆發
+  // 🧸 幼兒期
   toddler: [
-    { id: "kindergarten", name: "🏫 上幼兒園", cost: { stamina: 20 }, effect: (g) => { g.intel += calc(2, 4, g.learnBonus); g.skills.communication += 2; return "交到了第一個朋友"; } },
-    { id: "play_outside", name: "🌳 戶外玩耍", cost: { stamina: 20 }, effect: (g) => { g.health += calc(3, 7); g.happy += 5; return "弄得全身都是泥巴"; } },
-    { id: "draw", name: "🖍️ 畫畫", cost: { stamina: 15 }, effect: (g) => { g.skills.art += calc(3, 6, g.skillBonus); return "畫了一隻長得像爸爸的豬"; } },
-    { id: "prank", name: "🤡 惡作劇", cost: { stamina: 15 }, effect: (g) => { g.happy += 15; g.skills.charm -= 2; return "把遙控器藏在冰箱裡"; } },
-    { id: "ask_money", name: "💰 要零用錢", cost: { stamina: 10 }, effect: (g) => { if(Math.random() < 0.4 + g.skills.charm/200){ const m = calc(100, 500); g.money += m; return `成功用可愛攻勢要到了 $${m}`; } g.happy -= 5; return "被拒絕了...哭倒在地"; } },
-    { id: "blocks", name: "🧱 堆積木", cost: { stamina: 15 }, effect: (g) => { g.intel += 3; g.skills.art += 1; return "蓋了一座歪歪斜斜的塔"; } },
-    { id: "watch_tv", name: "📺 看卡通", cost: { stamina: 10 }, effect: (g) => { g.happy += 8; g.intel -= 1; return "跟著電視一起唱跳"; } },
-    { id: "sing", name: "🎵 唱歌", cost: { stamina: 15 }, effect: (g) => { g.skills.charm += 2; g.happy += 5; return "魔音傳腦"; } },
-    { id: "ask_why", name: "❓ 問為什麼", cost: { stamina: 20 }, effect: (g) => { g.intel += 4; g.skills.communication += 1; return "爸媽被問到崩潰"; } },
-    { id: "refuse_eat", name: "🥕 挑食", cost: { stamina: 10 }, effect: (g) => { g.health -= 2; g.happy += 5; return "把紅蘿蔔偷偷丟掉"; } },
-    { id: "mud_pie", name: "🥧 做泥巴派", cost: { stamina: 25 }, effect: (g) => { g.skills.art += 3; g.skills.cooking += 1; return "看起來很好吃(不能吃)"; } },
-    { id: "share_toy", name: "🤝 分享玩具", cost: { stamina: 15 }, effect: (g) => { g.skills.charm += 5; return "學會了分享"; } },
+    { id: "kindergarten", name: "🏫 上幼兒園", cost: { stamina: 20 }, effect: (g) => { g.intel += calc(1, 3, g.learnBonus); g.skills.communication += 1; return "學到了新知識"; } },
+    { id: "play_outside", name: "🌳 戶外玩耍", cost: { stamina: 20 }, effect: (g) => { g.health += calc(2, 4); g.happy += 3; return "跑跑跳跳"; } },
+    { id: "draw", name: "🖍️ 畫畫", cost: { stamina: 15 }, effect: (g) => { g.skills.art += calc(1, 3, g.skillBonus); return "畫了塗鴉"; } },
+    { id: "prank", name: "🤡 惡作劇", cost: { stamina: 15 }, effect: (g) => { g.happy += 8; g.skills.charm -= 1; return "把拖鞋藏起來"; } },
+    { id: "ask_money", name: "💰 要零用錢", cost: { stamina: 10 }, effect: (g) => { if(Math.random() < 0.3 + g.skills.charm/300){ const m = calc(50, 200); g.money += m; return `要到了 $${m}`; } g.happy -= 3; return "被拒絕了..."; } },
+    { id: "blocks", name: "🧱 堆積木", cost: { stamina: 15 }, effect: (g) => { g.intel += 2; g.skills.art += 1; return "蓋了城堡"; } },
+    { id: "watch_tv", name: "📺 看卡通", cost: { stamina: 10 }, effect: (g) => { g.happy += 5; g.intel -= 1; return "看得目不轉睛"; } },
+    { id: "sing", name: "🎵 唱歌", cost: { stamina: 15 }, effect: (g) => { g.skills.charm += 1; g.happy += 3; return "兩隻老虎"; } },
+    { id: "ask_why", name: "❓ 問為什麼", cost: { stamina: 20 }, effect: (g) => { g.intel += 2; g.skills.communication += 1; return "爸媽崩潰"; } },
+    { id: "refuse_eat", name: "🥕 挑食", cost: { stamina: 10 }, effect: (g) => { g.health -= 1; g.happy += 3; return "不吃紅蘿蔔"; } },
+    { id: "mud_pie", name: "🥧 做泥巴派", cost: { stamina: 25 }, effect: (g) => { g.skills.art += 2; g.skills.cooking += 1; return "看起來很好吃"; } },
+    { id: "share_toy", name: "🤝 分享玩具", cost: { stamina: 15 }, effect: (g) => { g.skills.charm += 3; return "學會分享"; } },
   ],
 
-  // 🎒 兒童期 (6-12歲) - 學習與玩樂
+  // 🎒 兒童期
   child: [
-    { id: "study_hard", name: "📚 認真讀書", cost: { stamina: 30 }, effect: (g) => { g.intel += calc(4, 8, g.learnBonus); if(g.isStudying) g.studyProgress+=10; return "考了一百分！"; } },
-    { id: "read_comic", name: "📖 看漫畫", cost: { stamina: 15 }, effect: (g) => { g.happy += 10; g.intel += 1; return "學到了奇怪的戰鬥姿勢"; } },
-    { id: "sports", name: "⚽ 運動", cost: { stamina: 20 }, effect: (g) => { g.health += 5; g.skills.charm += 1; return "雖然輸了但很開心"; } },
-    { id: "play_game", name: "🎮 打電動", cost: { stamina: 15 }, effect: (g) => { g.happy += 15; g.intel -= 1; g.health -= 2; return "再玩一局就好..."; } },
-    { id: "internet", name: "🌐 上網", cost: { stamina: 15 }, effect: (g) => { g.intel += 2; g.happy += 5; g.health -= 2; return "發現了新世界"; } },
-    { id: "cram_school", name: "🏫 補習班", cost: { stamina: 25, money: 2000 }, effect: (g) => { g.intel += calc(6, 12, g.learnBonus); g.happy -= 5; return "好想回家..."; } },
-    { id: "help_house", name: "🧹 幫忙家務", cost: { stamina: 20 }, effect: (g) => { g.money += 500; g.happy += 2; return "獲得父母獎勵 $500"; } },
-    { id: "piano", name: "🎹 練鋼琴", cost: { stamina: 20 }, effect: (g) => { g.skills.art += calc(3, 6, g.skillBonus); return "鄰居覺得很吵"; } },
-    { id: "science", name: "🧪 科學實驗", cost: { stamina: 20 }, effect: (g) => { g.intel += 4; return "差點燒掉眉毛"; } },
-    { id: "climb_tree", name: "🌳 爬樹", cost: { stamina: 25 }, effect: (g) => { g.health += 4; if(Math.random()<0.2){ g.health-=5; return "摔下來了！痛！"; } return "風景真好"; } },
-    { id: "catch_bug", name: "🐞 抓昆蟲", cost: { stamina: 20 }, effect: (g) => { g.happy += 5; g.intel += 2; return "抓到獨角仙了！"; } },
-    { id: "secret_base", name: "🏰 秘密基地", cost: { stamina: 25 }, effect: (g) => { g.happy += 10; g.skills.leadership += 2; return "你是孩子王"; } },
-    { id: "forget_hw", name: "📝 忘記作業", cost: { stamina: 5 }, effect: (g) => { g.happy += 5; g.intel -= 2; return "老師很生氣，但你很優閒"; } },
+    { id: "study_hard", name: "📚 認真讀書", cost: { stamina: 30 }, effect: (g) => { g.intel += calc(2, 5, g.learnBonus); if(g.isStudying) g.studyProgress+=8; return "知識增加"; } },
+    { id: "read_comic", name: "📖 看漫畫", cost: { stamina: 15 }, effect: (g) => { g.happy += 5; g.intel += 1; return "熱血沸騰"; } },
+    { id: "sports", name: "⚽ 運動", cost: { stamina: 20 }, effect: (g) => { g.health += 3; g.skills.charm += 1; return "揮灑汗水"; } },
+    { id: "play_game", name: "🎮 打電動", cost: { stamina: 15 }, effect: (g) => { g.happy += 8; g.intel -= 1; g.health -= 1; return "太好玩了"; } },
+    { id: "internet", name: "🌐 上網", cost: { stamina: 15 }, effect: (g) => { g.intel += 1; g.happy += 3; g.health -= 1; return "發現新世界"; } },
+    { id: "cram_school", name: "🏫 補習班", cost: { stamina: 25, money: 2000 }, effect: (g) => { g.intel += calc(4, 8, g.learnBonus); g.happy -= 3; return "進步很快"; } },
+    { id: "help_house", name: "🧹 幫忙家務", cost: { stamina: 20 }, effect: (g) => { g.money += 200; g.happy += 1; return "獎勵 $200"; } },
+    { id: "piano", name: "🎹 練鋼琴", cost: { stamina: 20 }, effect: (g) => { g.skills.art += calc(2, 4, g.skillBonus); return "氣質提升"; } },
+    { id: "science", name: "🧪 科學實驗", cost: { stamina: 20 }, effect: (g) => { g.intel += 3; return "有趣"; } },
+    { id: "climb_tree", name: "🌳 爬樹", cost: { stamina: 25 }, effect: (g) => { g.health += 2; if(Math.random()<0.1){ g.health-=3; return "摔下來了！"; } return "風景好"; } },
+    { id: "catch_bug", name: "🐞 抓昆蟲", cost: { stamina: 20 }, effect: (g) => { g.happy += 3; g.intel += 1; return "抓到獨角仙"; } },
+    { id: "secret_base", name: "🏰 秘密基地", cost: { stamina: 25 }, effect: (g) => { g.happy += 6; g.skills.leadership += 1; return "孩子王"; } },
+    { id: "forget_hw", name: "📝 忘記作業", cost: { stamina: 5 }, effect: (g) => { g.happy += 3; g.intel -= 1; return "老師生氣"; } },
   ],
 
-  // 🎧 青春期 (13-17歲) - 叛逆與探索
+  // 🎧 青春期
   teen: [
-    { id: "exam_prep", name: "📝 準備考試", cost: { stamina: 35 }, effect: (g) => { g.intel += calc(8, 15, g.learnBonus); g.happy -= 5; return "為了考上第一志願"; } },
-    { id: "club", name: "🎭 參加社團", cost: { stamina: 20 }, effect: (g) => { g.skills.communication += 3; g.skills.charm += 2; g.happy += 5; return "社團生活真豐富"; } },
-    { id: "date", name: "💕 約會", cost: { stamina: 30, money: 1000 }, effect: (g) => { g.happy += 15; g.skills.charm += 5; return "手牽手心跳加速"; } },
-    { id: "skip_class", name: "🏃 翹課", cost: { stamina: 10 }, effect: (g) => { g.happy += 20; g.intel -= 5; if(Math.random()<0.3){ g.happy-=30; return "被教官抓到了！記大過！"; } return "牆外的空氣真香"; } },
-    { id: "part_time", name: "💼 打工", cost: { stamina: 30 }, effect: (g) => { const m = calc(3000, 5000); g.money += m; g.skills.communication += 2; return `便利商店打工賺了 $${m}`; } },
-    { id: "write_novel", name: "✍️ 寫小說", cost: { stamina: 25 }, effect: (g) => { g.skills.art += 4; g.intel += 2; if(Math.random()<0.1){ g.money+=10000; g.happy+=20; return "小說在網路上爆紅！賺了版稅"; } return "沒人看，但寫得很爽"; } },
-    { id: "code", name: "💻 自學程式", cost: { stamina: 25 }, effect: (g) => { g.skills.programming += calc(5, 10, g.skillBonus); return "Hello World!"; } },
-    { id: "volunteer", name: "🤝 志工服務", cost: { stamina: 25 }, effect: (g) => { g.happy += 10; g.skills.charm += 5; return "幫助別人讓心靈富足"; } },
-    { id: "gym", name: "💪 健身", cost: { stamina: 25, money: 500 }, effect: (g) => { g.health += 8; g.skills.charm += 2; return "肌肉開始線條分明"; } },
-    { id: "social_media", name: "📱 滑IG", cost: { stamina: 15 }, effect: (g) => { g.happy += 5; g.intel -= 1; return "發了一張文青照"; } },
-    { id: "dye_hair", name: "💇 染頭髮", cost: { stamina: 10, money: 2000 }, effect: (g) => { g.money -= 2000; g.skills.charm += 5; return "染了超酷的顏色，教官氣瘋"; } },
-    { id: "love_letter", name: "💌 寫情書", cost: { stamina: 20 }, effect: (g) => { g.skills.art += 2; g.happy -= 5; return "寫了又撕，撕了又寫..."; } },
-    { id: "sneak_out", name: "🌙 半夜溜出門", cost: { stamina: 30 }, effect: (g) => { if(Math.random()<0.5){ g.happy+=15; return "看夜景吃宵夜"; } g.health-=10; return "遇到不良少年勒索..."; } },
+    { id: "exam_prep", name: "📝 準備考試", cost: { stamina: 35 }, effect: (g) => { g.intel += calc(5, 10, g.learnBonus); g.happy -= 3; return "為了升學"; } },
+    { id: "club", name: "🎭 參加社團", cost: { stamina: 20 }, effect: (g) => { g.skills.communication += 2; g.skills.charm += 1; g.happy += 3; return "社團生活"; } },
+    { id: "date", name: "💕 約會", cost: { stamina: 30, money: 1000 }, effect: (g) => { g.happy += 10; g.skills.charm += 3; return "心跳加速"; } },
+    { id: "skip_class", name: "🏃 翹課", cost: { stamina: 10 }, effect: (g) => { g.happy += 10; g.intel -= 3; if(Math.random()<0.3){ g.happy-=20; return "被抓到記過！"; } return "自由"; } },
+    { id: "part_time", name: "💼 打工", cost: { stamina: 30 }, effect: (g) => { const m = calc(2000, 3500); g.money += m; g.skills.communication += 1; return `賺了 $${m}`; } },
+    { id: "write_novel", name: "✍️ 寫小說", cost: { stamina: 25 }, effect: (g) => { g.skills.art += 3; g.intel += 1; if(Math.random()<0.05){ g.money+=5000; g.happy+=15; return "小說爆紅！"; } return "寫得很爽"; } },
+    { id: "code", name: "💻 自學程式", cost: { stamina: 25 }, effect: (g) => { g.skills.programming += calc(3, 7, g.skillBonus); return "Hello World"; } },
+    { id: "volunteer", name: "🤝 志工服務", cost: { stamina: 25 }, effect: (g) => { g.happy += 6; g.skills.charm += 3; return "助人為樂"; } },
+    { id: "gym", name: "💪 健身", cost: { stamina: 25, money: 500 }, effect: (g) => { g.health += 5; g.skills.charm += 1; return "練肌肉"; } },
+    { id: "social_media", name: "📱 滑IG", cost: { stamina: 15 }, effect: (g) => { g.happy += 3; g.intel -= 1; return "發文青照"; } },
+    { id: "dye_hair", name: "💇 染頭髮", cost: { stamina: 10, money: 2000 }, effect: (g) => { g.money -= 2000; g.skills.charm += 3; return "教官氣瘋"; } },
+    { id: "love_letter", name: "💌 寫情書", cost: { stamina: 20 }, effect: (g) => { g.skills.art += 1; g.happy -= 3; return "撕了又寫"; } },
+    { id: "sneak_out", name: "🌙 半夜溜出門", cost: { stamina: 30 }, effect: (g) => { if(Math.random()<0.5){ g.happy+=10; return "看夜景"; } g.health-=5; return "遇不良少年"; } },
   ],
 
-  // 💼 成年人 (18歲以上) - 現實與夢想
+  // 💼 成年人
   adult: [
-    // 基礎生存
     { id: "work", name: "💼 上班", cost: { stamina: 35 }, condition: (g)=>g.jobId!=='none', effect: (g) => { 
         const job = JOBS.find(j=>j.id===g.jobId); 
         const base = (job.salary + (g.salaryBonus||0)) * (g.inflationRate||1);
         const pay = Math.floor(base * g.incomeBonus);
         g.money += pay; g.jobYears++; g.health-=2; g.happy-=5; 
         if(job.effect) job.effect(g);
-        return `社畜的一天，獲得 $${pay.toLocaleString()}`; 
+        return `工作獲得 $${pay.toLocaleString()}`; 
     }},
-    { id: "find_job", name: "📰 找工作", cost: { stamina: 20 }, condition: (g)=>g.jobId==='none', effect: (g) => { return "請到「職業頁面」投履歷"; } },
-    { id: "side_hustle", name: "🛵 跑外送", cost: { stamina: 30 }, effect: (g) => { const m = calc(5000, 15000) * (g.inflationRate||1); g.money += m; g.health -= 3; return `風吹日曬賺了 $${Math.floor(m).toLocaleString()}`; } },
-    
-    // 投資理財
+    { id: "find_job", name: "📰 找工作", cost: { stamina: 20 }, condition: (g)=>g.jobId==='none', effect: (g) => { return "請到「職業頁面」"; } },
+    { id: "side_hustle", name: "🛵 跑外送", cost: { stamina: 30 }, effect: (g) => { const m = calc(3000, 8000) * (g.inflationRate||1); g.money += m; g.health -= 3; return `兼職賺 $${Math.floor(m).toLocaleString()}`; } },
     { id: "lottery", name: "🎫 買彩券", cost: { stamina: 5, money: 500 }, effect: (g) => { 
         g.money -= 500; 
-        if(Math.random()<0.0001){ g.money+=100000000; g.happy+=100; return "中了頭獎一億！！！改變人生！"; }
-        if(Math.random()<0.1){ g.money+=2000; return "中了小獎 $2000"; }
-        return "貢獻公益..."; 
+        if(Math.random()<0.0001){ g.money+=100000000; g.happy+=100; return "中頭獎一億！！！"; }
+        if(Math.random()<0.1){ g.money+=2000; return "中小獎 $2000"; }
+        return "沒中"; 
     }},
-    { id: "invest", name: "📈 投資股票", cost: { stamina: 10, money: 50000 }, effect: (g) => {
+    { id: "invest", name: "📈 投資股票", cost: { stamina: 10, money: 10000 }, effect: (g) => {
+        g.money -= 10000;
+        const roi = (Math.random() * 0.4 - 0.2) + (g.skills.finance/400); // 波動縮小 -20% ~ +20%
+        const profit = Math.floor(10000 * (1 + roi));
+        g.money += profit;
+        if(profit > 10000) { g.happy+=3; return `獲利變為 $${profit.toLocaleString()}`; }
+        else { g.happy-=5; return `虧損剩 $${profit.toLocaleString()}`; }
+    }},
+    { id: "crypto", name: "🪙 加密貨幣", cost: { stamina: 15, money: 50000 }, effect: (g) => {
         g.money -= 50000;
-        const roi = (Math.random() * 0.6 - 0.25) + (g.skills.finance/200); // -25% ~ +35%
-        const profit = Math.floor(50000 * (1 + roi));
+        const roi = Math.random() * 2.5; // 0 ~ 2.5倍
+        if(Math.random() < 0.5) { g.happy-=15; return "歸零膏！血本無歸..."; }
+        const profit = Math.floor(50000 * roi);
         g.money += profit;
-        if(profit > 50000) { g.happy+=5; return `股票漲了！變現 $${profit.toLocaleString()}`; }
-        else { g.happy-=10; return `被套牢...剩 $${profit.toLocaleString()}`; }
+        return `資產變 $${profit.toLocaleString()}`;
     }},
-    { id: "crypto", name: "🪙 加密貨幣", cost: { stamina: 15, money: 100000 }, effect: (g) => {
-        g.money -= 100000;
-        const roi = Math.random() * 3; // 0 ~ 3倍 (波動極大)
-        if(Math.random() < 0.4) { g.happy-=20; return "交易所倒閉！血本無歸..."; }
-        const profit = Math.floor(100000 * roi);
-        g.money += profit;
-        return `幣圈一天人間一年！資產變 $${profit.toLocaleString()}`;
-    }},
-
-    // 休閒娛樂
-    { id: "socialize", name: "🍻 居酒屋", cost: { stamina: 20, money: 3000 }, effect: (g) => { g.money -= 3000; g.happy += 15; g.skills.communication += 3; return "抱怨老闆真爽"; } },
-    { id: "travel", name: "✈️ 出國旅遊", cost: { stamina: 0, money: 80000 }, effect: (g) => { g.money -= 80000; g.happy += 50; g.stamina = 100; return "身心靈徹底充電！"; } },
-    { id: "night_club", name: "🕺 去夜店", cost: { stamina: 30, money: 6000 }, effect: (g) => { g.money -= 6000; g.happy += 25; g.skills.charm += 5; g.health -= 5; return "嗨了一整晚，腰酸背痛"; } },
-    { id: "luxury_meal", name: "🍣 Omakase", cost: { stamina: 5, money: 8000 }, effect: (g) => { g.money -= 8000; g.happy += 20; g.health += 2; return "享受頂級壽司"; } },
-    { id: "online_shopping", name: "🛍️ 網購舒壓", cost: { stamina: 10, money: 5000 }, effect: (g) => { g.money -= 5000; g.happy += 10; return "買了一堆不需要的東西"; } },
-    { id: "fishing", name: "🎣 釣魚", cost: { stamina: 25 }, effect: (g) => { g.happy += 5; if(Math.random()<0.2) { g.happy+=15; return "釣到大魚！"; } return "餵蚊子..."; } },
-    { id: "massage", name: "💆 按摩", cost: { stamina: 0, money: 2000 }, effect: (g) => { g.money -= 2000; g.stamina += 20; g.health += 2; return "師傅手勁很強"; } },
-
-    // 自我提升
+    { id: "socialize", name: "🍻 居酒屋", cost: { stamina: 20, money: 3000 }, effect: (g) => { g.money -= 3000; g.happy += 10; g.skills.communication += 2; return "抱怨老闆"; } },
+    { id: "travel", name: "✈️ 出國旅遊", cost: { stamina: 0, money: 80000 }, effect: (g) => { g.money -= 80000; g.happy += 35; g.stamina = g.maxStamina; return "體力全滿！"; } }, // 修正為回滿 maxStamina
+    { id: "night_club", name: "🕺 去夜店", cost: { stamina: 30, money: 6000 }, effect: (g) => { g.money -= 6000; g.happy += 20; g.skills.charm += 3; g.health -= 4; return "嗨整晚"; } },
     { id: "learn_skill", name: "📖 進修技能", cost: { stamina: 30, money: 5000 }, effect: (g) => { 
         const skills = ['programming','art','finance','communication','medical','cooking','leadership'];
         const s = skills[Math.floor(Math.random()*skills.length)];
-        g.skills[s] += 5; g.money -= 5000; return `參加課程，${s} 技能提升了`; 
+        g.skills[s] += 3; g.money -= 5000; return `進修 ${s} 技能`; 
     }},
-    { id: "gym", name: "💪 健身房", cost: { stamina: 25, money: 1000 }, effect: (g) => { g.money -= 1000; g.health += 10; g.skills.charm += 2; return "深蹲救台灣"; } },
-    
-    // 健康與風險
-    { id: "hospital", name: "🏥 健康檢查", cost: { stamina: 10, money: 10000 }, effect: (g) => { g.money -= 10000; g.health += 20; return "醫生說要少熬夜"; } },
+    { id: "gym", name: "💪 健身房", cost: { stamina: 25, money: 1000 }, effect: (g) => { g.money -= 1000; g.health += 6; g.skills.charm += 1; return "深蹲"; } },
+    { id: "hospital", name: "🏥 健康檢查", cost: { stamina: 10, money: 10000 }, effect: (g) => { g.money -= 10000; g.health += 15; return "醫生建議少熬夜"; } },
     { id: "casino", name: "🎲 去賭場", cost: { stamina: 15, money: 50000 }, effect: (g) => { 
         g.money -= 50000; 
-        if(Math.random() < 0.48) { const win = 50000 * 2; g.money += win; g.happy+=20; return `賭贏了！獲得 $${win.toLocaleString()}`; }
-        g.happy -= 30; return "輸到脫褲子...";
+        if(Math.random() < 0.45) { const win = 50000 * 2; g.money += win; g.happy+=15; return `賭贏！獲得 $${win.toLocaleString()}`; }
+        g.happy -= 20; return "輸光了...";
     }},
-    
-    // 特殊與惡搞
-    { id: "overtime", name: "🔥 加班", cost: { stamina: 40 }, effect: (g) => { g.money += 3000; g.health -= 5; g.happy -= 10; return "肝在燃燒，錢包微鼓"; } },
-    { id: "do_nothing", name: "🛌 躺平", cost: { stamina: 5 }, effect: (g) => { g.happy += 2; g.money -= 500; return "不想努力了，消耗存款 $500"; } },
-    { id: "office_gossip", name: "👂 茶水間八卦", cost: { stamina: 10 }, effect: (g) => { g.skills.communication += 2; g.skills.leadership -= 1; return "聽說經理有外遇..."; } },
-    { id: "clean_house", name: "🧹 大掃除", cost: { stamina: 30 }, effect: (g) => { g.happy += 5; if(Math.random()<0.1) { g.money+=1000; return "在沙發縫隙找到私房錢！"; } return "家裡煥然一新"; } },
+    { id: "overtime", name: "🔥 加班", cost: { stamina: 40 }, effect: (g) => { g.money += 2000; g.health -= 4; g.happy -= 8; return "肝在燃燒"; } },
+    { id: "do_nothing", name: "🛌 躺平", cost: { stamina: 5 }, effect: (g) => { g.happy += 1; g.money -= 500; return "不想努力"; } },
+    { id: "office_gossip", name: "👂 八卦", cost: { stamina: 10 }, effect: (g) => { g.skills.communication += 1; g.skills.leadership -= 1; return "聽說經理..."; } },
+    { id: "clean_house", name: "🧹 大掃除", cost: { stamina: 30 }, effect: (g) => { g.happy += 3; if(Math.random()<0.1) { g.money+=1000; return "找到私房錢！"; } return "家裡變乾淨"; } },
+  ],
+
+  // 🗺️ 地點專屬
+  location_actions: [
+    { id: "sleep_home", name: "😴 睡覺補眠", cost: { stamina: 0 }, effect: (g) => { g.stamina = g.maxStamina; g.health += 3; return "體力全滿！"; } }, // 修正
+    { id: "clean_home", name: "🧹 大掃除", cost: { stamina: 25 }, effect: (g) => { g.happy += 5; if(Math.random()<0.2) { g.money+=500; return "找到私房錢！"; } return "家裡煥然一新"; } },
+    { id: "attend_class", name: "📝 專心上課", cost: { stamina: 30 }, effect: (g) => { g.intel += calc(3, 6, g.learnBonus); if(g.isStudying) g.studyProgress += 10; return "筆記寫滿"; } },
+    { id: "library", name: "📚 圖書館自習", cost: { stamina: 20 }, effect: (g) => { g.intel += 3; return "安靜讀書"; } },
+    { id: "school_lunch", name: "🍱 學生餐廳", cost: { stamina: -10, money: 100 }, effect: (g) => { g.stamina += 10; g.health += 1; return "便宜大碗"; } },
+    { id: "see_doctor", name: "🏥 看醫生", cost: { stamina: 10, money: 3000 }, effect: (g) => { g.health += 20; g.isSick=false; return "藥到病除"; } },
+    { id: "rehab", name: "💪 復健", cost: { stamina: 20, money: 500 }, effect: (g) => { g.health += 3; return "身體靈活"; } },
+    { id: "pray_god", name: "🙏 拜拜求籤", cost: { stamina: 10, money: 500 }, effect: (g) => { const r = Math.random(); if(r<0.2) { g.luckBonus+=0.05; return "大吉！運氣變好"; } if(r<0.5) { g.happy+=5; return "中吉"; } return "末吉"; } },
+    { id: "luxury_meal", name: "🍣 吃大餐", cost: { stamina: -20, money: 5000 }, effect: (g) => { g.stamina += 20; g.happy += 15; g.health += 1; return "頂級美味"; } },
+    { id: "night_club_map", name: "💃 進入夜店", cost: { stamina: 30, money: 3000 }, effect: (g) => { g.happy += 15; g.skills.charm += 3; g.health -= 3; return "嗨翻"; } },
+    { id: "casino_map", name: "🎲 地下賭場", cost: { stamina: 15, money: 50000 }, effect: (g) => { g.money -= 50000; if(Math.random()<0.45) { g.money += 100000; g.happy+=15; return "賭贏！翻倍！"; } g.happy-=20; return "輸光..."; } },
   ]
 };
 const LOCATIONS = [
-  { id: "home", name: "溫暖的家", icon: "🏠", desc: "你的避風港，睡覺補體力的地方。" },
-  { id: "park", name: "公園", icon: "🌳", desc: "散步運動的好去處，偶爾會遇到熟人。" },
-  { id: "school", name: "學校/圖書館", icon: "🏫", desc: "學習知識、進修技能的場所。" },
-  
-  { id: "mall", name: "購物中心", icon: "🛍️", desc: "充滿慾望的地方，可以買奢侈品或吃大餐。" },
-  { id: "cbd", name: "金融中心", icon: "🏢", desc: "銀行、證券交易所，金錢流動的中心。" },
-  { id: "hospital", name: "醫院", icon: "🏥", desc: "生病受傷來這裡，也能進行健康檢查。" },
-  
-  { id: "temple", name: "寺廟", icon: "⛩️", desc: "祈求平安、改運的心靈寄託。" },
-  { id: "club_area", name: "娛樂區", icon: "💃", desc: "夜店、賭場，紙醉金迷的夜生活。" },
-  { id: "airport", name: "機場", icon: "✈️", desc: "通往世界的門戶，可出國旅遊。" }
+  {
+    id: "home",
+    name: "溫暖的家",
+    icon: "🏠",
+    desc: "你的避風港，睡覺補體力的地方。",
+  },
+  {
+    id: "park",
+    name: "公園",
+    icon: "🌳",
+    desc: "散步運動的好去處，偶爾會遇到熟人。",
+  },
+  {
+    id: "school",
+    name: "學校/圖書館",
+    icon: "🏫",
+    desc: "學習知識、進修技能的場所。",
+  },
+
+  {
+    id: "mall",
+    name: "購物中心",
+    icon: "🛍️",
+    desc: "充滿慾望的地方，可以買奢侈品或吃大餐。",
+  },
+  {
+    id: "cbd",
+    name: "金融中心",
+    icon: "🏢",
+    desc: "銀行、證券交易所，金錢流動的中心。",
+  },
+  {
+    id: "hospital",
+    name: "醫院",
+    icon: "🏥",
+    desc: "生病受傷來這裡，也能進行健康檢查。",
+  },
+
+  {
+    id: "temple",
+    name: "寺廟",
+    icon: "⛩️",
+    desc: "祈求平安、改運的心靈寄託。",
+  },
+  {
+    id: "club_area",
+    name: "娛樂區",
+    icon: "💃",
+    desc: "夜店、賭場，紙醉金迷的夜生活。",
+  },
+  {
+    id: "airport",
+    name: "機場",
+    icon: "✈️",
+    desc: "通往世界的門戶，可出國旅遊。",
+  },
 ];
