@@ -36,19 +36,19 @@ let Game = {
     monthlyPayment: 0,
     years: 0,
   },
-  skills: { 
-    programming: 0, 
-    art: 0, 
-    medical: 0, 
-    cooking: 0, 
-    finance: 0, 
-    communication: 0, 
+  skills: {
+    programming: 0,
+    art: 0,
+    medical: 0,
+    cooking: 0,
+    finance: 0,
+    communication: 0,
     charm: 0,
-    leadership: 0,  
-    management: 0   
+    leadership: 0,
+    management: 0,
   },
-  
-  salaryBonus: 0, 
+
+  salaryBonus: 0,
   jobId: "none",
   jobYears: 0,
   yearlyMoney: 0,
@@ -711,87 +711,82 @@ function toggleTraitSelection(traitId) {
   updateSelectedTraitsDisplay();
 }
 function finishCharacterCreation() {
-        // 1. 將選擇的特質加入遊戲
-        // 注意：這裡使用 TRAITS (全大寫) 和 selectedTraits (全域變數)
-        Game.traits = selectedTraits.map((id) =>
-          TRAITS.find((t) => t.id === id),
+  // 1. 將選擇的特質加入遊戲
+  // 注意：這裡使用 TRAITS (全大寫) 和 selectedTraits (全域變數)
+  Game.traits = selectedTraits.map((id) => TRAITS.find((t) => t.id === id));
+  Game.unlockedTraits = [...selectedTraits];
+
+  // 2. 應用特質效果與計算補償
+  let rewardMessages = [];
+  Game.traits.forEach((trait) => {
+    // 應用效果
+    if (trait.effect) {
+      trait.effect(Game);
+    }
+
+    // 計算負面特質獎勵
+    if (trait.isNegative && trait.reward) {
+      if (trait.reward.money) {
+        Game.money += trait.reward.money;
+        rewardMessages.push(
+          `💰 補償金 +$${trait.reward.money.toLocaleString()}`,
         );
-        Game.unlockedTraits = [...selectedTraits];
-
-        // 2. 應用特質效果與計算補償
-        let rewardMessages = [];
-        Game.traits.forEach((trait) => {
-          // 應用效果
-          if (trait.effect) {
-            trait.effect(Game);
-          }
-
-          // 計算負面特質獎勵
-          if (trait.isNegative && trait.reward) {
-            if (trait.reward.money) {
-              Game.money += trait.reward.money;
-              rewardMessages.push(
-                `💰 補償金 +$${trait.reward.money.toLocaleString()}`,
-              );
-            }
-            if (trait.reward.intel) {
-              Game.intel += trait.reward.intel;
-              rewardMessages.push(`🧠 智力 +${trait.reward.intel}`);
-            }
-            if (trait.reward.health) {
-              Game.health += trait.reward.health;
-              rewardMessages.push(`❤️ 健康 +${trait.reward.health}`);
-            }
-            if (trait.reward.happy) {
-              Game.happy += trait.reward.happy;
-              rewardMessages.push(`😊 快樂 +${trait.reward.happy}`);
-            }
-            if (trait.reward.charm) {
-              Game.skills.charm += trait.reward.charm;
-              rewardMessages.push(`✨ 魅力 +${trait.reward.charm}`);
-            }
-          }
-        });
-
-        // 3. 顯示補償訊息 (如果有)
-        if (rewardMessages.length > 0) {
-          alert(`🎁 負面特質補償獎勵：\n\n${rewardMessages.join("\n")}`);
-        }
-
-        // 4. 切換介面：隱藏創角，顯示遊戲主畫面
-        document.getElementById("scene-creation").style.display = "none";
-        const gameScene = document.getElementById("scene-game");
-        gameScene.style.display = "block";
-        gameScene.classList.add("active");
-
-        // 5. 初始化遊戲各項顯示
-        updateUI();
-        renderJobs();
-        renderShop();
-        renderSocial();
-        renderAchievements();
-        renderStats();
-
-        // 6. 寫入第一筆日誌
-        log(`👶 ${Game.name} 出生了！`);
-        log(`🏠 出身：${Game.origin}`);
-        log(`🎁 天賦：${Game.talents.map((t) => t.name).join("、")}`);
-        log(`✨ 特質：${Game.traits.map((t) => t.name).join("、")}`);
-
-        // 7. ✅ 觸發開場劇情 (最重要的部分)
-        // 這裡使用 setTimeout 延遲 500毫秒，確保介面切換完成後才彈出，體驗較好
-        if (
-          typeof ORIGIN_STORY !== "undefined" &&
-          ORIGIN_STORY[Game.originId]
-        ) {
-          setTimeout(() => {
-            showModal("📖 人生篇章開啟", ORIGIN_STORY[Game.originId], [
-              { text: "開始冒險", action: () => closeModal() },
-            ]);
-            log(ORIGIN_STORY[Game.originId]);
-          }, 500);
-        }
       }
+      if (trait.reward.intel) {
+        Game.intel += trait.reward.intel;
+        rewardMessages.push(`🧠 智力 +${trait.reward.intel}`);
+      }
+      if (trait.reward.health) {
+        Game.health += trait.reward.health;
+        rewardMessages.push(`❤️ 健康 +${trait.reward.health}`);
+      }
+      if (trait.reward.happy) {
+        Game.happy += trait.reward.happy;
+        rewardMessages.push(`😊 快樂 +${trait.reward.happy}`);
+      }
+      if (trait.reward.charm) {
+        Game.skills.charm += trait.reward.charm;
+        rewardMessages.push(`✨ 魅力 +${trait.reward.charm}`);
+      }
+    }
+  });
+
+  // 3. 顯示補償訊息 (如果有)
+  if (rewardMessages.length > 0) {
+    alert(`🎁 負面特質補償獎勵：\n\n${rewardMessages.join("\n")}`);
+  }
+
+  // 4. 切換介面：隱藏創角，顯示遊戲主畫面
+  document.getElementById("scene-creation").style.display = "none";
+  const gameScene = document.getElementById("scene-game");
+  gameScene.style.display = "block";
+  gameScene.classList.add("active");
+
+  // 5. 初始化遊戲各項顯示
+  updateUI();
+  renderJobs();
+  renderShop();
+  renderSocial();
+  renderAchievements();
+  renderStats();
+
+  // 6. 寫入第一筆日誌
+  log(`👶 ${Game.name} 出生了！`);
+  log(`🏠 出身：${Game.origin}`);
+  log(`🎁 天賦：${Game.talents.map((t) => t.name).join("、")}`);
+  log(`✨ 特質：${Game.traits.map((t) => t.name).join("、")}`);
+
+  // 7. ✅ 觸發開場劇情 (最重要的部分)
+  // 這裡使用 setTimeout 延遲 500毫秒，確保介面切換完成後才彈出，體驗較好
+  if (typeof ORIGIN_STORY !== "undefined" && ORIGIN_STORY[Game.originId]) {
+    setTimeout(() => {
+      showModal("📖 人生篇章開啟", ORIGIN_STORY[Game.originId], [
+        { text: "開始冒險", action: () => closeModal() },
+      ]);
+      log(ORIGIN_STORY[Game.originId]);
+    }, 500);
+  }
+}
 function updateSelectedTraitsDisplay() {
   document.getElementById("selected-count").textContent = selectedTraits.length;
 
@@ -1119,9 +1114,9 @@ function updateUI() {
   document.getElementById("player-name").textContent = Game.name;
   document.getElementById("age-display").textContent = Game.age;
   document.getElementById("player-origin").textContent = Game.origin;
-  document.getElementById("player-job").textContent = JOBS.find(
-    (j) => j.id === Game.jobId,
-  ).name;
+  const jobName = JOBS.find((j) => j.id === Game.jobId)?.name || "無業";
+  const jobTitle = Game.job && Game.job !== "無業" ? ` (${Game.job})` : "";
+  document.getElementById("player-job").textContent = jobName + jobTitle;
   document.getElementById("money-display").textContent =
     "$" + Game.money.toLocaleString();
 
@@ -2284,12 +2279,13 @@ function checkPromotion() {
   const leadership = Game.skills.leadership || 0;
   const communication = Game.skills.communication || 0;
   const intel = Game.intel || 0;
-  
+
   let canPromote = true;
 
   if (req.age && Game.age < req.age) canPromote = false;
   if (req.intel && intel < req.intel) canPromote = false;
-  if (req.communication && communication < req.communication) canPromote = false;
+  if (req.communication && communication < req.communication)
+    canPromote = false;
   if (req.leadership && leadership < req.leadership) canPromote = false;
   if (req.workYears && Game.workYears < req.workYears) canPromote = false;
 
@@ -2303,167 +2299,170 @@ function checkPromotion() {
           text: "接受晉升",
           action: () => {
             Game.job = promotion.next;
-            
+
             // ✅ 修正加薪邏輯：記錄在個人加成，而不是修改全域資料
-            Game.salaryBonus = (Game.salaryBonus || 0) + promotion.salaryIncrease;
-            
-            log(`✨ 你晉升為 ${promotion.next}！(年薪 +$${promotion.salaryIncrease.toLocaleString()})`);
+            Game.salaryBonus =
+              (Game.salaryBonus || 0) + promotion.salaryIncrease;
+
+            log(
+              `✨ 你晉升為 ${promotion.next}！(年薪 +$${promotion.salaryIncrease.toLocaleString()})`,
+            );
             closeModal();
             updateUI();
-          }
+          },
         },
         {
           text: "暫不晉升",
           action: () => {
             log(`你選擇暫不晉升`);
             closeModal();
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
     // 標記今年已檢查過，避免重複彈出
     Game.promotionChecked = true;
   }
 }
 function createChild(name, age = 0) {
-        return {
-          name: name,
-          age: age,
-          health: 100,
-          intel: 50 + Math.floor(Game.intel * 0.3), // ✅ 修正：game -> Game
-          personality: ["乖巧", "叛逆", "聰明", "運動", "文靜"][
-            Math.floor(Math.random() * 5)
-          ],
-          education: "學齡前",
-          relationship: 80,
-          expenses: 20000,
-        };
-      }
+  return {
+    name: name,
+    age: age,
+    health: 100,
+    intel: 50 + Math.floor(Game.intel * 0.3), // ✅ 修正：game -> Game
+    personality: ["乖巧", "叛逆", "聰明", "運動", "文靜"][
+      Math.floor(Math.random() * 5)
+    ],
+    education: "學齡前",
+    relationship: 80,
+    expenses: 20000,
+  };
+}
 
- function tryHaveBaby() {
-        if (!Game.partner) {
-          // ✅ 修正：game -> Game
-          showPopup("❌ 需要先有伴侶", "red");
-          return;
-        }
+function tryHaveBaby() {
+  if (!Game.partner) {
+    // ✅ 修正：game -> Game
+    showPopup("❌ 需要先有伴侶", "red");
+    return;
+  }
 
-        if (Game.age < 20 || Game.age > 45) {
-          showPopup("❌ 年齡不適合生育 (20-45歲)", "red");
-          return;
-        }
+  if (Game.age < 20 || Game.age > 45) {
+    showPopup("❌ 年齡不適合生育 (20-45歲)", "red");
+    return;
+  }
 
-        if (Game.money < 100000) {
-          showPopup("❌ 存款不足 $100,000", "red");
-          return;
-        }
+  if (Game.money < 100000) {
+    showPopup("❌ 存款不足 $100,000", "red");
+    return;
+  }
 
-        showModal(
-          "👶 考慮生育",
-          `生育需要：\n• 初期費用 $100,000\n• 每年養育費 $20,000+\n• 大量時間與精力\n\n是否準備好迎接新生命？`,
-          "🍼 準備好了",
-          "❌ 暫不考慮",
-          () => {
-            Game.money -= 100000;
-            const babyName = prompt("請為寶寶取名：", "小寶") || "小寶";
-            const baby = createChild(babyName, 0);
-            Game.children.push(baby); // ✅ 修正：game -> Game
-            log(`🎉 恭喜！你的孩子 ${babyName} 出生了！`);
-            Game.happy += 30;
-            updateUI();
-            renderChildrenList();
-          },
-        );
-      }
+  showModal(
+    "👶 考慮生育",
+    `生育需要：\n• 初期費用 $100,000\n• 每年養育費 $20,000+\n• 大量時間與精力\n\n是否準備好迎接新生命？`,
+    "🍼 準備好了",
+    "❌ 暫不考慮",
+    () => {
+      Game.money -= 100000;
+      const babyName = prompt("請為寶寶取名：", "小寶") || "小寶";
+      const baby = createChild(babyName, 0);
+      Game.children.push(baby); // ✅ 修正：game -> Game
+      log(`🎉 恭喜！你的孩子 ${babyName} 出生了！`);
+      Game.happy += 30;
+      updateUI();
+      renderChildrenList();
+    },
+  );
+}
 
 function updateChildren() {
-        Game.children.forEach((child) => {
-          // ✅ 修正：game -> Game
-          child.age++;
+  Game.children.forEach((child) => {
+    // ✅ 修正：game -> Game
+    child.age++;
 
-          if (child.age === 6) child.education = "小學";
-          if (child.age === 12) child.education = "國中";
-          if (child.age === 15) child.education = "高中";
-          if (child.age === 18) {
-            showModal(
-              "🎓 子女升學",
-              `${child.name} 高中畢業了！選擇未來方向：`,
-              "💰 直接工作",
-              "📚 上大學 ($200k)",
-              () => {
-                child.education = "就業";
-                log(`${child.name} 開始工作了！`);
-              },
-              () => {
-                if (Game.money >= 200000) {
-                  Game.money -= 200000;
-                  child.education = "大學";
-                  child.intel += 30;
-                  log(`${child.name} 進入大學就讀！`);
-                } else {
-                  showPopup("❌ 學費不足", "red");
-                }
-              },
-            );
+    if (child.age === 6) child.education = "小學";
+    if (child.age === 12) child.education = "國中";
+    if (child.age === 15) child.education = "高中";
+    if (child.age === 18) {
+      showModal(
+        "🎓 子女升學",
+        `${child.name} 高中畢業了！選擇未來方向：`,
+        "💰 直接工作",
+        "📚 上大學 ($200k)",
+        () => {
+          child.education = "就業";
+          log(`${child.name} 開始工作了！`);
+        },
+        () => {
+          if (Game.money >= 200000) {
+            Game.money -= 200000;
+            child.education = "大學";
+            child.intel += 30;
+            log(`${child.name} 進入大學就讀！`);
+          } else {
+            showPopup("❌ 學費不足", "red");
           }
+        },
+      );
+    }
 
-          let cost = child.expenses;
-          if (child.education === "大學") cost += 50000;
-          Game.money -= cost;
+    let cost = child.expenses;
+    if (child.education === "大學") cost += 50000;
+    Game.money -= cost;
 
-          if (child.education !== "就業") {
-            child.intel += Math.floor(Math.random() * 3 + 1);
-          }
-        });
-      }
+    if (child.education !== "就業") {
+      child.intel += Math.floor(Math.random() * 3 + 1);
+    }
+  });
+}
 
 function interactWithChild(childIndex) {
-        const child = Game.children[childIndex]; // ✅ 修正：game -> Game
-        if (!child) return;
+  const child = Game.children[childIndex]; // ✅ 修正：game -> Game
+  if (!child) return;
 
-        showModal(
-          `💕 與 ${child.name} 互動`,
-          `年齡：${child.age}歲 | 個性：${child.personality}\n教育：${child.education} | 智力：${child.intel}\n關係：${child.relationship}/100`,
-          "🎮 陪伴玩耍 (-20體力)",
-          "📖 輔導功課 (-30體力)",
-          () => {
-            if (Game.stamina >= 20) {
-              Game.stamina -= 20;
-              child.relationship = Math.min(100, child.relationship + 5);
-              Game.happy += 10;
-              log(`陪 ${child.name} 玩耍，關係更親密了！`);
-              updateUI();
-            } else {
-              showPopup("❌ 體力不足", "red");
-            }
-          },
-          () => {
-            if (Game.stamina >= 30 && Game.intel >= 80) {
-              Game.stamina -= 30;
-              child.intel += 3;
-              child.relationship = Math.min(100, child.relationship + 3);
-              log(`輔導 ${child.name} 功課，智力提升了！`);
-              updateUI();
-            } else {
-              showPopup("❌ 需要體力30和智力80", "red");
-            }
-          },
-        );
+  showModal(
+    `💕 與 ${child.name} 互動`,
+    `年齡：${child.age}歲 | 個性：${child.personality}\n教育：${child.education} | 智力：${child.intel}\n關係：${child.relationship}/100`,
+    "🎮 陪伴玩耍 (-20體力)",
+    "📖 輔導功課 (-30體力)",
+    () => {
+      if (Game.stamina >= 20) {
+        Game.stamina -= 20;
+        child.relationship = Math.min(100, child.relationship + 5);
+        Game.happy += 10;
+        log(`陪 ${child.name} 玩耍，關係更親密了！`);
+        updateUI();
+      } else {
+        showPopup("❌ 體力不足", "red");
       }
+    },
+    () => {
+      if (Game.stamina >= 30 && Game.intel >= 80) {
+        Game.stamina -= 30;
+        child.intel += 3;
+        child.relationship = Math.min(100, child.relationship + 3);
+        log(`輔導 ${child.name} 功課，智力提升了！`);
+        updateUI();
+      } else {
+        showPopup("❌ 需要體力30和智力80", "red");
+      }
+    },
+  );
+}
 
 function renderChildrenList() {
-        const container = document.getElementById("children-list");
-        if (!container) return;
+  const container = document.getElementById("children-list");
+  if (!container) return;
 
-        if (Game.children.length === 0) {
-          // ✅ 修正：game -> Game
-          container.innerHTML =
-            '<div style="color: var(--text-dim); text-align: center; padding: 10px;">尚無子女</div>';
-          return;
-        }
+  if (Game.children.length === 0) {
+    // ✅ 修正：game -> Game
+    container.innerHTML =
+      '<div style="color: var(--text-dim); text-align: center; padding: 10px;">尚無子女</div>';
+    return;
+  }
 
-        container.innerHTML = Game.children
-          .map(
-            (child, index) => `
+  container.innerHTML = Game.children
+    .map(
+      (child, index) => `
     <div class="job-card" onclick="interactWithChild(${index})" style="cursor: pointer;">
       <div class="job-name">${child.name} (${child.age}歲)</div>
       <div style="font-size: 0.85em; color: var(--text-dim); margin-top: 5px;">
@@ -2477,329 +2476,318 @@ function renderChildrenList() {
       </div>
     </div>
   `,
-          )
-          .join("");
-      }
-      // ==========================================
-      // 🆕 新增：通膨與房貸系統 (已修正變數名稱 Game)
-      // ==========================================
+    )
+    .join("");
+}
 function updateInflation() {
-  Game.yearsPassed++; 
+  Game.yearsPassed++;
   if (Game.yearsPassed % 5 === 0) {
     // 產生 0.0 ~ 3.0 之間的隨機數字 (例如 1.5, 2.7)
     const percent = Math.random() * 3;
-    
+
     // 計算倍率 (例如 1.5% -> 0.015 -> 1.015)
-    const multiplier = 1 + (percent / 100);
-    
+    const multiplier = 1 + percent / 100;
+
     Game.inflationRate *= multiplier;
-    
+
     // 顯示時取小數點後 1 位，看起來比較整潔
     log(`💸 物價上漲了 ${percent.toFixed(1)}%`);
   }
 }
 
 function getInflatedPrice(basePrice) {
-        return Math.floor(basePrice * Game.inflationRate); // ✅ 修正：game -> Game
-      }
+  return Math.floor(basePrice * Game.inflationRate); // ✅ 修正：game -> Game
+}
 
 function payMortgage() {
-        if (Game.mortgage.active) {
-          // ✅ 修正：game -> Game
-          if (Game.money >= Game.mortgage.monthlyPayment) {
-            Game.money -= Game.mortgage.monthlyPayment;
-            Game.mortgage.remaining -= Game.mortgage.monthlyPayment;
-            Game.mortgage.years--;
+  if (Game.mortgage.active) {
+    // ✅ 修正：game -> Game
+    if (Game.money >= Game.mortgage.monthlyPayment) {
+      Game.money -= Game.mortgage.monthlyPayment;
+      Game.mortgage.remaining -= Game.mortgage.monthlyPayment;
+      Game.mortgage.years--;
 
-            if (Game.mortgage.remaining <= 0 || Game.mortgage.years <= 0) {
-              log(`🎉 房貸繳清了！`);
-              Game.mortgage.active = false;
-            } else {
-              log(
-                `繳房貸 $${Game.mortgage.monthlyPayment.toLocaleString()}，剩 ${Game.mortgage.years} 年`,
-              );
-            }
-          } else {
-            log(`⚠️ 無法繳納房貸！健康與快樂下降`);
-            Game.health -= 10;
-            Game.happy -= 15;
-          }
-        }
-      }
-
-function buyHouseWithMortgage(house) {
-        const realPrice = getInflatedPrice(house.price);
-        const downPayment = Math.floor(realPrice * 0.3);
-        const loanAmount = realPrice - downPayment;
-
-        showModal(
-          "🏠 購屋方案",
-          `${house.name}\n房價：$${realPrice.toLocaleString()}\n頭期款(30%)：$${downPayment.toLocaleString()}\n貸款金額：$${loanAmount.toLocaleString()}\n貸款年限：20年\n年繳金額：$${Math.floor(loanAmount / 20).toLocaleString()}`,
-          "💰 全額付清",
-          "🏦 申請貸款",
-          () => {
-            if (Game.money >= realPrice) {
-              Game.money -= realPrice;
-              // 🔴 修正：items -> inventory
-              Game.inventory.push(house.name);
-              if (house.happyBonus) Game.happy += house.happyBonus;
-              log(`全額購買了 ${house.name}！`);
-              updateUI();
-              renderShop();
-            } else {
-              showPopup("❌ 金錢不足", "red");
-            }
-          },
-          () => {
-            if (Game.money >= downPayment) {
-              if (Game.mortgage.active) {
-                showPopup("❌ 已有貸款進行中", "red");
-                return;
-              }
-              Game.money -= downPayment;
-              Game.mortgage = {
-                active: true,
-                totalAmount: loanAmount,
-                remaining: loanAmount,
-                monthlyPayment: Math.floor(loanAmount / 20),
-                years: 20,
-                itemName: house.name,
-              };
-              // 🔴 修正：items -> inventory
-              Game.inventory.push(house.name);
-              if (house.happyBonus) Game.happy += house.happyBonus;
-              log(
-                `貸款購買了 ${house.name}！每年繳納 $${Game.mortgage.monthlyPayment.toLocaleString()}`,
-              );
-              updateUI();
-              renderShop();
-            } else {
-              showPopup("❌ 頭期款不足", "red");
-            }
-          },
+      if (Game.mortgage.remaining <= 0 || Game.mortgage.years <= 0) {
+        log(`🎉 房貸繳清了！`);
+        Game.mortgage.active = false;
+      } else {
+        log(
+          `繳房貸 $${Game.mortgage.monthlyPayment.toLocaleString()}，剩 ${Game.mortgage.years} 年`,
         );
       }
+    } else {
+      log(`⚠️ 無法繳納房貸！健康與快樂下降`);
+      Game.health -= 10;
+      Game.happy -= 15;
+    }
+  }
+}
 
-function nextYear() {
-        // ===== 1. 防止重複執行 =====
-        if (isProcessing) {
-          console.log("⚠️ 正在處理中...");
+function buyHouseWithMortgage(house) {
+  const realPrice = getInflatedPrice(house.price);
+  const downPayment = Math.floor(realPrice * 0.3);
+  const loanAmount = realPrice - downPayment;
+
+  showModal(
+    "🏠 購屋方案",
+    `${house.name}\n房價：$${realPrice.toLocaleString()}\n頭期款(30%)：$${downPayment.toLocaleString()}\n貸款金額：$${loanAmount.toLocaleString()}\n貸款年限：20年\n年繳金額：$${Math.floor(loanAmount / 20).toLocaleString()}`,
+    "💰 全額付清",
+    "🏦 申請貸款",
+    () => {
+      if (Game.money >= realPrice) {
+        Game.money -= realPrice;
+        // 🔴 修正：items -> inventory
+        Game.inventory.push(house.name);
+        if (house.happyBonus) Game.happy += house.happyBonus;
+        log(`全額購買了 ${house.name}！`);
+        updateUI();
+        renderShop();
+      } else {
+        showPopup("❌ 金錢不足", "red");
+      }
+    },
+    () => {
+      if (Game.money >= downPayment) {
+        if (Game.mortgage.active) {
+          showPopup("❌ 已有貸款進行中", "red");
           return;
         }
-        isProcessing = true;
+        Game.money -= downPayment;
+        Game.mortgage = {
+          active: true,
+          totalAmount: loanAmount,
+          remaining: loanAmount,
+          monthlyPayment: Math.floor(loanAmount / 20),
+          years: 20,
+          itemName: house.name,
+        };
+        // 🔴 修正：items -> inventory
+        Game.inventory.push(house.name);
+        if (house.happyBonus) Game.happy += house.happyBonus;
+        log(
+          `貸款購買了 ${house.name}！每年繳納 $${Game.mortgage.monthlyPayment.toLocaleString()}`,
+        );
+        updateUI();
+        renderShop();
+      } else {
+        showPopup("❌ 頭期款不足", "red");
+      }
+    },
+  );
+}
 
-        try {
-          // ===== 2. 優先檢查負債（最高優先級，在健康檢查之前）=====
-          if (Game.money < 0) {
-            if (typeof Game.debtYears === "undefined") Game.debtYears = 0;
-            Game.debtYears++;
-            Game.hasBeenInDebt = true;
+function nextYear() {
+  // ===== 1. 防止重複執行 =====
+  if (isProcessing) {
+    console.log("⚠️ 正在處理中...");
+    return;
+  }
+  isProcessing = true;
 
-            // ✅ 負債滿3年立即結束遊戲
-            if (Game.debtYears >= 3) {
-              log("💀 負債已達3年，遊戲結束！");
-              isProcessing = false;
-              showEnding();
-              return;
-            }
+  try {
+    // ===== 2. 優先檢查負債（最高優先級，在健康檢查之前）=====
+    if (Game.money < 0) {
+      if (typeof Game.debtYears === "undefined") Game.debtYears = 0;
+      Game.debtYears++;
+      Game.hasBeenInDebt = true;
 
-            // 未滿3年才扣屬性並顯示警告
-            Game.happy -= 20;
-            Game.health -= 5;
-            log(`⚠️ 你已負債第 ${Game.debtYears} 年！(-20快樂, -5健康)`);
-            if (typeof showChanges === "function") {
-              showChanges(["-20 😊 快樂", "-5 ❤️ 健康"]);
-            }
-          } else if (Game.debtYears > 0) {
-            // 如果還清債務，重置負債年數
-            log("✅ 債務已清償！");
-            Game.debtYears = 0;
-          }
+      // ✅ 負債滿3年立即結束遊戲
+      if (Game.debtYears >= 3) {
+        log("💀 負債已達3年，遊戲結束！");
+        isProcessing = false;
+        showEnding();
+        return;
+      }
 
-          // ===== 3. 健康檢查（放在負債檢查之後）=====
-          if (Game.health <= 0) {
-            isProcessing = false;
-            showEnding();
-            return;
-          }
+      // 未滿3年才扣屬性並顯示警告
+      Game.happy -= 20;
+      Game.health -= 5;
+      log(`⚠️ 你已負債第 ${Game.debtYears} 年！(-20快樂, -5健康)`);
+      if (typeof showChanges === "function") {
+        showChanges(["-20 😊 快樂", "-5 ❤️ 健康"]);
+      }
+    } else if (Game.debtYears > 0) {
+      // 如果還清債務，重置負債年數
+      log("✅ 債務已清償！");
+      Game.debtYears = 0;
+    }
 
-          // 保存舊的人生階段
-          const oldStage =
-            LIFE_STAGES.find((s) => Game.age >= s.min && Game.age <= s.max) ||
-            LIFE_STAGES[LIFE_STAGES.length - 1];
+    // ===== 3. 健康檢查（放在負債檢查之後）=====
+    if (Game.health <= 0) {
+      isProcessing = false;
+      showEnding();
+      return;
+    }
 
-          // ===== 4. 過年：增加年齡、重置體力、增加工齡 =====
-          Game.age++;
-          Game.stamina = 100;
-          Game.workYears++;
-          Game.promotionChecked = false;
+    // 保存舊的人生階段
+    const oldStage =
+      LIFE_STAGES.find((s) => Game.age >= s.min && Game.age <= s.max) ||
+      LIFE_STAGES[LIFE_STAGES.length - 1];
 
-          // 初始化年份計數器
-          if (!Game.yearsPassed) Game.yearsPassed = 0;
+    // ===== 4. 過年：增加年齡、重置體力、增加工齡 =====
+    Game.age++;
+    Game.stamina = 100;
+    Game.workYears++;
+    Game.promotionChecked = false;
 
-          // 通膨系統
-          updateInflation();
+    // 初始化年份計數器
+    if (!Game.yearsPassed) Game.yearsPassed = 0;
 
-          // 房貸扣款
-          if (Game.mortgage && Game.mortgage.active) {
-            payMortgage();
-          }
+    // 通膨系統
+    updateInflation();
 
-          // 子女成長
-          if (Game.children) {
-            updateChildren();
-          }
+    // 房貸扣款
+    if (Game.mortgage && Game.mortgage.active) {
+      payMortgage();
+    }
 
-          // 升遷檢查
-          checkPromotion();
+    // 子女成長
+    if (Game.children) {
+      updateChildren();
+    }
 
-          // ===== 5. 每5年自動存檔 =====
-          if (Game.age % 5 === 0) {
-            saveGame();
-          }
+    // 升遷檢查
+    checkPromotion();
 
-          // ===== 6. 生活費扣除 =====
-          let livingCost = 0;
-          if (Game.age < 18) {
-            livingCost = 0; // 未成年無生活費
-          } else if (Game.age >= 18 && Game.age < 25) {
-            livingCost = 15000;
-          } else if (Game.age >= 25 && Game.age < 40) {
-            livingCost = 30000;
-          } else if (Game.age >= 40 && Game.age < 60) {
-            livingCost = 50000;
-          } else if (Game.age >= 60) {
-            livingCost = 70000;
-          }
+    // ===== 5. 每5年自動存檔 =====
+    if (Game.age % 5 === 0) {
+      saveGame();
+    }
 
-          // 擁有房子減免40%生活費
-          const inventory = Game.inventory;
-          const hasHouse = inventory.some((i) => i.startsWith("house"));
-          const hasCar = inventory.some((i) => i.startsWith("car"));
+    // ===== 6. 生活費扣除 =====
+    let livingCost = 0;
+    if (Game.age < 18) {
+      livingCost = 0; // 未成年無生活費
+    } else if (Game.age >= 18 && Game.age < 25) {
+      livingCost = 15000;
+    } else if (Game.age >= 25 && Game.age < 40) {
+      livingCost = 30000;
+    } else if (Game.age >= 40 && Game.age < 60) {
+      livingCost = 50000;
+    } else if (Game.age >= 60) {
+      livingCost = 70000;
+    }
 
-          if (hasHouse) {
-            livingCost = Math.floor(livingCost * 0.6);
-          }
+    // 擁有房子減免40%生活費
+    const inventory = Game.inventory;
+    const hasHouse = inventory.some((i) => i.startsWith("house"));
+    const hasCar = inventory.some((i) => i.startsWith("car"));
 
-          // 擁有車子增加保養費
-          if (hasCar) {
-            livingCost += 12000;
-          }
+    if (hasHouse) {
+      livingCost = Math.floor(livingCost * 0.6);
+    }
 
-          // 計算通膨影響
-          livingCost = Math.floor(livingCost * (Game.inflationRate || 1));
+    // 擁有車子增加保養費
+    if (hasCar) {
+      livingCost += 12000;
+    }
 
-          if (livingCost > 0) {
-            Game.money -= livingCost;
-            log(`💰 生活費支出：-${livingCost.toLocaleString()}`);
-          }
+    // 計算通膨影響
+    livingCost = Math.floor(livingCost * (Game.inflationRate || 1));
 
-          // ===== 7. 隨機緊急事件 (15%機率) =====
-          if (Math.random() < 0.15) {
-            const emergencies = [
-              { name: "🚗 車子維修", cost: 8000 },
-              { name: "📱 手機壞掉", cost: 15000 },
-              { name: "🦷 看牙醫", cost: 12000 },
-              { name: "🏥 突發疾病", cost: 20000 },
-              { name: "🔧 家電故障", cost: 30000 },
-            ];
-            const emergency =
-              emergencies[Math.floor(Math.random() * emergencies.length)];
-            const realCost = Math.floor(
-              emergency.cost * (Game.inflationRate || 1),
-            );
-            Game.money -= realCost;
-            Game.happy -= 5;
-            log(`${emergency.name}，支出 ${realCost.toLocaleString()} 元`);
-          }
+    if (livingCost > 0) {
+      Game.money -= livingCost;
+      log(`💰 生活費支出：-${livingCost.toLocaleString()}`);
+    }
 
-          // NPC 生命週期更新
-          if (Game.relationships) {
-            updateNPCLifecycle();
-          }
+    // ===== 7. 隨機緊急事件 (15%機率) =====
+    if (Math.random() < 0.15) {
+      const emergencies = [
+        { name: "🚗 車子維修", cost: 8000 },
+        { name: "📱 手機壞掉", cost: 15000 },
+        { name: "🦷 看牙醫", cost: 12000 },
+        { name: "🏥 突發疾病", cost: 20000 },
+        { name: "🔧 家電故障", cost: 30000 },
+      ];
+      const emergency =
+        emergencies[Math.floor(Math.random() * emergencies.length)];
+      const realCost = Math.floor(emergency.cost * (Game.inflationRate || 1));
+      Game.money -= realCost;
+      Game.happy -= 5;
+      log(`${emergency.name}，支出 ${realCost.toLocaleString()} 元`);
+    }
 
-          // ===== 8. 年度收入 =====
-          const yearChanges = [];
+    // NPC 生命週期更新
+    if (Game.relationships) {
+      updateNPCLifecycle();
+    }
 
-          // 家庭年度收入
-          if (Game.yearlyMoney > 0) {
-            Game.money += Game.yearlyMoney;
-            yearChanges.push(
-              `+${Game.yearlyMoney.toLocaleString()} 💰 家庭收入`,
-            );
-          }
+    // ===== 8. 年度收入 =====
+    const yearChanges = [];
 
-          // 房產被動收入
-          inventory.forEach((item) => {
-            if (typeof HOUSES !== "undefined") {
-              const house = HOUSES.find((h) => h.id === item);
-              if (house && house.passive) {
-                const rent = Math.floor(
-                  house.passive * (Game.inflationRate || 1),
-                );
-                Game.money += rent;
-                yearChanges.push(
-                  `+${rent.toLocaleString()} 🏠 ${house.name}租金收入`,
-                );
-              }
-            }
-          });
+    // 家庭年度收入
+    if (Game.yearlyMoney > 0) {
+      Game.money += Game.yearlyMoney;
+      yearChanges.push(`+${Game.yearlyMoney.toLocaleString()} 💰 家庭收入`);
+    }
 
-          // ===== 9. 年度屬性衰減 =====
-          let baseHealthLoss = 5;
-          if (Game.age < 40) {
-            baseHealthLoss = 2;
-          } else if (Game.age >= 60) {
-            baseHealthLoss = 3;
-          } else if (Game.age >= 80) {
-            baseHealthLoss = 5;
-          }
-
-          let actualHealthLoss = Math.floor(
-            baseHealthLoss * (Game.healthDecay || 1),
+    // 房產被動收入
+    inventory.forEach((item) => {
+      if (typeof HOUSES !== "undefined") {
+        const house = HOUSES.find((h) => h.id === item);
+        if (house && house.passive) {
+          const rent = Math.floor(house.passive * (Game.inflationRate || 1));
+          Game.money += rent;
+          yearChanges.push(
+            `+${rent.toLocaleString()} 🏠 ${house.name}租金收入`,
           );
-          Game.health -= actualHealthLoss;
-          Game.happy -= Math.floor(3 * (Game.happyDecay || 1));
-
-          // 快樂值過高計數
-          if (Game.happy > 80) {
-            Game.happyYears++;
-          }
-
-          // 顯示年度總結
-          if (yearChanges.length > 0) {
-            log(`🎂 ${Game.age} 歲：${yearChanges.join("、")}`);
-          }
-
-          // ===== 10. 人生階段檢查 =====
-          const newStage =
-            LIFE_STAGES.find((s) => Game.age >= s.min && Game.age <= s.max) ||
-            LIFE_STAGES[LIFE_STAGES.length - 1];
-
-          if (oldStage && newStage && oldStage.name !== newStage.name) {
-            log(`${newStage.icon} 進入${newStage.name}階段！`);
-            if (typeof showPopup === "function") {
-              showPopup(`${newStage.icon} 進入${newStage.name}`, "blue");
-            }
-          }
-
-          // ===== 11. 更新UI、檢查成就 =====
-          checkAchievements();
-          updateUI();
-
-          if (typeof renderChildrenList === "function") {
-            renderChildrenList();
-          }
-        } catch (error) {
-          console.error("❌ 遊戲發生錯誤:", error);
-          alert("❌ 遊戲發生錯誤，請按F12查看控制台");
-        } finally {
-          // 延遲重置鎖，避免連點
-          setTimeout(() => {
-            isProcessing = false;
-          }, 300);
         }
       }
+    });
+
+    // ===== 9. 年度屬性衰減 =====
+    let baseHealthLoss = 5;
+    if (Game.age < 40) {
+      baseHealthLoss = 2;
+    } else if (Game.age >= 60) {
+      baseHealthLoss = 3;
+    } else if (Game.age >= 80) {
+      baseHealthLoss = 5;
+    }
+
+    let actualHealthLoss = Math.floor(baseHealthLoss * (Game.healthDecay || 1));
+    Game.health -= actualHealthLoss;
+    Game.happy -= Math.floor(3 * (Game.happyDecay || 1));
+
+    // 快樂值過高計數
+    if (Game.happy > 80) {
+      Game.happyYears++;
+    }
+
+    // 顯示年度總結
+    if (yearChanges.length > 0) {
+      log(`🎂 ${Game.age} 歲：${yearChanges.join("、")}`);
+    }
+
+    // ===== 10. 人生階段檢查 =====
+    const newStage =
+      LIFE_STAGES.find((s) => Game.age >= s.min && Game.age <= s.max) ||
+      LIFE_STAGES[LIFE_STAGES.length - 1];
+
+    if (oldStage && newStage && oldStage.name !== newStage.name) {
+      log(`${newStage.icon} 進入${newStage.name}階段！`);
+      if (typeof showPopup === "function") {
+        showPopup(`${newStage.icon} 進入${newStage.name}`, "blue");
+      }
+    }
+
+    // ===== 11. 更新UI、檢查成就 =====
+    checkAchievements();
+    updateUI();
+
+    if (typeof renderChildrenList === "function") {
+      renderChildrenList();
+    }
+  } catch (error) {
+    console.error("❌ 遊戲發生錯誤:", error);
+    alert("❌ 遊戲發生錯誤，請按F12查看控制台");
+  } finally {
+    // 延遲重置鎖，避免連點
+    setTimeout(() => {
+      isProcessing = false;
+    }, 300);
+  }
+}
 function triggerRandomEvent() {
   const availableEvents = RANDOM_EVENTS.filter((event) => {
     if (event.condition) {
@@ -4261,7 +4249,7 @@ function renderShop() {
     const owned = Game.inventory.includes(car.id);
     // 🔥 計算通膨後的價格
     const currentPrice = getInflatedPrice(car.price);
-    
+
     carHtml += `
       <div class="job-card" style="cursor: default;">
           <div class="job-name">${car.name} ${owned ? "✓ (已擁有)" : ""}</div>
@@ -4299,7 +4287,7 @@ function renderShop() {
               <button class="btn-buy" onclick="buyItem('${house.id}')" ${owned ? "disabled" : ""}>
                   購買 $${(currentPrice / 10000).toFixed(0)}萬
               </button>
-              ${!owned ? `<button class="btn-main" style="margin-left:5px; font-size:0.8em; padding: 5px 10px;" onclick="buyHouseWithMortgage(HOUSES.find(h=>h.id==='${house.id}'))">貸款</button>` : ''}
+              ${!owned ? `<button class="btn-main" style="margin-left:5px; font-size:0.8em; padding: 5px 10px;" onclick="buyHouseWithMortgage(HOUSES.find(h=>h.id==='${house.id}'))">貸款</button>` : ""}
           </div>
       </div>
     `;
@@ -4353,25 +4341,27 @@ function buyItem(id) {
   }
 
   // 增加確認視窗，避免誤買高價物品
-  if (confirm(`確定要花費 $${realPrice.toLocaleString()} 購買 ${item.name} 嗎？`)) {
-      Game.money -= realPrice;
-      Game.inventory.push(id);
+  if (
+    confirm(`確定要花費 $${realPrice.toLocaleString()} 購買 ${item.name} 嗎？`)
+  ) {
+    Game.money -= realPrice;
+    Game.inventory.push(id);
 
-      if (car) {
-        Game.skills.charm += car.charm;
-        log(`🏎️ 購買了 ${car.name}`);
-      } else if (house) {
-        Game.happy += house.happy;
-        log(`🏘️ 購買了 ${house.name}`);
-      } else {
-        if (lux.charm) Game.skills.charm += lux.charm;
-        if (lux.happy) Game.happy += lux.happy;
-        log(`💎 購買了 ${lux.name}`);
-      }
+    if (car) {
+      Game.skills.charm += car.charm;
+      log(`🏎️ 購買了 ${car.name}`);
+    } else if (house) {
+      Game.happy += house.happy;
+      log(`🏘️ 購買了 ${house.name}`);
+    } else {
+      if (lux.charm) Game.skills.charm += lux.charm;
+      if (lux.happy) Game.happy += lux.happy;
+      log(`💎 購買了 ${lux.name}`);
+    }
 
-      checkAchievements();
-      updateUI();
-      renderShop();
+    checkAchievements();
+    updateUI();
+    renderShop();
   }
 }
 
@@ -5020,27 +5010,44 @@ function loadGame() {
 function showModal(title, description, actions) {
   const modal = document.getElementById("event-modal");
   document.getElementById("ev-title").textContent = title;
-  document.getElementById("ev-desc").textContent = description;
 
-  const btnA = document.getElementById("btn-choice-a");
-  const btnB = document.getElementById("btn-choice-b");
+  // 1. 優化：支援 HTML 內容 (讓 <br> 換行或顏色標籤生效)
+  const descEl = document.getElementById("ev-desc");
+  if (description && description.includes("<")) {
+      descEl.innerHTML = description;
+  } else {
+      descEl.textContent = description;
+  }
+
+  // 取得舊按鈕
+  const oldBtnA = document.getElementById("btn-choice-a");
+  const oldBtnB = document.getElementById("btn-choice-b");
+
+  // 2. 關鍵修復：複製按鈕來「清洗」掉所有舊的 Event Listener
+  // 這是解決「按鈕點擊無效」或「重複觸發」最有效的方法
+  const newBtnA = oldBtnA.cloneNode(true);
+  const newBtnB = oldBtnB.cloneNode(true);
+  
+  // 在 DOM 中用新按鈕替換舊按鈕
+  oldBtnA.parentNode.replaceChild(newBtnA, oldBtnA);
+  oldBtnB.parentNode.replaceChild(newBtnB, oldBtnB);
 
   // 先隱藏所有按鈕
-  btnA.style.display = "none";
-  btnB.style.display = "none";
+  newBtnA.style.display = "none";
+  newBtnB.style.display = "none";
 
   // 設定按鈕 A
   if (actions && actions[0]) {
-    btnA.textContent = actions[0].text;
-    btnA.style.display = "block";
-    btnA.onclick = actions[0].action;
+    newBtnA.textContent = actions[0].text;
+    newBtnA.onclick = actions[0].action;
+    newBtnA.style.display = "block";
   }
 
   // 設定按鈕 B
   if (actions && actions[1]) {
-    btnB.textContent = actions[1].text;
-    btnB.style.display = "block";
-    btnB.onclick = actions[1].action;
+    newBtnB.textContent = actions[1].text;
+    newBtnB.onclick = actions[1].action;
+    newBtnB.style.display = "block";
   }
 
   modal.style.display = "flex";
