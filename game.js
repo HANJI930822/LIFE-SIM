@@ -1,7 +1,4 @@
- // ==========================================
-      // 🔴 遊戲狀態
-      // ==========================================
-      let currentOriginIndex = 0;
+let currentOriginIndex = 0;
       let skillsCollapsed = false;
       let currentJobIndex = 0; // 當前顯示的職業索引
       let isProcessing = false; // 防止重复点击
@@ -1461,14 +1458,14 @@
 
           // === 6-12 歲 ===
           case "study_hard":
-            cost = 30;
-            effects = { intel: calc(4, 8, Game.learnBonus), happy: -rnd(2, 5) };
-
-            // ✨【關鍵修復】如果有在學，增加學習進度
-            if (Game.isStudying) {
-              studyProgress();
-            }
-            break;
+           cost = 30;
+    effects = { intel: calc(4, 8, Game.learnBonus), happy: -rnd(2, 5) };
+    
+    // ✨【關鍵修復】如果有在學，增加學習進度
+    if (Game.isStudying) {
+        studyProgress(); 
+    }
+    break;
           case "read_comic": // 新增：看漫畫
             cost = 15;
             effects = { happy: rnd(8, 15), intel: -rnd(0, 2) }; // 快樂但可能微扣智力
@@ -1583,33 +1580,33 @@
 
           // === 18歲以上 ===
           // 在 switch (type) 裡面找到這段並替換
-          case "work":
-            cost = 35;
-            const job = JOBS.find((j) => j.id === Game.jobId);
-            if (job && job.salary > 0) {
-              // ✨【關鍵修復】加入 inflationRate (通膨率) 計算
-              // 確保薪水會隨著物價上漲而增加，避免後期餓死
-              const inflation = Game.inflationRate || 1;
+case 'work':
+    cost = 35;
+    const job = JOBS.find((j) => j.id === Game.jobId);
+    if (job && job.salary > 0) {
+      // ✨【關鍵修復】加入 inflationRate (通膨率) 計算
+      // 確保薪水會隨著物價上漲而增加，避免後期餓死
+      const inflation = Game.inflationRate || 1; 
+      
+      const base = Math.floor(
+        (job.salary * Game.incomeBonus * inflation) / Game.workPenalty
+      );
+      const fluctuation = 1 + (Math.random() * 0.2 - 0.1);
+      const finalSal = Math.floor(base * fluctuation);
 
-              const base = Math.floor(
-                (job.salary * Game.incomeBonus * inflation) / Game.workPenalty,
-              );
-              const fluctuation = 1 + (Math.random() * 0.2 - 0.1);
-              const finalSal = Math.floor(base * fluctuation);
+      effects = {
+        money: finalSal,
+        happy: -rnd(3, 8),
+        health: -rnd(2, 5),
+      };
+      Game.jobYears++;
 
-              effects = {
-                money: finalSal,
-                happy: -rnd(3, 8),
-                health: -rnd(2, 5),
-              };
-              Game.jobYears++;
-
-              if (job.effect) job.effect(Game);
-            } else {
-              effects = { happy: -10 };
-              log("😟 沒有工作只能待在家...");
-            }
-            break;
+      if (job.effect) job.effect(Game);
+    } else {
+      effects = { happy: -10 };
+      log("😟 沒有工作只能待在家...");
+    }
+    break;
           case "side_hustle": // 新增：接案副業
             cost = 30;
             const hustleMoney = rnd(5000, 50000);
@@ -2887,182 +2884,161 @@
       }
 
       function showEnding() {
-        // ===== 1. 安全讀取變數，防止 undefined 錯誤 =====
-        const money = Game.money || 0;
-        const age = Game.age || 0;
-        const happy = Game.happy || 0;
-        const skills = Game.skills || {};
-        const jobId = Game.jobId || "none";
-        const originId = Game.originId || "common";
+  // ===== 1. 安全讀取變數，防止 undefined 錯誤 =====
+  const money = Game.money || 0;
+  const age = Game.age || 0;
+  const happy = Game.happy || 0;
+  const skills = Game.skills || {};
+  const jobId = Game.jobId || "none";
+  const originId = Game.originId || "common";
+  
+  // ✅ 關鍵修復：正確讀取 debtYears
+  const debtYears = Game.debtYears || 0;
 
-        // ✅ 關鍵修復：正確讀取 debtYears
-        const debtYears = Game.debtYears || 0;
+  let endingType = "";
+  let endingIcon = "";
+  let endingDesc = "";
+  let specialEnding = false;
 
-        let endingType = "";
-        let endingIcon = "";
-        let endingDesc = "";
-        let specialEnding = false;
+  // ===== 2. 【最高優先級】破產結局檢查 =====
+  if (debtYears >= 3) {
+    endingType = "💸 破產結局";
+    endingIcon = "💸";
+    endingDesc = `你已經連續負債 ${debtYears} 年，最終因無力償還債務而宣告破產。債權人收走了你所有的財產，你的信用破產，人生從此陷入困境。或許從頭開始，會是更好的選擇...`;
+    specialEnding = true;
+  }
+  // ===== 3. 健康歸零結局檢查 =====
+  else if (Game.health <= 0) {
+    if (age < 30) {
+      endingType = "💔 英年早逝";
+      endingIcon = "💔";
+      endingDesc = "由於過度勞累和不健康的生活方式，你在年輕時就離開了人世。生命短暫，健康才是最重要的財富。";
+    } else if (age >= 60) {
+      endingType = "🌅 壽終正寢";
+      endingIcon = "🌅";
+      endingDesc = "你走完了自己的人生旅程，在家人的陪伴下安詳離世。雖然有遺憾，但也算是圓滿的一生。";
+    } else {
+      endingType = "⚰️ 中年病逝";
+      endingIcon = "⚰️";
+      endingDesc = "長期的健康問題最終奪走了你的生命。如果當初更注重身體健康，或許會有不同的結局。";
+    }
+    specialEnding = true;
+  }
 
-        // ===== 2. 【最高優先級】破產結局檢查 =====
-        if (debtYears >= 3) {
-          endingType = "💸 破產結局";
-          endingIcon = "💸";
-          endingDesc = `你已經連續負債 ${debtYears} 年，最終因無力償還債務而宣告破產。債權人收走了你所有的財產，你的信用破產，人生從此陷入困境。或許從頭開始，會是更好的選擇...`;
+  // ===== 4. 特殊出身結局（只在非破產、非死亡時檢查）=====
+  if (!specialEnding) {
+    switch (originId) {
+      case "royal":
+        if (money >= 100000000 && happy >= 80) {
+          endingType = "👑 皇室傳奇";
+          endingIcon = "👑";
+          endingDesc = "你成功治理王國，讓人民富足安樂。歷史將銘記你作為一位明君的偉大功績。";
           specialEnding = true;
         }
-        // ===== 3. 健康歸零結局檢查 =====
-        else if (Game.health <= 0) {
-          if (age < 30) {
-            endingType = "💔 英年早逝";
-            endingIcon = "💔";
-            endingDesc =
-              "由於過度勞累和不健康的生活方式，你在年輕時就離開了人世。生命短暫，健康才是最重要的財富。";
-          } else if (age >= 60) {
-            endingType = "🌅 壽終正寢";
-            endingIcon = "🌅";
-            endingDesc =
-              "你走完了自己的人生旅程，在家人的陪伴下安詳離世。雖然有遺憾，但也算是圓滿的一生。";
-          } else {
-            endingType = "⚰️ 中年病逝";
-            endingIcon = "⚰️";
-            endingDesc =
-              "長期的健康問題最終奪走了你的生命。如果當初更注重身體健康，或許會有不同的結局。";
-          }
+        break;
+      case "mafia":
+        if (money >= 50000000 && (skills.charm || 0) >= 100) {
+          endingType = "🎩 黑道教父";
+          endingIcon = "🎩";
+          endingDesc = "你成為了地下世界的傳奇人物，權力和財富都達到了巔峰。雖然手段不光彩，但你確實站上了頂點。";
           specialEnding = true;
         }
-
-        // ===== 4. 特殊出身結局（只在非破產、非死亡時檢查）=====
-        if (!specialEnding) {
-          switch (originId) {
-            case "royal":
-              if (money >= 100000000 && happy >= 80) {
-                endingType = "👑 皇室傳奇";
-                endingIcon = "👑";
-                endingDesc =
-                  "你成功治理王國，讓人民富足安樂。歷史將銘記你作為一位明君的偉大功績。";
-                specialEnding = true;
-              }
-              break;
-            case "mafia":
-              if (money >= 50000000 && (skills.charm || 0) >= 100) {
-                endingType = "🎩 黑道教父";
-                endingIcon = "🎩";
-                endingDesc =
-                  "你成為了地下世界的傳奇人物，權力和財富都達到了巔峰。雖然手段不光彩，但你確實站上了頂點。";
-                specialEnding = true;
-              }
-              break;
-            case "hacker":
-              if ((skills.programming || 0) >= 150) {
-                endingType = "💻 駭客傳說";
-                endingIcon = "💻";
-                endingDesc =
-                  "你成為了網路世界的傳奇駭客，技術無人能及。你的代碼改變了世界，名字永遠刻在網路歷史中。";
-                specialEnding = true;
-              }
-              break;
-            case "monk":
-              if (happy >= 95 && age >= 80) {
-                endingType = "🙏 得道高僧";
-                endingIcon = "🙏";
-                endingDesc =
-                  "你修行一生，最終參透了生命的真諦。在寺廟中圓寂，留下了無數智慧的教誨。";
-                specialEnding = true;
-              }
-              break;
-            case "star":
-              if ((skills.charm || 0) >= 150) {
-                endingType = "⭐ 巨星殞落";
-                endingIcon = "⭐";
-                endingDesc =
-                  "你成為了娛樂圈的超級巨星，粉絲遍布全球。你的作品將永遠流傳下去。";
-                specialEnding = true;
-              }
-              break;
-            case "politician":
-              if ((skills.communication || 0) >= 150) {
-                endingType = "🏛️ 政壇傳奇";
-                endingIcon = "🏛️";
-                endingDesc =
-                  "你成為了極具影響力的政治家，推動了許多重要的改革，人民將永遠記得你的貢獻。";
-                specialEnding = true;
-              }
-              break;
-            case "scientistfamily":
-            case "genius":
-              if ((Game.intel || 0) >= 180) {
-                endingType = "🧠 科學巨擘";
-                endingIcon = "🧠";
-                endingDesc =
-                  "你的研究成果改變了世界，獲得了諾貝爾獎。你的名字將永遠留在科學史冊上。";
-                specialEnding = true;
-              }
-              break;
-          }
+        break;
+      case "hacker":
+        if ((skills.programming || 0) >= 150) {
+          endingType = "💻 駭客傳說";
+          endingIcon = "💻";
+          endingDesc = "你成為了網路世界的傳奇駭客，技術無人能及。你的代碼改變了世界，名字永遠刻在網路歷史中。";
+          specialEnding = true;
         }
-
-        // ===== 5. 一般結局（如果沒有觸發特殊結局）=====
-        if (!specialEnding) {
-          if (money >= 100000000) {
-            endingType = "💰 億萬富翁";
-            endingIcon = "💰";
-            endingDesc =
-              "你累積了驚人的財富，成為了億萬富翁。金錢雖不是一切，但你確實達到了財務自由。";
-          } else if (money >= 10000000) {
-            endingType = "🏆 成功人士";
-            endingIcon = "🏆";
-            endingDesc =
-              "你過上了富足的生活，擁有令人羨慕的成就。這是一個相當成功的人生。";
-          } else if (age >= 100) {
-            endingType = "🎂 長壽之星";
-            endingIcon = "🎂";
-            endingDesc =
-              "你活過了一百歲！雖然財富不多，但能活這麼久本身就是一種成就。";
-          } else if (happy <= 20) {
-            endingType = "😢 憂鬱人生";
-            endingIcon = "😢";
-            endingDesc =
-              "你的人生充滿了不快樂，最終在憂鬱中結束。或許下一次，你能找到更多快樂。";
-          } else if (age < 30) {
-            endingType = "🌱 未完的人生";
-            endingIcon = "🌱";
-            endingDesc =
-              "你的人生還未真正展開就結束了。太多的可能性還未實現，實在令人惋惜。";
-          } else if (jobId === "none" && age >= 50) {
-            endingType = "🎮 啃老人生";
-            endingIcon = "🎮";
-            endingDesc =
-              "你一輩子沒有工作過，靠著家人的資助勉強度日。人生就這樣平淡地結束了。";
-          } else {
-            endingType = "📖 平凡人生";
-            endingIcon = "📖";
-            endingDesc =
-              "你過完了平凡的一生。雖然沒有轟轟烈烈，但也算是安穩度過。";
-          }
+        break;
+      case "monk":
+        if (happy >= 95 && age >= 80) {
+          endingType = "🙏 得道高僧";
+          endingIcon = "🙏";
+          endingDesc = "你修行一生，最終參透了生命的真諦。在寺廟中圓寂，留下了無數智慧的教誨。";
+          specialEnding = true;
         }
+        break;
+      case "star":
+        if ((skills.charm || 0) >= 150) {
+          endingType = "⭐ 巨星殞落";
+          endingIcon = "⭐";
+          endingDesc = "你成為了娛樂圈的超級巨星，粉絲遍布全球。你的作品將永遠流傳下去。";
+          specialEnding = true;
+        }
+        break;
+      case "politician":
+        if ((skills.communication || 0) >= 150) {
+          endingType = "🏛️ 政壇傳奇";
+          endingIcon = "🏛️";
+          endingDesc = "你成為了極具影響力的政治家，推動了許多重要的改革，人民將永遠記得你的貢獻。";
+          specialEnding = true;
+        }
+        break;
+      case "scientistfamily":
+      case "genius":
+        if ((Game.intel || 0) >= 180) {
+          endingType = "🧠 科學巨擘";
+          endingIcon = "🧠";
+          endingDesc = "你的研究成果改變了世界，獲得了諾貝爾獎。你的名字將永遠留在科學史冊上。";
+          specialEnding = true;
+        }
+        break;
+    }
+  }
 
-        // ===== 6. 渲染結局畫面 =====
-        const iconEl = document.getElementById("ending-icon");
-        const titleEl = document.getElementById("ending-title");
-        const descEl = document.getElementById("ending-desc");
-        const statsEl = document.getElementById("ending-stats");
-        const overlayEl = document.getElementById("ending-overlay");
+  // ===== 5. 一般結局（如果沒有觸發特殊結局）=====
+  if (!specialEnding) {
+    if (money >= 100000000) {
+      endingType = "💰 億萬富翁";
+      endingIcon = "💰";
+      endingDesc = "你累積了驚人的財富，成為了億萬富翁。金錢雖不是一切，但你確實達到了財務自由。";
+    } else if (money >= 10000000) {
+      endingType = "🏆 成功人士";
+      endingIcon = "🏆";
+      endingDesc = "你過上了富足的生活，擁有令人羨慕的成就。這是一個相當成功的人生。";
+    } else if (age >= 100) {
+      endingType = "🎂 長壽之星";
+      endingIcon = "🎂";
+      endingDesc = "你活過了一百歲！雖然財富不多，但能活這麼久本身就是一種成就。";
+    } else if (happy <= 20) {
+      endingType = "😢 憂鬱人生";
+      endingIcon = "😢";
+      endingDesc = "你的人生充滿了不快樂，最終在憂鬱中結束。或許下一次，你能找到更多快樂。";
+    } else if (age < 30) {
+      endingType = "🌱 未完的人生";
+      endingIcon = "🌱";
+      endingDesc = "你的人生還未真正展開就結束了。太多的可能性還未實現，實在令人惋惜。";
+    } else if (jobId === "none" && age >= 50) {
+      endingType = "🎮 啃老人生";
+      endingIcon = "🎮";
+      endingDesc = "你一輩子沒有工作過，靠著家人的資助勉強度日。人生就這樣平淡地結束了。";
+    } else {
+      endingType = "📖 平凡人生";
+      endingIcon = "📖";
+      endingDesc = "你過完了平凡的一生。雖然沒有轟轟烈烈，但也算是安穩度過。";
+    }
+  }
 
-        if (iconEl) iconEl.textContent = endingIcon;
-        if (titleEl) titleEl.textContent = endingType;
-        if (descEl) descEl.textContent = endingDesc;
+  // ===== 6. 渲染結局畫面 =====
+  const iconEl = document.getElementById("ending-icon");
+  const titleEl = document.getElementById("ending-title");
+  const descEl = document.getElementById("ending-desc");
+  const statsEl = document.getElementById("ending-stats");
+  const overlayEl = document.getElementById("ending-overlay");
 
-        // 準備統計數據（額外安全檢查）
-        const partnerName =
-          Game.partner && Game.partner.name ? Game.partner.name : "無";
-        const childCount =
-          Game.children && Game.children.length ? Game.children.length : 0;
-        const achCount =
-          Game.unlockedAchievements && Game.unlockedAchievements.length
-            ? Game.unlockedAchievements.length
-            : 0;
+  if (iconEl) iconEl.textContent = endingIcon;
+  if (titleEl) titleEl.textContent = endingType;
+  if (descEl) descEl.textContent = endingDesc;
 
-        const finalStatsHtml = `
+  // 準備統計數據（額外安全檢查）
+  const partnerName = (Game.partner && Game.partner.name) ? Game.partner.name : "無";
+  const childCount = (Game.children && Game.children.length) ? Game.children.length : 0;
+  const achCount = (Game.unlockedAchievements && Game.unlockedAchievements.length) 
+                   ? Game.unlockedAchievements.length : 0;
+
+  const finalStatsHtml = `
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left;">
       <div>👤 姓名</div><div>${Game.name || "???"}</div>
       <div>🎂 享年</div><div>${age}歲</div>
@@ -3076,13 +3052,13 @@
     </div>
   `;
 
-        if (statsEl) statsEl.innerHTML = finalStatsHtml;
+  if (statsEl) statsEl.innerHTML = finalStatsHtml;
 
-        // ===== 7. 強制顯示結局畫面 =====
-        if (overlayEl) {
-          overlayEl.style.display = "flex";
-        }
-      }
+  // ===== 7. 強制顯示結局畫面 =====
+  if (overlayEl) {
+    overlayEl.style.display = "flex";
+  }
+}
       // ===== 👥 NPC 系統函數 =====
       function generateNPC(type) {
         const templates = NPC_TEMPLATES[type];
@@ -3774,74 +3750,74 @@
       }
 
       // ✅ 修正後的 selectJob 函數
-      function selectJob(jobId) {
-        const job = JOBS.find((j) => j.id === jobId);
-        if (!job) return;
+function selectJob(jobId) {
+  const job = JOBS.find((j) => j.id === jobId);
+  if (!job) return;
 
-        // 檢查特質需求
-        if (job.requiredTrait) {
-          const hasTrait = Game.traits.some((t) => t.id === job.requiredTrait);
-          if (!hasTrait) {
-            const traitName =
-              TRAITS.find((t) => t.id === job.requiredTrait)?.name ||
-              "特定特質";
-            alert(`❌ 此職業需要特質：${traitName}`);
-            return;
-          }
-        }
+  // 檢查特質需求
+  if (job.requiredTrait) {
+    const hasTrait = Game.traits.some((t) => t.id === job.requiredTrait);
+    if (!hasTrait) {
+      const traitName =
+        TRAITS.find((t) => t.id === job.requiredTrait)?.name ||
+        "特定特質";
+      alert(`❌ 此職業需要特質：${traitName}`);
+      return;
+    }
+  }
 
-        // 檢查技能需求
-        let canApply = true;
-        let missingReqs = [];
+  // 檢查技能需求
+  let canApply = true;
+  let missingReqs = [];
 
-        if (job.requirement.intel && Game.intel < job.requirement.intel) {
-          canApply = false;
-          missingReqs.push(`智力 ${job.requirement.intel}`);
-        }
+  if (job.requirement.intel && Game.intel < job.requirement.intel) {
+    canApply = false;
+    missingReqs.push(`智力 ${job.requirement.intel}`);
+  }
 
-        Object.keys(job.requirement).forEach((skill) => {
-          if (
-            skill !== "intel" &&
-            Game.skills[skill] < job.requirement[skill]
-          ) {
-            canApply = false;
-            missingReqs.push(`${skill} ${job.requirement[skill]}`);
-          }
-        });
+  Object.keys(job.requirement).forEach((skill) => {
+    if (
+      skill !== "intel" &&
+      Game.skills[skill] < job.requirement[skill]
+    ) {
+      canApply = false;
+      missingReqs.push(`${skill} ${job.requirement[skill]}`);
+    }
+  });
 
-        if (!canApply) {
-          alert("❌ 不符合條件：" + missingReqs.join(", "));
-          return;
-        }
+  if (!canApply) {
+    alert("❌ 不符合條件：" + missingReqs.join(", "));
+    return;
+  }
 
-        // 計算特質加成
-        let finalSalary = job.salary;
-        let bonusMessages = [];
+  // 計算特質加成
+  let finalSalary = job.salary;
+  let bonusMessages = [];
 
-        if (job.traitBonus) {
-          Game.traits.forEach((trait) => {
-            if (job.traitBonus[trait.id]) {
-              const bonus = job.traitBonus[trait.id];
-              finalSalary *= bonus.salary;
-              bonusMessages.push(`✨ ${trait.name}：${bonus.desc}`);
-            }
-          });
-        }
-
-        // 更新遊戲狀態
-        Game.jobId = jobId;
-        Game.jobYears = 0;
-        Game.job = "實習生"; // ✨【關鍵修復】初始化職稱，讓升遷系統有起點
-
-        let message = `🎉 成功應徵 ${job.name}！\n月薪：$${Math.floor(finalSalary).toLocaleString()}`;
-        if (bonusMessages.length > 0) {
-          message += "\n\n特質加成：\n" + bonusMessages.join("\n");
-        }
-
-        log(message);
-        alert(message);
-        updateUI();
+  if (job.traitBonus) {
+    Game.traits.forEach((trait) => {
+      if (job.traitBonus[trait.id]) {
+        const bonus = job.traitBonus[trait.id];
+        finalSalary *= bonus.salary;
+        bonusMessages.push(`✨ ${trait.name}：${bonus.desc}`);
       }
+    });
+  }
+
+  // 更新遊戲狀態
+  Game.jobId = jobId;
+  Game.jobYears = 0;
+  Game.job = "實習生"; // ✨【關鍵修復】初始化職稱，讓升遷系統有起點
+
+  let message = `🎉 成功應徵 ${job.name}！\n月薪：$${Math.floor(finalSalary).toLocaleString()}`;
+  if (bonusMessages.length > 0) {
+    message += "\n\n特質加成：\n" + bonusMessages.join("\n");
+  }
+
+  log(message);
+  alert(message);
+  updateUI();
+}
 
       function renderSocial() {
         let html = "";
@@ -5019,3 +4995,173 @@
 
         modal.style.display = "flex";
       }
+function saveGame() {
+        const saveData = {
+          version: "17.0",
+          timestamp: Date.now(),
+          player: Game.name,
+          age: Game.age,
+          money: Game.money,
+          health: Game.health,
+          happy: Game.happy,
+          intel: Game.intel,
+          stamina: Game.stamina,
+          skills: { ...Game.skills },
+          job: Game.job,
+          origin: Game.origin,
+          traits: [...Game.traits],
+          talents: [...Game.talents],
+          inventory: [...Game.inventory],
+          npcs: Game.npcs.map((n) => ({ ...n })),
+          unlockedAchievements: [...Game.unlockedAchievements],
+          stats: { ...Game.stats },
+          lifeStage: Game.lifeStage,
+          partner: Game.partner,
+          gender: Game.gender,
+
+          // ✅ 補上這些遺漏的重要變數
+          children: Game.children || [],
+          mortgage: Game.mortgage || {},
+          inflationRate: Game.inflationRate || 1.0,
+          yearsPassed: Game.yearsPassed || 0,
+          debtYears: Game.debtYears || 0,
+          hasBeenInDebt: Game.hasBeenInDebt || false,
+        };
+
+        try {
+          localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+          if (typeof showPopup === "function")
+            showPopup("💾 存檔成功！", "green");
+          return true;
+        } catch (e) {
+          console.error("存檔錯誤:", e);
+          return false;
+        }
+      }
+
+      function loadGame() {
+        try {
+          const saved = localStorage.getItem(SAVE_KEY);
+          if (!saved) {
+            if (typeof showPopup === "function")
+              showPopup("❌ 沒有存檔記錄", "red");
+            else alert("❌ 沒有存檔記錄");
+            return false;
+          }
+
+          const data = JSON.parse(saved);
+
+          Game.name = data.player;
+          Game.age = data.age;
+          Game.money = data.money;
+          Game.health = data.health;
+          Game.happy = data.happy;
+          Game.intel = data.intel;
+          Game.stamina = data.stamina;
+          Game.skills = data.skills;
+          Game.job = data.job;
+          Game.origin = data.origin;
+          Game.traits = data.traits || [];
+          Game.talents = data.talents || [];
+          Game.inventory = data.inventory || [];
+          Game.npcs = data.npcs || [];
+          Game.unlockedAchievements = data.unlockedAchievements || [];
+          Game.stats = data.stats || {};
+          Game.lifeStage = data.lifeStage;
+          Game.partner = data.partner;
+          Game.gender = data.gender;
+
+          // ✅ 補上遺漏的讀取邏輯
+          Game.children = data.children || [];
+          Game.mortgage = data.mortgage || {
+            active: false,
+            totalAmount: 0,
+            remaining: 0,
+            monthlyPayment: 0,
+            years: 0,
+          };
+          Game.inflationRate = data.inflationRate || 1.0;
+          Game.yearsPassed = data.yearsPassed || 0;
+          Game.debtYears = data.debtYears || 0;
+          Game.hasBeenInDebt = data.hasBeenInDebt || false;
+
+          document.getElementById("scene-creation").style.display = "none";
+          document.getElementById("scene-game").classList.add("active");
+          document.getElementById("scene-game").style.display = "block";
+
+          updateUI();
+
+          const date = new Date(data.timestamp);
+          if (typeof showPopup === "function") {
+            showPopup(
+              `✅ 讀取成功！\n${date.toLocaleString("zh-TW")}`,
+              "green",
+            );
+          }
+          return true;
+        } catch (e) {
+          console.error("讀檔錯誤:", e);
+          alert("❌ 讀檔失敗");
+          return false;
+        }
+      }
+function showOriginEventModal(event) {
+  document.getElementById("ev-title").textContent =
+    `【${Game.origin}專屬】${event.title}`;
+  document.getElementById("ev-desc").textContent = event.desc;
+
+  const btnA = document.getElementById("btn-choice-a");
+  const btnB = document.getElementById("btn-choice-b");
+
+  btnA.textContent = event.choices[0].txt;
+  btnB.textContent = event.choices[1].txt;
+
+  btnA.onclick = () => {
+    const result = event.choices[0].effect(Game);
+    log(`🎭 【${Game.origin}專屬】${event.title}`);
+    log(`   └─ 選擇：${event.choices[0].txt} → ${result}`);
+    closeModal();
+    updateUI();
+    checkAchievements();
+  };
+
+  btnB.onclick = () => {
+    const result = event.choices[1].effect(Game);
+    log(`🎭 【${Game.origin}專屬】${event.title}`);
+    log(`   └─ 選擇：${event.choices[1].txt} → ${result}`);
+    closeModal();
+    updateUI();
+    checkAchievements();
+  };
+
+  document.getElementById("event-modal").style.display = "flex";
+}
+// ✅ 補上缺失的 showModal 函數
+function showModal(title, description, actions) {
+  const modal = document.getElementById("event-modal");
+  document.getElementById("ev-title").textContent = title;
+  document.getElementById("ev-desc").textContent = description;
+
+  const btnA = document.getElementById("btn-choice-a");
+  const btnB = document.getElementById("btn-choice-b");
+
+  // 先隱藏所有按鈕
+  btnA.style.display = "none";
+  btnB.style.display = "none";
+
+  // 設定按鈕 A
+  if (actions && actions[0]) {
+    btnA.textContent = actions[0].text;
+    btnA.style.display = "block";
+    btnA.onclick = actions[0].action;
+  }
+
+  // 設定按鈕 B
+  if (actions && actions[1]) {
+    btnB.textContent = actions[1].text;
+    btnB.style.display = "block";
+    btnB.onclick = actions[1].action;
+  }
+
+  modal.style.display = "flex";
+}
