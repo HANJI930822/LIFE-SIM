@@ -477,9 +477,8 @@ function startGame() {
       break;
   }
   // 應用天賦效果
-  // 應用天賦效果
   Game.talents.forEach((t) => t.effect(Game));
-
+generateTurnActions();
   // ✅ 開始特質選擇流程
   currentTraitStep = 0;
   selectedTraits = [];
@@ -1262,78 +1261,109 @@ function updateUI() {
   // 更新行動按鈕
   updateActionButtons();
 }
+// game.js - 請新增此函數
+
+function generateTurnActions() {
+    let pool = [];
+    
+    // 根據年齡決定動作庫
+    // 防呆：確保 ACTIONS_POOL 存在 (在 data.js 中)
+    if (typeof ACTIONS_POOL === 'undefined') {
+        console.error("ACTIONS_POOL 未定義！請檢查 data.js");
+        return;
+    }
+
+    if (Game.age <= 2) pool = ACTIONS_POOL.infant;
+    else if (Game.age <= 5) pool = ACTIONS_POOL.toddler;
+    else if (Game.age <= 12) pool = ACTIONS_POOL.child;
+    else if (Game.age <= 17) pool = ACTIONS_POOL.teen;
+    else pool = ACTIONS_POOL.adult;
+
+    if (!pool) pool = [];
+
+    // 過濾符合條件的動作 (例如有工作才能上班)
+    const validActions = pool.filter(a => {
+        if (a.condition && !a.condition(Game)) return false;
+        return true;
+    });
+
+    // 隨機打亂
+    const shuffled = validActions.sort(() => 0.5 - Math.random());
+    
+    // 取前 6 個
+    currentTurnActions = shuffled.slice(0, 6);
+    
+    // ✨ 保底機制：確保至少有一個「低消耗」動作，避免卡死
+    const hasFreeAction = currentTurnActions.some(a => (!a.cost.money || a.cost.money === 0) && a.cost.stamina <= Game.stamina);
+    
+    if (!hasFreeAction) {
+        // 強制塞入一個簡單動作 (優先找睡覺、休息、打工)
+        const freeAction = pool.find(a => 
+            (!a.cost.money || a.cost.money === 0) && 
+            (a.id === 'sleep' || a.id === 'rest' || a.id === 'side_hustle')
+        );
+        if (freeAction) {
+            currentTurnActions[5] = freeAction; // 替換最後一個
+        }
+    }
+
+    // 成年後，強制把「上班/找工作」加在第一個 (方便操作)
+    if (Game.age >= 18) {
+        const workAction = pool.find(a => a.id === 'work') || pool.find(a => a.id === 'find_job');
+        // 如果隨機列表裡沒有工作，就替換第一個
+        if (workAction && !currentTurnActions.find(a => a.id === workAction.id)) {
+            currentTurnActions[0] = workAction;
+        }
+    }
+}
+// game.js - 請替換原本的 updateActionButtons
 
 function updateActionButtons() {
-  const btns = document.getElementById("action-buttons");
-  let html = "";
-  const age = Game.age;
+    const btns = document.getElementById("action-buttons");
+    if (!btns) return;
 
-  // ... (這裡原本的 switch/if-else 生成 html 的邏輯保持不變，不用動) ...
-  // 為了節省篇幅，我這邊只列出你需要修改的後半段邏輯
-  
-  // 請確保你的 html 生成邏輯還在 (你可以直接複製你原本檔案裡這一大段生成 html 的代碼)
-  if (age <= 2) {
-    html = `
-            <button onclick="action('cry')">😭 哭鬧<span class="cost-tag">⚡-10</span></button>
-            <button onclick="action('sleep')">😴 睡覺<span class="cost-tag">⚡-20</span></button>
-            <button onclick="action('play_toy')">🧸 玩玩具<span class="cost-tag">⚡-15</span></button>
-            <button onclick="action('act_cute')">🥺 賣萌<span class="cost-tag">⚡-15</span></button>
-            <button onclick="action('explore_house')">🏠 探索家裡<span class="cost-tag">⚡-20</span></button>
-            <button onclick="action('learn_speak')">🗣️ 牙牙學語<span class="cost-tag">⚡-25</span></button>
-        `;
-  } else if (age <= 5) {
-    html = `
-            <button onclick="action('kindergarten')">🏫 上幼兒園<span class="cost-tag">⚡-20</span></button>
-            <button onclick="action('play_outside')">🌳 戶外玩耍<span class="cost-tag">⚡-20</span></button>
-            <button onclick="action('draw')">🖍️ 畫畫<span class="cost-tag">⚡-15</span></button>
-            <button onclick="action('prank')">🤡 惡作劇<span class="cost-tag">⚡-15</span></button>
-            <button onclick="action('ask_pocket_money')">💰 要零用錢<span class="cost-tag">⚡-10</span></button>
-            <button onclick="action('learn_music')">🎵 學才藝<span class="cost-tag">⚡-25 / $-5k</span></button>
-        `;
-  } else if (age <= 12) {
-    html = `
-            <button onclick="action('study_hard')">📚 認真讀書<span class="cost-tag">⚡-30</span></button>
-            <button onclick="action('read_comic')">📚 看漫畫<span class="cost-tag">⚡-15</span></button>
-            <button onclick="action('sports')">⚽ 運動<span class="cost-tag">⚡-20</span></button>
-            <button onclick="action('play_game')">🎮 打電動<span class="cost-tag">⚡-15</span></button>
-            <button onclick="action('internet_surf')">🌐 上網<span class="cost-tag">⚡-15</span></button>
-            <button onclick="action('cram_school')">📖 補習班<span class="cost-tag">⚡-25 / $-2k</span></button>
-        `;
-  } else if (age <= 17) {
-    html = `
-            <button onclick="action('exam_prep')">📝 準備考試<span class="cost-tag">⚡-35</span></button>
-            <button onclick="action('club')">🎭 參加社團<span class="cost-tag">⚡-20</span></button>
-            <button onclick="action('date_crush')">💕 約會<span class="cost-tag">⚡-30 / $-500</span></button>
-            <button onclick="action('skip_class')">🏃 翹課<span class="cost-tag">⚡-10</span></button>
-            <button onclick="action('part_time')">💼 打工<span class="cost-tag">⚡-30</span></button>
-            <button onclick="action('write_novel')">✍️ 寫小說<span class="cost-tag">⚡-25</span></button>
-        `;
-  } else {
-    html = `
-            <button onclick="action('work')">💼 上班<span class="cost-tag">⚡-35</span></button>
-            <button onclick="action('side_hustle')">💻 接案副業<span class="cost-tag">⚡-30</span></button>
-            <button onclick="action('socialize')">🍻 社交<span class="cost-tag">⚡-20 / $-2k</span></button>
-            <button onclick="action('lottery')">🎫 買彩券<span class="cost-tag">⚡-5 / $-500</span></button>
-            <button onclick="action('invest')">📈 投資<span class="cost-tag">⚡-20 / $-1w</span></button>
-            <button onclick="action('exercise')">💪 健身<span class="cost-tag">⚡-25 / $-1.5k</span></button>
-            <button onclick="action('travel')">✈️ 旅遊<span class="cost-tag">⚡-30 / $-2w</span></button>
-            <button onclick="action('night_club')">🕺 去夜店<span class="cost-tag">⚡-30 / $-3k</span></button>
-        `;
-  }
-
-  btns.innerHTML = html;
-
-  // ⚠️ 關鍵修正這裡：檢查狀態禁用按鈕
-  const allBtns = btns.querySelectorAll("button");
-  allBtns.forEach((btn) => {
-    // 原本是 Game.stamina < 10，改為 <= 0
-    // 這樣就算只剩 5 體力，只要不是 0，按鈕都會亮著
-    // (具體能不能執行，交給點擊後的 action 函數去判斷錢夠不夠、體力夠不夠)
-    if (Game.stamina <= 0 || Game.health <= 0) {
-      btn.disabled = true;
-      btn.style.opacity = 0.5;
+    // 如果 currentTurnActions 是空的（剛讀檔或剛開始），生成一次
+    if (!currentTurnActions || currentTurnActions.length === 0) {
+        generateTurnActions();
     }
-  });
+
+    let html = "";
+    
+    currentTurnActions.forEach(act => {
+        // 安全檢查：避免 undefined
+        const staminaCost = act.cost?.stamina || 0;
+        const moneyCost = act.cost?.money || 0;
+
+        let costText = `⚡-${staminaCost}`;
+        
+        if (moneyCost > 0) {
+            // 錢也會通膨顯示
+            const realCost = getInflatedPrice(moneyCost);
+            const costDisplay = realCost >= 10000 ? `$${(realCost/10000).toFixed(1)}萬` : `$${realCost}`;
+            costText += ` / 💸-${costDisplay}`;
+        }
+
+        // 檢查是否禁用
+        let disabled = "";
+        let style = "";
+        
+        // 體力檢查 (只要還有體力就亮著，點下去再檢查夠不夠，避免 5 體力無法點 5 體力動作的問題)
+        if (Game.stamina <= 0) { 
+            disabled = "disabled"; 
+            style = "opacity:0.5;"; 
+        }
+        
+        html += `
+            <button onclick="action('${act.id}')" ${disabled} style="${style} position:relative;">
+                <div style="font-weight:bold;">${act.name}</div>
+                <div class="cost-tag" style="font-size:0.8em; opacity:0.8;">${costText}</div>
+            </button>
+        `;
+    });
+
+    if (html === "") html = "<div style='color:#aaa; padding:10px;'>本回合無可用行動...</div>";
+
+    btns.innerHTML = html;
 }
 function getActionName(type) {
   const actionNames = {
@@ -2435,6 +2465,8 @@ function nextYear() {
     // ===== 4. 過年：增加年齡、重置體力、增加工齡 =====
     Game.age++;
     Game.stamina = 100;
+
+    generateTurnActions();
     Game.workYears++;
     Game.promotionChecked = false;
 
@@ -4883,7 +4915,9 @@ function loadGame() {
     Game.yearsPassed = data.yearsPassed || 0;
     Game.debtYears = data.debtYears || 0;
     Game.hasBeenInDebt = data.hasBeenInDebt || false;
-
+    if (!currentTurnActions || currentTurnActions.length === 0) {
+        generateTurnActions(); 
+    }
     document.getElementById("scene-creation").style.display = "none";
     document.getElementById("scene-game").classList.add("active");
     document.getElementById("scene-game").style.display = "block";
