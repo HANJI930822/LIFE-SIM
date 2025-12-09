@@ -1988,7 +1988,7 @@
         const saveData = {
           version: "17.0",
           timestamp: Date.now(),
-          player: Game.name, // ✅ 修正：game -> Game
+          player: Game.name,
           age: Game.age,
           money: Game.money,
           health: Game.health,
@@ -2000,9 +2000,11 @@
           origin: Game.origin,
           traits: [...Game.traits],
           talents: [...Game.talents],
-          items: [...Game.items],
+          // 🔴 修正這裡： items 改為 inventory
+          inventory: [...Game.inventory],
           npcs: Game.npcs.map((n) => ({ ...n })),
-          achievements: [...Game.achievements],
+          // 🔴 修正這裡： achievements 改為 unlockedAchievements
+          unlockedAchievements: [...Game.unlockedAchievements],
           stats: { ...Game.stats },
           lifeStage: Game.lifeStage,
           partner: Game.partner,
@@ -2014,12 +2016,13 @@
           showPopup("💾 存檔成功！", "green");
           return true;
         } catch (e) {
+          console.error("存檔錯誤:", e);
           showPopup("❌ 存檔失敗", "red");
           return false;
         }
       }
 
-      function loadGame() {
+    function loadGame() {
         try {
           const saved = localStorage.getItem(SAVE_KEY);
           if (!saved) {
@@ -2029,7 +2032,6 @@
 
           const data = JSON.parse(saved);
 
-          // ✅ 修正：game -> Game
           Game.name = data.player;
           Game.age = data.age;
           Game.money = data.money;
@@ -2040,12 +2042,18 @@
           Game.skills = data.skills;
           Game.job = data.job;
           Game.origin = data.origin;
-          Game.traits = data.traits;
-          Game.talents = data.talents;
-          Game.items = data.items;
-          Game.npcs = data.npcs;
-          Game.achievements = data.achievements;
-          Game.stats = data.stats;
+          Game.traits = data.traits || [];
+          Game.talents = data.talents || [];
+          
+          // 🔴 修正這裡：讀取 inventory
+          Game.inventory = data.inventory || [];
+          
+          Game.npcs = data.npcs || [];
+          
+          // 🔴 修正這裡：讀取 unlockedAchievements
+          Game.unlockedAchievements = data.unlockedAchievements || [];
+          
+          Game.stats = data.stats || {};
           Game.lifeStage = data.lifeStage;
           Game.partner = data.partner;
           Game.gender = data.gender;
@@ -2055,12 +2063,13 @@
           document.getElementById("scene-game").style.display = "block";
 
           updateUI();
-          // renderAll();
+          // renderAll(); 
 
           const date = new Date(data.timestamp);
           showPopup(`✅ 讀取成功！\n${date.toLocaleString("zh-TW")}`, "green");
           return true;
         } catch (e) {
+          console.error("讀檔錯誤:", e);
           showPopup("❌ 讀檔失敗", "red");
           return false;
         }
@@ -2997,16 +3006,17 @@
         },
       ];
       // ===== 補上缺失的 LIFE_STAGES 定義 =====
-      const LIFE_STAGES = [
-        { min: 0, max: 2, name: "嬰兒期", icon: "👶" },
-        { min: 3, max: 5, name: "幼兒期", icon: "🧸" },
-        { min: 6, max: 12, name: "兒童期", icon: "🎒" },
-        { min: 13, max: 17, name: "青春期", icon: "🎧" },
-        { min: 18, max: 30, name: "青年期", icon: "💼" },
-        { min: 31, max: 50, name: "壯年期", icon: "👨‍💼" },
-        { min: 51, max: 65, name: "中年期", icon: "👓" },
-        { min: 66, max: 200, name: "老年期", icon: "👴" },
-      ];
+    
+const LIFE_STAGES = [
+  { min: 0, max: 2, name: "嬰兒期", icon: "👶" },
+  { min: 3, max: 5, name: "幼兒期", icon: "🧸" },
+  { min: 6, max: 12, name: "兒童期", icon: "🎒" },
+  { min: 13, max: 17, name: "青春期", icon: "🎧" },
+  { min: 18, max: 30, name: "青年期", icon: "💼" },
+  { min: 31, max: 50, name: "壯年期", icon: "👨‍💼" },
+  { min: 51, max: 65, name: "中年期", icon: "👓" },
+  { min: 66, max: 200, name: "老年期", icon: "👴" }, // 確保最大值夠大
+];
       // ===== 補上缺失的 ACHIEVEMENTS 定義 =====
       const ACHIEVEMENTS = [
         {
@@ -3781,13 +3791,13 @@
           "🏦 申請貸款",
           () => {
             if (Game.money >= realPrice) {
-              // ✅ 修正：game -> Game
               Game.money -= realPrice;
-              Game.items.push(house.name);
+              // 🔴 修正：items -> inventory
+              Game.inventory.push(house.name); 
               if (house.happyBonus) Game.happy += house.happyBonus;
               log(`全額購買了 ${house.name}！`);
               updateUI();
-              renderAssets();
+              renderShop(); 
             } else {
               showPopup("❌ 金錢不足", "red");
             }
@@ -3807,13 +3817,14 @@
                 years: 20,
                 itemName: house.name,
               };
-              Game.items.push(house.name);
+              // 🔴 修正：items -> inventory
+              Game.inventory.push(house.name); 
               if (house.happyBonus) Game.happy += house.happyBonus;
               log(
                 `貸款購買了 ${house.name}！每年繳納 $${Game.mortgage.monthlyPayment.toLocaleString()}`,
               );
               updateUI();
-              renderAssets();
+              renderShop();
             } else {
               showPopup("❌ 頭期款不足", "red");
             }
@@ -3926,7 +3937,51 @@
           }
         });
 
-        Game.health -= Math.floor(5 * Game.healthDecay);
+        let baseHealthLoss = 5;
+        if (Game.age > 40) baseHealthLoss += 2;  // 40歲後，每年多扣 2
+        if (Game.age > 60) baseHealthLoss += 3;  // 60歲後，再多扣 3 (共 10)
+        if (Game.age > 80) baseHealthLoss += 5;  // 80歲後，再多扣 5 (共 15)
+
+        // 應用特質加成 (例如長壽基因、運動健將)
+        let actualHealthLoss = Math.floor(baseHealthLoss * Game.healthDecay);
+        Game.health -= actualHealthLoss;
+
+        // 2. 老年危機檢定 (60歲開始)
+        if (Game.age > 60) {
+            // 死亡機率：每大 1 歲增加 0.5% (80歲時約 10%，100歲時約 20%)
+            let deathChance = (Game.age - 60) * 0.005;
+            
+            // 生病機率：每大 1 歲增加 1%
+            let sickChance = (Game.age - 50) * 0.01;
+
+            // 特質修正：如果有「長壽基因」，機率大幅降低
+            if (Game.traits.some(t => t.id === 'immortal')) {
+                deathChance *= 0.1;
+                sickChance *= 0.5;
+            }
+
+            // 🎲 死亡檢定
+            if (Math.random() < deathChance) {
+                // 為了避免玩家一過 60 歲就猝死，給個最後機會：健康度高於 60 可豁免一次
+                if (Game.health > 60) {
+                    Game.health -= 50;
+                    log(`⚠️ 心臟突然劇烈疼痛！幸好平日身體硬朗，逃過一劫 (健康 -50)`);
+                    showChanges(["健康 -50"]);
+                } else {
+                    log("🕯️ 年事已高，你在睡夢中安詳離世...");
+                    showEnding(); // 直接進入結局
+                    return; // 停止執行後續代碼
+                }
+            } 
+            // 🎲 生病檢定 (沒死才檢查生病)
+            else if (Math.random() < sickChance) {
+                const sickDamage = Math.floor(10 + Math.random() * 15); // 扣 10-25 點
+                Game.health -= sickDamage;
+                Game.happy -= 10;
+                log(`🏥 因為年老體衰，突然生了一場大病... (健康 -${sickDamage})`);
+                showChanges([`健康 -${sickDamage}`, "快樂 -10"]);
+            }
+        }
         Game.happy -= Math.floor(3 * Game.happyDecay);
 
         if (Game.happy > 80) Game.happyYears++;
@@ -4993,7 +5048,53 @@
           setTimeout(() => changeDiv.remove(), 300);
         }, 2000);
       }
+// ===== ✅ 補上缺失的提示窗函式 =====
+      function showPopup(message, color = "green") {
+        const popup = document.createElement("div");
+        
+        // 設定顏色變數
+        let bgBorder = "var(--green)";
+        if (color === "red") bgBorder = "var(--red)";
+        if (color === "orange") bgBorder = "var(--orange)";
 
+        popup.style.cssText = `
+            position: fixed;
+            top: 15%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 30, 0.95);
+            border: 2px solid ${bgBorder};
+            color: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.1em;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+            text-align: center;
+            min-width: 200px;
+        `;
+        
+        // 加上圖示
+        let icon = "✅";
+        if (color === "red") icon = "❌";
+        if (color === "orange") icon = "⚠️";
+
+        popup.innerHTML = `<div>${icon} ${message.replace(/\n/g, '<br>')}</div>`;
+
+        document.body.appendChild(popup);
+
+        // 2秒後自動消失
+        setTimeout(() => {
+            popup.style.transition = "opacity 0.5s, transform 0.5s";
+            popup.style.opacity = "0";
+            popup.style.transform = "translate(-50%, -100%)"; // 往上飄走
+            setTimeout(() => {
+                if (popup.parentNode) document.body.removeChild(popup);
+            }, 500);
+        }, 2000);
+      }
       function startGame() {
         const name = document.getElementById("inp-name").value.trim();
         if (!name) return alert("請輸入姓名");
@@ -5925,318 +6026,318 @@
             <button onclick="action('cry')">😭 哭鬧<span class="cost-tag">⚡-10</span></button>
             <button onclick="action('sleep')">😴 睡覺<span class="cost-tag">⚡-20</span></button>
             <button onclick="action('play_toy')">🧸 玩玩具<span class="cost-tag">⚡-15</span></button>
+            <button onclick="action('act_cute')">🥺 賣萌<span class="cost-tag">⚡-15</span></button>
+            <button onclick="action('explore_house')">🏠 探索家裡<span class="cost-tag">⚡-20</span></button>
             <button onclick="action('learn_speak')">🗣️ 牙牙學語<span class="cost-tag">⚡-25</span></button>
-            <button onclick="action('crawl')">🐛 爬行<span class="cost-tag">⚡-15</span></button>
-            <button onclick="action('watch_mobile')">👀 看大人的手機<span class="cost-tag">⚡-10</span></button>
         `;
         } else if (age <= 5) {
           html = `
             <button onclick="action('kindergarten')">🏫 上幼兒園<span class="cost-tag">⚡-20</span></button>
-            <button onclick="action('draw')">🖍️ 畫畫<span class="cost-tag">⚡-15</span></button>
-            <button onclick="action('watch_tv')">📺 看電視<span class="cost-tag">⚡-10</span></button>
-            <button onclick="action('make_friend')">👫 交朋友<span class="cost-tag">⚡-20</span></button>
             <button onclick="action('play_outside')">🌳 戶外玩耍<span class="cost-tag">⚡-20</span></button>
-            <button onclick="action('learn_music')">🎵 學才藝<span class="cost-tag">⚡-25 / $-5000</span></button>
+            <button onclick="action('draw')">🖍️ 畫畫<span class="cost-tag">⚡-15</span></button>
+            <button onclick="action('prank')">🤡 惡作劇<span class="cost-tag">⚡-15</span></button>
+            <button onclick="action('ask_pocket_money')">💰 要零用錢<span class="cost-tag">⚡-10</span></button>
+            <button onclick="action('learn_music')">🎵 學才藝<span class="cost-tag">⚡-25 / $-5k</span></button>
         `;
         } else if (age <= 12) {
           html = `
             <button onclick="action('study_hard')">📚 認真讀書<span class="cost-tag">⚡-30</span></button>
-            <button onclick="action('cram_school')">📖 補習班<span class="cost-tag">⚡-25 / $-2000</span></button>
+            <button onclick="action('read_comic')">📚 看漫畫<span class="cost-tag">⚡-15</span></button>
             <button onclick="action('sports')">⚽ 運動<span class="cost-tag">⚡-20</span></button>
             <button onclick="action('play_game')">🎮 打電動<span class="cost-tag">⚡-15</span></button>
-            <button onclick="action('help_parent')">🏠 幫忙家務<span class="cost-tag">⚡-20</span></button>
-            <button onclick="action('read_book')">📕 看課外書<span class="cost-tag">⚡-25</span></button>
+            <button onclick="action('internet_surf')">🌐 上網<span class="cost-tag">⚡-15</span></button>
+            <button onclick="action('cram_school')">📖 補習班<span class="cost-tag">⚡-25 / $-2k</span></button>
         `;
         } else if (age <= 17) {
           html = `
             <button onclick="action('exam_prep')">📝 準備考試<span class="cost-tag">⚡-35</span></button>
             <button onclick="action('club')">🎭 參加社團<span class="cost-tag">⚡-20</span></button>
-            <button onclick="action('date_crush')">💕 和喜歡的人約會<span class="cost-tag">⚡-25 / $-500</span></button>
-            <button onclick="action('rebel')">😤 叛逆期<span class="cost-tag">⚡-15</span></button>
+            <button onclick="action('date_crush')">💕 約會<span class="cost-tag">⚡-30 / $-500</span></button>
+            <button onclick="action('skip_class')">🏃 翹課<span class="cost-tag">⚡-10</span></button>
             <button onclick="action('part_time')">💼 打工<span class="cost-tag">⚡-30</span></button>
-            <button onclick="action('learn_code')">💻 自學程式<span class="cost-tag">⚡-35</span></button>
+            <button onclick="action('write_novel')">✍️ 寫小說<span class="cost-tag">⚡-25</span></button>
         `;
         } else {
           html = `
-            <button onclick="action('work')">💼 工作<span class="cost-tag">⚡-35</span></button>
-            <button onclick="action('study_skill')">📖 學習技能<span class="cost-tag">⚡-25 / $-3000</span></button>
-            <button onclick="action('socialize')">🍻 社交活動<span class="cost-tag">⚡-20 / $-2000</span></button>
-            <button onclick="action('relax')">🎮 休閒娛樂<span class="cost-tag">⚡-15 / $-1000</span></button>
-            <button onclick="action('invest')">📈 投資理財<span class="cost-tag">⚡-20 / $-10000</span></button>
-            <button onclick="action('exercise')">💪 健身<span class="cost-tag">⚡-25 / $-1500</span></button>
-            <button onclick="action('volunteer')">🤝 志工服務<span class="cost-tag">⚡-30</span></button>
-            <button onclick="action('travel')">✈️ 旅遊<span class="cost-tag">⚡-30 / $-20000</span></button>
+            <button onclick="action('work')">💼 上班<span class="cost-tag">⚡-35</span></button>
+            <button onclick="action('side_hustle')">💻 接案副業<span class="cost-tag">⚡-30</span></button>
+            <button onclick="action('socialize')">🍻 社交<span class="cost-tag">⚡-20 / $-2k</span></button>
+            <button onclick="action('lottery')">🎫 買彩券<span class="cost-tag">⚡-5 / $-500</span></button>
+            <button onclick="action('invest')">📈 投資<span class="cost-tag">⚡-20 / $-1w</span></button>
+            <button onclick="action('exercise')">💪 健身<span class="cost-tag">⚡-25 / $-1.5k</span></button>
+            <button onclick="action('travel')">✈️ 旅遊<span class="cost-tag">⚡-30 / $-2w</span></button>
+            <button onclick="action('night_club')">🕺 去夜店<span class="cost-tag">⚡-30 / $-3k</span></button>
         `;
         }
 
         btns.innerHTML = html;
-
+        
+        // 檢查狀態禁用按鈕
         const allBtns = btns.querySelectorAll("button");
         allBtns.forEach((btn) => {
-          if (Game.stamina < 10 || Game.happy < 5 || Game.health <= 0) {
+          if (Game.stamina < 10 || Game.health <= 0) {
             btn.disabled = true;
+            btn.style.opacity = 0.5;
           }
         });
       }
 
       function getActionName(type) {
         const actionNames = {
-          // 嬰兒期
+          // === 嬰兒期 ===
           cry: "😭 哭鬧",
           sleep: "😴 睡覺",
           play_toy: "🧸 玩玩具",
           learn_speak: "🗣️ 牙牙學語",
           crawl: "🐛 爬行",
           watch_mobile: "👀 看手機",
+          explore_house: "🏠 探索家裡", // 新增
+          act_cute: "🥺 賣萌", // 新增
 
-          // 幼兒期
+          // === 幼兒期 ===
           kindergarten: "🏫 上幼兒園",
           draw: "🖍️ 畫畫",
           watch_tv: "📺 看電視",
           make_friend: "👫 交朋友",
           play_outside: "🌳 戶外玩耍",
           learn_music: "🎵 學才藝",
+          ask_pocket_money: "💰 要零用錢", // 新增
+          prank: "🤡 惡作劇", // 新增
 
-          // 兒童期
+          // === 兒童期 ===
           study_hard: "📚 認真讀書",
           cram_school: "📖 補習班",
           sports: "⚽ 運動",
           play_game: "🎮 打電動",
           help_parent: "🏠 幫忙家務",
           read_book: "📕 看課外書",
+          read_comic: "📚 看漫畫", // 新增
+          internet_surf: "🌐 上網", // 新增
 
-          // 青少年期
+          // === 青少年期 ===
           exam_prep: "📝 準備考試",
           club: "🎭 參加社團",
           date_crush: "💕 約會",
           rebel: "😤 叛逆",
           part_time: "💼 打工",
           learn_code: "💻 自學程式",
+          skip_class: "🏃 翹課", // 新增
+          write_novel: "✍️ 寫小說", // 新增
 
-          // 成年期
-          work: "💼 工作",
-          study_skill: "📖 學習技能",
+          // === 成年期 ===
+          work: "💼 上班",
+          study_skill: "📖 進修技能",
           socialize: "🍻 社交",
-          relax: "🎮 休閒",
+          relax: "🎮 放鬆",
           invest: "📈 投資",
           exercise: "💪 健身",
           volunteer: "🤝 志工",
           travel: "✈️ 旅遊",
+          lottery: "🎫 買彩券", // 新增
+          side_hustle: "💻 接案副業", // 新增
+          night_club: "🕺 去夜店", // 新增
         };
 
-        return actionNames[type] || "";
+        return actionNames[type] || type;
       }
-
+// 🎲 隨機整數輔助函式 (包含 min 與 max)
+function rnd(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
       // ✅ 修正後的 action 函數 (確保 ID 與 HTML 一致)
+      
       function action(type) {
-        // 1. 防抖動檢查
-        if (isProcessing) {
-          console.log("⏳ 處理中，請稍候...");
-          return;
-        }
-
-        // 2. 體力檢查
+        // 1. 防抖與狀態檢查
+        if (isProcessing) return;
         if (Game.stamina <= 0) {
           alert("❌ 體力不足！");
           return;
         }
 
-        // 3. 鎖定狀態
         isProcessing = true;
-
         let cost = 20;
         let effects = {};
-        let actionName = "";
+        let actionName = getActionName(type);
+        let crit = false; // 是否觸發暴擊 (大成功)
 
-        // 4. Switch Case (ID 必須完全匹配 updateActionButtons 中的 onclick)
+        // 🎲 暴擊判定：10% 機率觸發「大成功」，效果提升 50%~100%
+        if (Math.random() < 0.1) {
+            crit = true;
+            actionName = "✨ 大成功！" + actionName;
+        }
+
+        // 輔助：計算數值 (基礎值 * 學習加成 * 暴擊加成)
+        const calc = (baseMin, baseMax, multiplier = 1) => {
+            let val = rnd(baseMin, baseMax) * multiplier;
+            if (crit) val = Math.floor(val * 1.5);
+            return Math.floor(val);
+        };
+
+        // 2. 行動邏輯 Switch
         switch (type) {
           // === 0-2 歲 ===
           case "cry":
             cost = 10;
-            effects = { happy: 5 };
-            actionName = "😭 哭鬧";
+            effects = { happy: rnd(3, 6) };
             break;
           case "sleep":
             cost = 20;
-            effects = { health: 3, happy: 2 };
-            actionName = "😴 睡覺";
+            effects = { health: rnd(2, 5), happy: rnd(2, 4) };
             break;
-          case "play_toy": // ✅ 修正 ID
+          case "play_toy":
             cost = 15;
-            effects = { happy: 8 };
-            actionName = "🧸 玩玩具";
+            effects = { happy: rnd(6, 12), intel: rnd(0, 1) };
             break;
-          case "learn_speak": // ✅ 修正 ID
+          case "act_cute": // 新增：賣萌
+            cost = 15;
+            effects = { happy: rnd(5, 10), skills: { charm: calc(2, 4, Game.skillBonus) } };
+            // 小機率獲得父母零用錢
+            if (Math.random() < 0.3) {
+                const bonus = rnd(100, 500);
+                effects.money = bonus;
+                log(`😍 父母被你萌到了，給了零用錢 $${bonus}`);
+            }
+            break;
+          case "explore_house": // 新增：探索
+            cost = 20;
+            effects = { intel: calc(2, 5, Game.learnBonus) };
+            if (Math.random() < 0.2) {
+                effects.health = -rnd(1, 5);
+                log("🤕 探索時不小心撞到了頭...");
+            }
+            break;
+          case "learn_speak":
             cost = 25;
             effects = {
-              intel: 3 * Game.learnBonus,
-              skills: { communication: 2 * Game.skillBonus },
+              intel: calc(2, 4, Game.learnBonus),
+              skills: { communication: calc(2, 5, Game.skillBonus) },
             };
-            actionName = "🗣️ 牙牙學語";
-            break;
-          case "crawl":
-            cost = 15;
-            effects = { health: 2, happy: 5 };
-            actionName = "🐛 爬行";
-            break;
-          case "watch_mobile": // ✅ 修正 ID
-            cost = 10;
-            effects = { happy: 8, intel: -2 };
-            actionName = "👀 看手機";
             break;
 
           // === 3-5 歲 ===
           case "kindergarten":
             cost = 20;
             effects = {
-              intel: 2 * Game.learnBonus,
-              skills: { communication: 3 * Game.skillBonus },
-              happy: 5,
+              intel: calc(2, 4, Game.learnBonus),
+              skills: { communication: calc(2, 4, Game.skillBonus) },
+              happy: rnd(2, 6),
             };
-            actionName = "🏫 上幼兒園";
+            break;
+          case "play_outside":
+            cost = 20;
+            effects = {
+              health: rnd(3, 7),
+              happy: rnd(5, 12),
+              skills: { charm: calc(1, 3, Game.skillBonus) },
+            };
             break;
           case "draw":
             cost = 15;
-            effects = { skills: { art: 4 * Game.skillBonus }, happy: 5 };
-            actionName = "🖍️ 畫畫";
+            effects = { skills: { art: calc(3, 6, Game.skillBonus) }, happy: rnd(3, 8) };
             break;
-          case "watch_tv": // ✅ 修正 ID
-            cost = 10;
-            effects = { happy: 10, intel: -1 };
-            actionName = "📺 看電視";
-            break;
-          case "make_friend": // ✅ 修正 ID
-            cost = 20;
-            effects = {
-              skills: { communication: 5 * Game.skillBonus },
-              happy: 8,
-            };
-            actionName = "👫 交朋友";
-            if (Math.random() < 0.7) addFriend();
-            break;
-          case "play_outside": // ✅ 修正 ID
-            cost = 20;
-            effects = {
-              health: 5,
-              happy: 10,
-              skills: { charm: 2 * Game.skillBonus },
-            };
-            actionName = "🌳 戶外玩耍";
-            break;
-          case "learn_music": // ✅ 修正 ID
-            if (Game.money < 5000) {
-              isProcessing = false;
-              return alert("💸 金錢不足！");
+          case "prank": // 新增：惡作劇
+            cost = 15;
+            effects = { happy: rnd(10, 20), skills: { charm: -rnd(1, 3) } }; // 快樂但扣魅力
+            if (Math.random() < 0.4) {
+                effects.happy = -5;
+                log("😡 惡作劇被抓到，被罵了一頓...");
             }
+            break;
+          case "ask_pocket_money": // 新增：要零用錢
+            cost = 10;
+            // 看魅力決定成功率
+            if (Math.random() * 100 < Game.skills.charm + 20) {
+                const money = rnd(500, 2000);
+                effects = { money: money, happy: 5 };
+                log(`💰 成功要到了零用錢 $${money}！`);
+            } else {
+                effects = { happy: -5 };
+                log("😢 爸媽不給零用錢...");
+            }
+            break;
+          case "learn_music":
+            if (Game.money < 5000) { isProcessing = false; return alert("💸 金錢不足！"); }
             cost = 25;
-            effects = {
-              money: -5000,
-              skills: { art: 5 * Game.skillBonus },
-              happy: 5,
-            };
-            actionName = "🎵 學才藝";
+            effects = { money: -5000, skills: { art: calc(5, 9, Game.skillBonus) }, happy: rnd(2, 6) };
             break;
 
           // === 6-12 歲 ===
-          case "study_hard": // ✅ 修正 ID
+          case "study_hard":
             cost = 30;
-            effects = { intel: 5 * Game.learnBonus, happy: -3 };
-            actionName = "📚 認真讀書";
+            effects = { intel: calc(4, 8, Game.learnBonus), happy: -rnd(2, 5) };
             break;
-          case "cram_school": // ✅ 修正 ID
-            if (Game.money < 2000) {
-              isProcessing = false;
-              return alert("💸 金錢不足！");
-            }
-            cost = 25;
-            effects = { intel: 8 * Game.learnBonus, money: -2000, happy: -5 };
-            actionName = "📖 補習班";
+          case "read_comic": // 新增：看漫畫
+            cost = 15;
+            effects = { happy: rnd(8, 15), intel: -rnd(0, 2) }; // 快樂但可能微扣智力
+            break;
+          case "internet_surf": // 新增：上網
+            cost = 15;
+            effects = { intel: rnd(1, 3), happy: rnd(5, 10), health: -rnd(1, 3) };
             break;
           case "sports":
             cost = 20;
-            effects = {
-              health: 5,
-              happy: 5,
-              skills: { charm: 2 * Game.skillBonus },
-            };
-            actionName = "⚽ 運動";
+            effects = { health: rnd(4, 8), happy: rnd(4, 8), skills: { charm: calc(1, 3, Game.skillBonus) } };
             break;
-          case "play_game": // ✅ 修正 ID
+          case "play_game":
             cost = 15;
-            effects = { happy: 12, intel: -2 };
-            actionName = "🎮 打電動";
+            effects = { happy: rnd(10, 18), intel: -rnd(1, 3) };
             break;
-          case "help_parent": // ✅ 修正 ID
+          case "help_parent":
             cost = 20;
-            effects = {
-              happy: 5,
-              skills: { communication: 3 * Game.skillBonus },
-            };
-            actionName = "🏠 幫忙家務";
+            effects = { happy: rnd(3, 7), skills: { communication: calc(2, 5, Game.skillBonus) } };
             break;
-          case "read_book": // ✅ 修正 ID
+          case "cram_school":
+            if (Game.money < 2000) { isProcessing = false; return alert("💸 金錢不足！"); }
             cost = 25;
-            effects = {
-              intel: 4 * Game.learnBonus,
-              skills: { communication: 2 * Game.skillBonus },
-              happy: 3,
-            };
-            actionName = "📕 看課外書";
+            effects = { intel: calc(7, 12, Game.learnBonus), money: -2000, happy: -rnd(4, 8) };
             break;
 
           // === 13-17 歲 ===
-          case "exam_prep": // ✅ 修正 ID
+          case "exam_prep":
             cost = 35;
-            effects = { intel: 10 * Game.learnBonus, happy: -8 };
-            actionName = "📝 準備考試";
+            effects = { intel: calc(8, 15, Game.learnBonus), happy: -rnd(5, 12) };
             break;
           case "club":
             cost = 20;
             effects = {
-              skills: {
-                communication: 5 * Game.skillBonus,
-                charm: 3 * Game.skillBonus,
-              },
-              happy: 10,
+              skills: { communication: calc(3, 7, Game.skillBonus), charm: calc(2, 5, Game.skillBonus) },
+              happy: rnd(8, 15),
             };
-            actionName = "🎭 參加社團";
             break;
-          case "date_crush": // ✅ 修正 ID
-            if (Game.money < 500) {
-              isProcessing = false;
-              return alert("💸 金錢不足！");
+          case "skip_class": // 新增：翹課
+            cost = 10;
+            effects = { happy: rnd(15, 25), intel: -rnd(5, 10) };
+            if (Math.random() < 0.3) {
+                 log("📞 學校打電話回家了... 被禁足");
+                 effects.happy = -20;
             }
+            break;
+          case "write_novel": // 新增：寫小說
             cost = 25;
-            effects = {
-              money: -500,
-              happy: 15,
-              skills: { charm: 5 * Game.skillBonus },
-            };
-            actionName = "💕 約會";
+            effects = { skills: { art: calc(3, 8, Game.skillBonus) }, intel: calc(2, 5, Game.learnBonus) };
+            if (Math.random() < 0.1) {
+                log("🌟 小說在網路上爆紅！");
+                effects.happy = 20;
+                effects.skills.charm = 10;
+            }
             break;
-          case "rebel":
-            cost = 15;
-            effects = { happy: 8, intel: -3 };
-            actionName = "😤 叛逆期";
-            break;
-          case "part_time": // ✅ 修正 ID
+          case "date_crush":
+            if (Game.money < 500) { isProcessing = false; return alert("💸 金錢不足！"); }
             cost = 30;
-            const salary = Math.floor(10000 + Math.random() * 5000);
-            effects = {
-              money: salary,
-              happy: -5,
-              skills: { communication: 3 * Game.skillBonus },
-            };
-            actionName = "💼 打工";
+            effects = { money: -500, happy: rnd(10, 20), skills: { charm: calc(4, 8, Game.skillBonus) } };
             break;
-          case "learn_code": // ✅ 修正 ID
+          case "part_time":
+            cost = 30;
+            const salary = rnd(10000, 18000); // 隨機薪水
+            effects = { money: salary, happy: -rnd(3, 8), skills: { communication: calc(2, 5, Game.skillBonus) } };
+            break;
+          case "learn_code":
             cost = 35;
             effects = {
-              intel: 5 * Game.learnBonus,
-              skills: { programming: 8 * Game.skillBonus },
-              happy: -5,
+              intel: calc(4, 8, Game.learnBonus),
+              skills: { programming: calc(6, 12, Game.skillBonus) },
+              happy: -rnd(3, 6),
             };
-            actionName = "💻 自學程式";
             break;
 
           // === 18歲以上 ===
@@ -6244,122 +6345,99 @@
             cost = 35;
             const job = JOBS.find((j) => j.id === Game.jobId);
             if (job && job.salary > 0) {
-              const base = Math.floor(
-                (job.salary * Game.incomeBonus) / Game.workPenalty,
-              );
-              const fluc = Math.random() * 0.3 - 0.15;
-              const finalSal = Math.floor(base * (1 + fluc));
-              effects = { money: finalSal, happy: -5, health: -3 };
+              // 薪水浮動 10%
+              const base = Math.floor((job.salary * Game.incomeBonus) / Game.workPenalty);
+              const fluctuation = 1 + (Math.random() * 0.2 - 0.1); 
+              const finalSal = Math.floor(base * fluctuation);
+              
+              effects = { money: finalSal, happy: -rnd(3, 8), health: -rnd(2, 5) };
               Game.jobYears++;
-              actionName = "💼 上班";
+              
               if (job.effect) job.effect(Game);
             } else {
               effects = { happy: -10 };
-              actionName = "💼 找工作失敗(無業)";
+              log("😟 沒有工作只能待在家...");
             }
             break;
-          case "study_skill": // ✅ 修正 ID
-            if (Game.money < 3000) {
-              isProcessing = false;
-              return alert("💸 金錢不足！");
-            }
-            cost = 25;
-            effects = { money: -3000, intel: 3 * Game.learnBonus, skills: {} };
-            const sKey = Object.keys(Game.skills)[
-              Math.floor(Math.random() * 7)
-            ];
-            effects.skills[sKey] = 8 * Game.learnBonus * Game.skillBonus;
-            actionName = "📖 進修技能";
-            break;
+          case "side_hustle": // 新增：接案副業
+             cost = 30;
+             const hustleMoney = rnd(5000, 50000);
+             effects = { money: hustleMoney, health: -rnd(5, 10), happy: -5 };
+             break;
+          case "lottery": // 新增：買彩券
+             if (Game.money < 500) { isProcessing = false; return alert("💸 金錢不足！"); }
+             cost = 5;
+             effects = { money: -500, happy: 2 };
+             if (Math.random() < 0.01) { // 1% 中大獎
+                 const jackpot = rnd(100000, 1000000);
+                 effects.money += jackpot;
+                 effects.happy = 50;
+                 log(`🎉 中大獎啦！！獲得 $${jackpot.toLocaleString()}`);
+             } else if (Math.random() < 0.1) {
+                 effects.money += 2000;
+                 log("🎫 中了小獎 $2,000");
+             }
+             break;
+          case "night_club": // 新增：去夜店
+             if (Game.money < 3000) { isProcessing = false; return alert("💸 金錢不足！"); }
+             cost = 30;
+             effects = { money: -3000, happy: rnd(20, 40), skills: { charm: calc(5, 10, Game.skillBonus) }, health: -rnd(5, 15) };
+             break;
           case "socialize":
-            if (Game.money < 2000) {
-              isProcessing = false;
-              return alert("💸 金錢不足！");
-            }
+            if (Game.money < 2000) { isProcessing = false; return alert("💸 金錢不足！"); }
             cost = 20;
             effects = {
               money: -2000,
-              happy: 10,
-              skills: {
-                communication: 5 * Game.skillBonus,
-                charm: 3 * Game.skillBonus,
-              },
+              happy: rnd(8, 15),
+              skills: { communication: calc(4, 9, Game.skillBonus), charm: calc(2, 6, Game.skillBonus) },
             };
-            actionName = "🍻 社交";
             if (Math.random() < 0.6) addFriend();
             break;
-          case "relax":
-            if (Game.money < 1000) {
-              isProcessing = false;
-              return alert("💸 金錢不足！");
-            }
-            cost = 15;
-            effects = { money: -1000, happy: 15 };
-            actionName = "🎮 放鬆";
-            break;
           case "invest":
-            if (Game.money < 10000) {
-              isProcessing = false;
-              return alert("💸 金錢不足！");
-            }
+            if (Game.money < 10000) { isProcessing = false; return alert("💸 金錢不足！"); }
             cost = 20;
-            const profit =
-              Math.random() > 0.5
-                ? Math.floor(10000 * 0.3)
-                : -Math.floor(10000 * 0.2);
+            // 投資波動變大 (-30% ~ +40%)
+            const roi = (Math.random() * 0.7) - 0.3; 
+            const profit = Math.floor(10000 * roi);
+            
+            // 商業頭腦特質加成
+            if (Game.traits.some(t => t.id === 'businessmind')) {
+                 if (profit > 0) profit *= 1.5; // 賺更多
+                 else profit *= 0.5; // 賠更少
+            }
+
             effects = {
               money: profit,
-              skills: { finance: 5 * Game.skillBonus },
-              happy: profit > 0 ? 10 : -15,
+              skills: { finance: calc(4, 9, Game.skillBonus) },
+              happy: profit > 0 ? rnd(5, 10) : -rnd(10, 20),
             };
-            actionName = "📈 投資";
             break;
           case "exercise":
-            if (Game.money < 1500) {
-              isProcessing = false;
-              return alert("💸 金錢不足！");
-            }
+            if (Game.money < 1500) { isProcessing = false; return alert("💸 金錢不足！"); }
             cost = 25;
             effects = {
               money: -1500,
-              health: 8,
-              skills: { charm: 3 * Game.skillBonus },
-              happy: 5,
+              health: rnd(5, 10),
+              skills: { charm: calc(2, 5, Game.skillBonus) },
+              happy: rnd(3, 8),
             };
-            actionName = "💪 健身";
-            break;
-          case "volunteer":
-            cost = 30;
-            effects = {
-              happy: 15,
-              skills: {
-                communication: 5 * Game.skillBonus,
-                charm: 3 * Game.skillBonus,
-              },
-            };
-            actionName = "🤝 志工";
             break;
           case "travel":
-            if (Game.money < 20000) {
-              isProcessing = false;
-              return alert("💸 金錢不足！");
-            }
+            if (Game.money < 20000) { isProcessing = false; return alert("💸 金錢不足！"); }
             cost = 30;
             effects = {
               money: -20000,
-              happy: 25,
-              intel: 3,
-              skills: { communication: 3 * Game.skillBonus },
+              happy: rnd(20, 35),
+              intel: rnd(2, 5),
+              skills: { communication: calc(2, 6, Game.skillBonus) },
             };
-            actionName = "✈️ 旅遊";
             break;
-
           default:
             isProcessing = false;
             return alert("❌ 未知操作: " + type);
         }
 
-        // 5. 體力再次檢查 (保險起見)
+        // 3. 再次檢查體力 (保險)
         if (Game.stamina < cost) {
           isProcessing = false;
           return alert("❌ 體力不足！");
@@ -6368,31 +6446,28 @@
         Game.stamina -= cost;
         Game.totalActions++;
 
-        // 6. 應用數值效果
+        // 4. 應用數值效果
         const changes = [];
         Object.keys(effects).forEach((key) => {
           if (key === "skills") {
             Object.keys(effects.skills).forEach((sk) => {
-              const old = Game.skills[sk];
-              Game.skills[sk] += effects.skills[sk];
-              changes.push(`${sk} +${Math.floor(effects.skills[sk])}`);
+              const val = Math.floor(effects.skills[sk]); // 確保整數
+              Game.skills[sk] += val;
+              changes.push(`${sk} ${val > 0 ? "+" : ""}${val}`);
             });
           } else {
-            const val = effects[key];
+            const val = Math.floor(effects[key]); // 確保整數
             Game[key] += val;
-            changes.push(`${key} ${val > 0 ? "+" : ""}${Math.floor(val)}`);
+            changes.push(`${key} ${val > 0 ? "+" : ""}${val}`);
           }
         });
 
-        // 7. 更新畫面與日誌
+        // 5. 更新畫面與日誌
         updateUI();
         log(actionName, changes);
-        if (changes.length > 0) showChanges(changes);
+        if (changes.length > 0 && changes.length <= 4) showChanges(changes); // 變化太多就不彈窗擋畫面了
 
-        // 8. 解除鎖定
-        setTimeout(() => {
-          isProcessing = false;
-        }, 300);
+        setTimeout(() => { isProcessing = false; }, 300);
       }
       // 新增函數
       function triggerOriginEvent() {
