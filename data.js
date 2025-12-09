@@ -92,6 +92,628 @@
           },
         },
       ];
+      const RANDOM_EVENTS = [
+          // === 💰 金錢事件 ===
+          {
+            title: "💰 路上撿到錢",
+            desc: "走路時在地上發現一個錢包",
+            choices: [
+              {
+                text: "送交警察局",
+                effect: (g) => {
+                  g.happy += 10;
+                  return "做了好事心情很好";
+                },
+              },
+              {
+                text: "拿走現金",
+                effect: (g) => {
+                  const money = Math.floor(Math.random() * 50000) + 10000;
+                  g.money += money;
+                  g.happy -= 5;
+                  return `拿到 $${money.toLocaleString()}，但有點心虛`;
+                },
+              },
+            ],
+          },
+          {
+            title: "🎰 朋友邀你投資",
+            desc: "朋友說有個穩賺不賠的投資機會",
+            choices: [
+              {
+                text: "投資 $50,000",
+                effect: (g) => {
+                  if (g.money < 50000) return "錢不夠";
+                  g.money -= 50000;
+                  if (Math.random() > 0.5) {
+                    g.money += 100000;
+                    return "🎉 賺了 $50,000！";
+                  } else {
+                    return "😢 血本無歸...";
+                  }
+                },
+              },
+              {
+                text: "拒絕",
+                effect: (g) => {
+                  return "保住了錢包";
+                },
+              },
+            ],
+          },
+          {
+            title: "🏆 中獎了",
+            desc: "發票對中獎號",
+            effect: (g) => {
+              const prizes = [200, 1000, 10000, 200000, 10000000];
+              const prize = prizes[Math.floor(Math.random() * prizes.length)];
+              g.money += prize;
+              g.happy += 20;
+              return `中了 $${prize.toLocaleString()}！`;
+            },
+          },
+
+          // === ❤️ 健康事件 ===
+          {
+            title: "🤒 感冒了",
+            desc: "身體不舒服",
+            effect: (g) => {
+              g.health -= 10;
+              g.money -= 1000;
+              return "看醫生花了 $1,000";
+            },
+          },
+          {
+            title: "🏃 參加路跑",
+            desc: "朋友邀你參加馬拉松",
+            choices: [
+              {
+                text: "參加",
+                effect: (g) => {
+                  g.health += 15;
+                  g.happy += 10;
+                  g.stamina -= 30;
+                  return "完成比賽！身體更健康了";
+                },
+              },
+              {
+                text: "拒絕",
+                effect: (g) => {
+                  return "待在家裡休息";
+                },
+              },
+            ],
+          },
+          {
+            title: "💊 發現保健食品",
+            desc: "藥局推薦保健食品",
+            choices: [
+              {
+                text: "購買 ($5,000)",
+                effect: (g) => {
+                  g.money -= 5000;
+                  g.health += 10;
+                  g.healthDecay *= 0.9;
+                  return "長期服用改善了健康";
+                },
+              },
+              {
+                text: "不買",
+                effect: (g) => {
+                  return "省下一筆錢";
+                },
+              },
+            ],
+          },
+
+          // === 😊 快樂事件 ===
+          {
+            title: "🎮 新遊戲發售",
+            desc: "期待已久的遊戲終於上市了",
+            choices: [
+              {
+                text: "購買 ($2,000)",
+                effect: (g) => {
+                  g.money -= 2000;
+                  g.happy += 25;
+                  return "玩得超開心！";
+                },
+              },
+              {
+                text: "忍住不買",
+                effect: (g) => {
+                  g.happy -= 10;
+                  return "好想玩...";
+                },
+              },
+            ],
+          },
+          {
+            title: "🎬 朋友約看電影",
+            desc: "朋友邀你去看最新電影",
+            choices: [
+              {
+                text: "一起去 ($500)",
+                effect: (g) => {
+                  g.money -= 500;
+                  g.happy += 15;
+                  g.skills.communication += 2;
+                  return "度過愉快的時光";
+                },
+              },
+              {
+                text: "婉拒",
+                effect: (g) => {
+                  return "在家休息";
+                },
+              },
+            ],
+          },
+          {
+            title: "🎉 生日派對",
+            desc: "今天是你的生日",
+            effect: (g) => {
+              const gifts = Math.floor(Math.random() * 20000) + 5000;
+              g.money += gifts;
+              g.happy += 30;
+              return `收到 $${gifts.toLocaleString()} 的紅包！`;
+            },
+          },
+
+          // === 🧠 學習事件 ===
+          {
+            title: "📚 發現好書",
+            desc: "在書店發現一本好書",
+            choices: [
+              {
+                text: "購買 ($800)",
+                effect: (g) => {
+                  g.money -= 800;
+                  g.intel += 5;
+                  g.happy += 10;
+                  return "獲得了新知識";
+                },
+              },
+              {
+                text: "不買",
+                effect: (g) => {
+                  return "改天再說";
+                },
+              },
+            ],
+          },
+          {
+            title: "💻 線上課程優惠",
+            desc: "看到有興趣的線上課程打折",
+            choices: [
+              {
+                text: "購買 ($3,000)",
+                effect: (g) => {
+                  g.money -= 3000;
+                  g.intel += 8;
+                  const skills = [
+                    "programming",
+                    "art",
+                    "finance",
+                    "communication",
+                  ];
+                  const skill =
+                    skills[Math.floor(Math.random() * skills.length)];
+                  g.skills[skill] += 15;
+                  return `學到新技能！`;
+                },
+              },
+              {
+                text: "放棄",
+                effect: (g) => {
+                  return "省下錢";
+                },
+              },
+            ],
+          },
+
+          // === 👥 社交事件 ===
+          {
+            title: "🎭 社交聚會",
+            desc: "被邀請參加聚會",
+            choices: [
+              {
+                text: "參加 ($1,500)",
+                effect: (g) => {
+                  g.money -= 1500;
+                  g.happy += 15;
+                  g.skills.charm += 5;
+                  g.skills.communication += 5;
+                  if (Math.random() > 0.6) {
+                    addFriend();
+                    return "認識了新朋友！";
+                  }
+                  return "度過愉快的夜晚";
+                },
+              },
+              {
+                text: "不去",
+                effect: (g) => {
+                  return "宅在家裡";
+                },
+              },
+            ],
+          },
+          {
+            title: "💼 人脈介紹",
+            desc: "朋友介紹重要人士給你認識",
+            effect: (g) => {
+              g.skills.communication += 10;
+              g.skills.charm += 5;
+              addFriend();
+              return "建立了有用的人脈";
+            },
+          },
+
+          // === ⚠️ 危機事件 ===
+          {
+            title: "🚗 車禍",
+            desc: "不小心發生車禍",
+            effect: (g) => {
+              g.health -= 20;
+              g.money -= 30000;
+              g.happy -= 15;
+              return "受傷住院，花了 $30,000";
+            },
+          },
+          {
+            title: "📱 手機壞了",
+            desc: "手機摔壞了",
+            choices: [
+              {
+                text: "買新的 ($20,000)",
+                effect: (g) => {
+                  g.money -= 20000;
+                  g.happy += 5;
+                  return "換了新手機";
+                },
+              },
+              {
+                text: "修理 ($3,000)",
+                effect: (g) => {
+                  g.money -= 3000;
+                  return "修好了";
+                },
+              },
+              {
+                text: "湊合著用",
+                effect: (g) => {
+                  g.happy -= 10;
+                  return "用得很不方便...";
+                },
+              },
+            ],
+          },
+          {
+            title: "🏠 房東漲租",
+            desc: "房東說要漲房租",
+            choices: [
+              {
+                text: "接受",
+                effect: (g) => {
+                  g.yearlyMoney -= 12000;
+                  return "每月多付 $1,000";
+                },
+              },
+              {
+                text: "搬家",
+                effect: (g) => {
+                  g.money -= 10000;
+                  g.stamina -= 20;
+                  return "搬家花了 $10,000";
+                },
+              },
+            ],
+          },
+
+          // === 🎁 驚喜事件 ===
+          {
+            title: "🎰 刮刮樂",
+            desc: "路過買了刮刮樂",
+            effect: (g) => {
+              g.money -= 100;
+              if (Math.random() > 0.8) {
+                const prize = Math.floor(Math.random() * 100000) + 1000;
+                g.money += prize;
+                g.happy += 30;
+                return `中了 $${prize.toLocaleString()}！`;
+              }
+              return "沒中獎";
+            },
+          },
+          {
+            title: "📦 網購驚喜",
+            desc: "收到意外的包裹",
+            effect: (g) => {
+              g.happy += 20;
+              return "原來是之前買的東西到了！";
+            },
+          },
+          {
+            title: "☀️ 好天氣",
+            desc: "今天天氣特別好",
+            effect: (g) => {
+              g.happy += 10;
+              g.health += 5;
+              return "心情愉快！";
+            },
+          },
+
+          // === 💼 工作事件 ===
+          {
+            title: "💰 年終獎金",
+            desc: "公司發年終獎金",
+            effect: (g) => {
+              if (g.jobId === "none") return "你沒有工作";
+              const bonus = Math.floor(Math.random() * 100000) + 50000;
+              g.money += bonus;
+              g.happy += 25;
+              return `領到 $${bonus.toLocaleString()} 年終！`;
+            },
+          },
+          {
+            title: "📈 升職機會",
+            desc: "老闆提出升職",
+            effect: (g) => {
+              if (g.jobId === "none") return "你沒有工作";
+              g.incomeBonus *= 1.2;
+              g.happy += 20;
+              return "薪水增加 20%！";
+            },
+          },
+          {
+            title: "😰 工作壓力",
+            desc: "最近工作壓力很大",
+            choices: [
+              {
+                text: "咬牙撐過",
+                effect: (g) => {
+                  g.health -= 15;
+                  g.happy -= 20;
+                  g.money += 30000;
+                  return "賺了加班費但很累";
+                },
+              },
+              {
+                text: "請假休息",
+                effect: (g) => {
+                  g.money -= 10000;
+                  g.health += 10;
+                  g.happy += 15;
+                  return "身心獲得休息";
+                },
+              },
+            ],
+          },
+          {
+            title: "🎯 投資機會",
+            desc: "有人向你推薦投資項目",
+            condition: () => Game.traits.some((t) => t.id === "businessmind"),
+            effect: (g) => {
+              if (g.money < 100000) return "資金不足";
+              g.money -= 100000;
+              const success = Math.random() > 0.3; // 商業頭腦提高成功率到70%
+              if (success) {
+                g.money += 250000;
+                if (!g.successfulInvestments) g.successfulInvestments = 0;
+                g.successfulInvestments++;
+                return "💰 商業頭腦讓你賺了 $150,000！";
+              } else {
+                return "😢 投資失敗，損失 $100,000";
+              }
+            },
+          },
+
+          // 特質事件2：藝術比賽（需要藝術天賦）
+          {
+            title: "🎨 藝術比賽",
+            desc: "看到藝術比賽的海報",
+            condition: () => Game.traits.some((t) => t.id === "artistic"),
+            choices: [
+              {
+                text: "參加比賽",
+                effect: (g) => {
+                  g.stamina -= 30;
+                  const prize = Math.floor(Math.random() * 50000) + 20000;
+                  g.money += prize;
+                  g.happy += 20;
+                  g.skills.art += 10;
+                  return `🏆 藝術天賦讓你得獎！獲得 $${prize.toLocaleString()}`;
+                },
+              },
+              {
+                text: "不參加",
+                effect: (g) => {
+                  return "下次再說";
+                },
+              },
+            ],
+          },
+
+          // 特質事件3：駭客馬拉松（需要科技達人）
+          {
+            title: "💻 駭客馬拉松",
+            desc: "科技公司舉辦駭客松",
+            condition: () => Game.traits.some((t) => t.id === "techsavvy"),
+            choices: [
+              {
+                text: "參加",
+                effect: (g) => {
+                  g.stamina -= 40;
+                  g.skills.programming += 15;
+                  if (Math.random() > 0.5) {
+                    g.money += 100000;
+                    return "🏆 科技達人贏得首獎 $100,000！";
+                  } else {
+                    g.money += 30000;
+                    return "🎉 獲得參加獎 $30,000";
+                  }
+                },
+              },
+              {
+                text: "不參加",
+                effect: (g) => {
+                  return "太累了";
+                },
+              },
+            ],
+          },
+
+          // 特質事件4：意外好運（需要幸運特質）
+          {
+            title: "🎲 意外好運",
+            desc: "今天運氣特別好",
+            condition: () => Game.traits.some((t) => t.id === "lucky"),
+            effect: (g) => {
+              const bonus = Math.floor(Math.random() * 100000) + 50000;
+              g.money += bonus;
+              g.happy += 15;
+              if (!g.luckyEventCount) g.luckyEventCount = 0;
+              g.luckyEventCount++;
+              return `🍀 幸運特質發動！意外之財 $${bonus.toLocaleString()}`;
+            },
+          },
+
+          // 特質事件5：壓力事件（特質影響反應）
+          {
+            title: "😰 壓力事件",
+            desc: "遇到讓人焦慮的事",
+            effect: (g) => {
+              if (g.traits.some((t) => t.id === "optimistic")) {
+                g.happy -= 5;
+                return "🌟 樂觀特質讓你很快恢復心情";
+              } else if (g.traits.some((t) => t.id === "pessimistic")) {
+                g.happy -= 25;
+                g.health -= 10;
+                if (!g.negativeEvents) g.negativeEvents = 0;
+                g.negativeEvents++;
+                return "😰 陷入深深的焦慮...";
+              } else {
+                g.happy -= 15;
+                return "心情有點低落";
+              }
+            },
+          },
+
+          // 特質事件6：體育挑戰（需要強健體魄）
+          {
+            title: "🏃 體育挑戰",
+            desc: "朋友約你參加三鐵比賽",
+            condition: () => Game.traits.some((t) => t.id === "athletic"),
+            choices: [
+              {
+                text: "參加",
+                effect: (g) => {
+                  g.health += 20;
+                  g.stamina -= 50;
+                  g.money += 50000;
+                  return "🏅 強健體魄讓你輕鬆完賽並獲獎！";
+                },
+              },
+              {
+                text: "不參加",
+                effect: (g) => {
+                  return "改天吧";
+                },
+              },
+            ],
+          },
+
+          // 特質事件7：演講邀請（需要魅力或外向）
+          {
+            title: "🎤 演講邀請",
+            desc: "受邀到大學演講",
+            condition: () =>
+              Game.traits.some((t) => t.id === "charismatic") ||
+              Game.traits.some((t) => t.id === "extrovert"),
+            choices: [
+              {
+                text: "接受邀請",
+                effect: (g) => {
+                  g.money += 30000;
+                  g.skills.communication += 10;
+                  g.skills.charm += 8;
+                  g.happy += 15;
+                  return "✨ 魅力特質讓你的演講大受歡迎！";
+                },
+              },
+              {
+                text: "婉拒",
+                effect: (g) => {
+                  return "太緊張了";
+                },
+              },
+            ],
+          },
+
+          // 特質事件8：學術研討會（需要天才頭腦+博士學歷）
+          {
+            title: "📚 學術研討會",
+            desc: "受邀參加國際研討會",
+            condition: () =>
+              Game.traits.some((t) => t.id === "geniusmind") &&
+              Game.education === "phd",
+            effect: (g) => {
+              g.intel += 15;
+              g.skills.communication += 10;
+              g.money += 50000;
+              g.happy += 20;
+              return "🎓 天才頭腦讓你在學術界大放異彩！";
+            },
+          },
+
+          // 特質事件9：創業機會（需要勇敢特質）
+          {
+            title: "💡 創業機會",
+            desc: "朋友邀你一起創業",
+            condition: () => Game.traits.some((t) => t.id === "brave"),
+            choices: [
+              {
+                text: "投資 $500,000",
+                effect: (g) => {
+                  if (g.money < 500000) return "資金不足";
+                  g.money -= 500000;
+                  const success = Math.random() > 0.4;
+                  if (success) {
+                    g.money += 2000000;
+                    return "🚀 勇敢的決策讓你賺了 $1,500,000！";
+                  } else {
+                    return "😢 創業失敗...";
+                  }
+                },
+              },
+              {
+                text: "拒絕",
+                effect: (g) => {
+                  return "太冒險了";
+                },
+              },
+            ],
+          },
+
+          // 特質事件10：孤獨感（內向者影響較小）
+          {
+            title: "😔 孤獨感",
+            desc: "感覺有點孤單",
+            effect: (g) => {
+              if (g.traits.some((t) => t.id === "introvert")) {
+                g.happy -= 3;
+                return "🤫 內向的你享受獨處時光";
+              } else if (g.traits.some((t) => t.id === "extrovert")) {
+                g.happy -= 15;
+                return "😢 外向的你很需要社交...";
+              } else {
+                g.happy -= 8;
+                return "有點寂寞";
+              }
+            },
+          },
+        ];
       // ===== 個人特質系統 =====
       const TRAITS = [
         // 38个特质
@@ -1520,9 +2142,7 @@
           desc: "頂級料理大師",
         },
       ];
-      // ==========================================
       // 🆕 新增：職業晉升系統
-      // ==========================================
       const JOB_PROMOTIONS = {
         實習生: {
           next: "正職員工",
@@ -1550,519 +2170,6 @@
           salaryIncrease: 150000,
         },
       };
-
-      function checkPromotion() {
-        // ✅ 修正：game -> Game
-        if (!Game.job || Game.job === "無業" || Game.promotionChecked) return;
-
-        const promotion = JOB_PROMOTIONS[Game.job];
-        if (!promotion) return;
-
-        const req = promotion.requirement;
-        let canPromote = true;
-
-        if (req.age && Game.age < req.age) canPromote = false;
-        if (req.intel && Game.intel < req.intel) canPromote = false;
-        if (req.communication && Game.skills.communication < req.communication)
-          canPromote = false;
-        if (req.leadership && Game.skills.leadership < req.leadership)
-          canPromote = false;
-        if (req.workYears && Game.workYears < req.workYears) canPromote = false;
-
-        if (canPromote) {
-          showModal(
-            "🎉 晉升機會",
-            `恭喜！你可以從「${Game.job}」晉升為「${promotion.next}」\n薪水將增加 $${promotion.salaryIncrease.toLocaleString()}/年`,
-            "接受晉升",
-            "暫不晉升",
-            () => {
-              const currentJob = JOBS.find((j) => j.name === Game.job);
-              Game.job = promotion.next;
-              if (currentJob) {
-                currentJob.salary += promotion.salaryIncrease;
-              }
-              log(`✨ 你晉升為 ${promotion.next}！`);
-              Game.promotionChecked = true;
-              updateUI();
-            },
-            () => {
-              log(`你選擇暫不晉升`);
-              Game.promotionChecked = true;
-            },
-          );
-        }
-      }
-      // ==========================================
-      // 🆕 新增：子女養育系統 (已修正變數名稱 Game)
-      // ==========================================
-      function createChild(name, age = 0) {
-        return {
-          name: name,
-          age: age,
-          health: 100,
-          intel: 50 + Math.floor(Game.intel * 0.3), // ✅ 修正：game -> Game
-          personality: ["乖巧", "叛逆", "聰明", "運動", "文靜"][
-            Math.floor(Math.random() * 5)
-          ],
-          education: "學齡前",
-          relationship: 80,
-          expenses: 20000,
-        };
-      }
-
-      function tryHaveBaby() {
-        if (!Game.partner) {
-          // ✅ 修正：game -> Game
-          showPopup("❌ 需要先有伴侶", "red");
-          return;
-        }
-
-        if (Game.age < 20 || Game.age > 45) {
-          showPopup("❌ 年齡不適合生育 (20-45歲)", "red");
-          return;
-        }
-
-        if (Game.money < 100000) {
-          showPopup("❌ 存款不足 $100,000", "red");
-          return;
-        }
-
-        showModal(
-          "👶 考慮生育",
-          `生育需要：\n• 初期費用 $100,000\n• 每年養育費 $20,000+\n• 大量時間與精力\n\n是否準備好迎接新生命？`,
-          "🍼 準備好了",
-          "❌ 暫不考慮",
-          () => {
-            Game.money -= 100000;
-            const babyName = prompt("請為寶寶取名：", "小寶") || "小寶";
-            const baby = createChild(babyName, 0);
-            Game.children.push(baby); // ✅ 修正：game -> Game
-            log(`🎉 恭喜！你的孩子 ${babyName} 出生了！`);
-            Game.happy += 30;
-            updateUI();
-            renderChildrenList();
-          },
-        );
-      }
-
-      function updateChildren() {
-        Game.children.forEach((child) => {
-          // ✅ 修正：game -> Game
-          child.age++;
-
-          if (child.age === 6) child.education = "小學";
-          if (child.age === 12) child.education = "國中";
-          if (child.age === 15) child.education = "高中";
-          if (child.age === 18) {
-            showModal(
-              "🎓 子女升學",
-              `${child.name} 高中畢業了！選擇未來方向：`,
-              "💰 直接工作",
-              "📚 上大學 ($200k)",
-              () => {
-                child.education = "就業";
-                log(`${child.name} 開始工作了！`);
-              },
-              () => {
-                if (Game.money >= 200000) {
-                  Game.money -= 200000;
-                  child.education = "大學";
-                  child.intel += 30;
-                  log(`${child.name} 進入大學就讀！`);
-                } else {
-                  showPopup("❌ 學費不足", "red");
-                }
-              },
-            );
-          }
-
-          let cost = child.expenses;
-          if (child.education === "大學") cost += 50000;
-          Game.money -= cost;
-
-          if (child.education !== "就業") {
-            child.intel += Math.floor(Math.random() * 3 + 1);
-          }
-        });
-      }
-
-      function interactWithChild(childIndex) {
-        const child = Game.children[childIndex]; // ✅ 修正：game -> Game
-        if (!child) return;
-
-        showModal(
-          `💕 與 ${child.name} 互動`,
-          `年齡：${child.age}歲 | 個性：${child.personality}\n教育：${child.education} | 智力：${child.intel}\n關係：${child.relationship}/100`,
-          "🎮 陪伴玩耍 (-20體力)",
-          "📖 輔導功課 (-30體力)",
-          () => {
-            if (Game.stamina >= 20) {
-              Game.stamina -= 20;
-              child.relationship = Math.min(100, child.relationship + 5);
-              Game.happy += 10;
-              log(`陪 ${child.name} 玩耍，關係更親密了！`);
-              updateUI();
-            } else {
-              showPopup("❌ 體力不足", "red");
-            }
-          },
-          () => {
-            if (Game.stamina >= 30 && Game.intel >= 80) {
-              Game.stamina -= 30;
-              child.intel += 3;
-              child.relationship = Math.min(100, child.relationship + 3);
-              log(`輔導 ${child.name} 功課，智力提升了！`);
-              updateUI();
-            } else {
-              showPopup("❌ 需要體力30和智力80", "red");
-            }
-          },
-        );
-      }
-
-      function renderChildrenList() {
-        const container = document.getElementById("children-list");
-        if (!container) return;
-
-        if (Game.children.length === 0) {
-          // ✅ 修正：game -> Game
-          container.innerHTML =
-            '<div style="color: var(--text-dim); text-align: center; padding: 10px;">尚無子女</div>';
-          return;
-        }
-
-        container.innerHTML = Game.children
-          .map(
-            (child, index) => `
-    <div class="job-card" onclick="interactWithChild(${index})" style="cursor: pointer;">
-      <div class="job-name">${child.name} (${child.age}歲)</div>
-      <div style="font-size: 0.85em; color: var(--text-dim); margin-top: 5px;">
-        ${child.personality} | ${child.education} | 智力 ${child.intel}
-      </div>
-      <div style="font-size: 0.8em; color: var(--green); margin-top: 3px;">
-        關係：${"❤️".repeat(Math.floor(child.relationship / 20))} ${child.relationship}/100
-      </div>
-      <div style="font-size: 0.75em; color: var(--orange); margin-top: 2px;">
-        年度花費：$${child.education === "大學" ? (child.expenses + 50000).toLocaleString() : child.expenses.toLocaleString()}
-      </div>
-    </div>
-  `,
-          )
-          .join("");
-      }
-      // ==========================================
-      // 🆕 新增：通膨與房貸系統 (已修正變數名稱 Game)
-      // ==========================================
-      function updateInflation() {
-        Game.yearsPassed++; // ✅ 修正：game -> Game
-        if (Game.yearsPassed % 5 === 0) {
-          Game.inflationRate *= 1.03;
-          log(`💸 物價上漲了 3%`);
-        }
-      }
-
-      function getInflatedPrice(basePrice) {
-        return Math.floor(basePrice * Game.inflationRate); // ✅ 修正：game -> Game
-      }
-
-      function payMortgage() {
-        if (Game.mortgage.active) {
-          // ✅ 修正：game -> Game
-          if (Game.money >= Game.mortgage.monthlyPayment) {
-            Game.money -= Game.mortgage.monthlyPayment;
-            Game.mortgage.remaining -= Game.mortgage.monthlyPayment;
-            Game.mortgage.years--;
-
-            if (Game.mortgage.remaining <= 0 || Game.mortgage.years <= 0) {
-              log(`🎉 房貸繳清了！`);
-              Game.mortgage.active = false;
-            } else {
-              log(
-                `繳房貸 $${Game.mortgage.monthlyPayment.toLocaleString()}，剩 ${Game.mortgage.years} 年`,
-              );
-            }
-          } else {
-            log(`⚠️ 無法繳納房貸！健康與快樂下降`);
-            Game.health -= 10;
-            Game.happy -= 15;
-          }
-        }
-      }
-
-      function buyHouseWithMortgage(house) {
-        const realPrice = getInflatedPrice(house.price);
-        const downPayment = Math.floor(realPrice * 0.3);
-        const loanAmount = realPrice - downPayment;
-
-        showModal(
-          "🏠 購屋方案",
-          `${house.name}\n房價：$${realPrice.toLocaleString()}\n頭期款(30%)：$${downPayment.toLocaleString()}\n貸款金額：$${loanAmount.toLocaleString()}\n貸款年限：20年\n年繳金額：$${Math.floor(loanAmount / 20).toLocaleString()}`,
-          "💰 全額付清",
-          "🏦 申請貸款",
-          () => {
-            if (Game.money >= realPrice) {
-              Game.money -= realPrice;
-              // 🔴 修正：items -> inventory
-              Game.inventory.push(house.name);
-              if (house.happyBonus) Game.happy += house.happyBonus;
-              log(`全額購買了 ${house.name}！`);
-              updateUI();
-              renderShop();
-            } else {
-              showPopup("❌ 金錢不足", "red");
-            }
-          },
-          () => {
-            if (Game.money >= downPayment) {
-              if (Game.mortgage.active) {
-                showPopup("❌ 已有貸款進行中", "red");
-                return;
-              }
-              Game.money -= downPayment;
-              Game.mortgage = {
-                active: true,
-                totalAmount: loanAmount,
-                remaining: loanAmount,
-                monthlyPayment: Math.floor(loanAmount / 20),
-                years: 20,
-                itemName: house.name,
-              };
-              // 🔴 修正：items -> inventory
-              Game.inventory.push(house.name);
-              if (house.happyBonus) Game.happy += house.happyBonus;
-              log(
-                `貸款購買了 ${house.name}！每年繳納 $${Game.mortgage.monthlyPayment.toLocaleString()}`,
-              );
-              updateUI();
-              renderShop();
-            } else {
-              showPopup("❌ 頭期款不足", "red");
-            }
-          },
-        );
-      }
-
-      function nextYear() {
-        // ===== 1. 防止重複執行 =====
-        if (isProcessing) {
-          console.log("⚠️ 正在處理中...");
-          return;
-        }
-        isProcessing = true;
-
-        try {
-          // ===== 2. 優先檢查負債（最高優先級，在健康檢查之前）=====
-          if (Game.money < 0) {
-            if (typeof Game.debtYears === "undefined") Game.debtYears = 0;
-            Game.debtYears++;
-            Game.hasBeenInDebt = true;
-
-            // ✅ 負債滿3年立即結束遊戲
-            if (Game.debtYears >= 3) {
-              log("💀 負債已達3年，遊戲結束！");
-              isProcessing = false;
-              showEnding();
-              return;
-            }
-
-            // 未滿3年才扣屬性並顯示警告
-            Game.happy -= 20;
-            Game.health -= 5;
-            log(`⚠️ 你已負債第 ${Game.debtYears} 年！(-20快樂, -5健康)`);
-            if (typeof showChanges === "function") {
-              showChanges(["-20 😊 快樂", "-5 ❤️ 健康"]);
-            }
-          } else if (Game.debtYears > 0) {
-            // 如果還清債務，重置負債年數
-            log("✅ 債務已清償！");
-            Game.debtYears = 0;
-          }
-
-          // ===== 3. 健康檢查（放在負債檢查之後）=====
-          if (Game.health <= 0) {
-            isProcessing = false;
-            showEnding();
-            return;
-          }
-
-          // 保存舊的人生階段
-          const oldStage =
-            LIFE_STAGES.find((s) => Game.age >= s.min && Game.age <= s.max) ||
-            LIFE_STAGES[LIFE_STAGES.length - 1];
-
-          // ===== 4. 過年：增加年齡、重置體力、增加工齡 =====
-          Game.age++;
-          Game.stamina = 100;
-          Game.workYears++;
-          Game.promotionChecked = false;
-
-          // 初始化年份計數器
-          if (!Game.yearsPassed) Game.yearsPassed = 0;
-
-          // 通膨系統
-          updateInflation();
-
-          // 房貸扣款
-          if (Game.mortgage && Game.mortgage.active) {
-            payMortgage();
-          }
-
-          // 子女成長
-          if (Game.children) {
-            updateChildren();
-          }
-
-          // 升遷檢查
-          checkPromotion();
-
-          // ===== 5. 每5年自動存檔 =====
-          if (Game.age % 5 === 0) {
-            saveGame();
-          }
-
-          // ===== 6. 生活費扣除 =====
-          let livingCost = 0;
-          if (Game.age < 18) {
-            livingCost = 0; // 未成年無生活費
-          } else if (Game.age >= 18 && Game.age < 25) {
-            livingCost = 15000;
-          } else if (Game.age >= 25 && Game.age < 40) {
-            livingCost = 30000;
-          } else if (Game.age >= 40 && Game.age < 60) {
-            livingCost = 50000;
-          } else if (Game.age >= 60) {
-            livingCost = 70000;
-          }
-
-          // 擁有房子減免40%生活費
-          const inventory = Game.inventory;
-          const hasHouse = inventory.some((i) => i.startsWith("house"));
-          const hasCar = inventory.some((i) => i.startsWith("car"));
-
-          if (hasHouse) {
-            livingCost = Math.floor(livingCost * 0.6);
-          }
-
-          // 擁有車子增加保養費
-          if (hasCar) {
-            livingCost += 12000;
-          }
-
-          // 計算通膨影響
-          livingCost = Math.floor(livingCost * (Game.inflationRate || 1));
-
-          if (livingCost > 0) {
-            Game.money -= livingCost;
-            log(`💰 生活費支出：-${livingCost.toLocaleString()}`);
-          }
-
-          // ===== 7. 隨機緊急事件 (15%機率) =====
-          if (Math.random() < 0.15) {
-            const emergencies = [
-              { name: "🚗 車子維修", cost: 8000 },
-              { name: "📱 手機壞掉", cost: 15000 },
-              { name: "🦷 看牙醫", cost: 12000 },
-              { name: "🏥 突發疾病", cost: 20000 },
-              { name: "🔧 家電故障", cost: 30000 },
-            ];
-            const emergency =
-              emergencies[Math.floor(Math.random() * emergencies.length)];
-            const realCost = Math.floor(
-              emergency.cost * (Game.inflationRate || 1),
-            );
-            Game.money -= realCost;
-            Game.happy -= 5;
-            log(`${emergency.name}，支出 ${realCost.toLocaleString()} 元`);
-          }
-
-          // NPC 生命週期更新
-          if (Game.relationships) {
-            updateNPCLifecycle();
-          }
-
-          // ===== 8. 年度收入 =====
-          const yearChanges = [];
-
-          // 家庭年度收入
-          if (Game.yearlyMoney > 0) {
-            Game.money += Game.yearlyMoney;
-            yearChanges.push(
-              `+${Game.yearlyMoney.toLocaleString()} 💰 家庭收入`,
-            );
-          }
-
-          // 房產被動收入
-          inventory.forEach((item) => {
-            if (typeof HOUSES !== "undefined") {
-              const house = HOUSES.find((h) => h.id === item);
-              if (house && house.passive) {
-                const rent = Math.floor(
-                  house.passive * (Game.inflationRate || 1),
-                );
-                Game.money += rent;
-                yearChanges.push(
-                  `+${rent.toLocaleString()} 🏠 ${house.name}租金收入`,
-                );
-              }
-            }
-          });
-
-          // ===== 9. 年度屬性衰減 =====
-          let baseHealthLoss = 5;
-          if (Game.age < 40) {
-            baseHealthLoss = 2;
-          } else if (Game.age >= 60) {
-            baseHealthLoss = 3;
-          } else if (Game.age >= 80) {
-            baseHealthLoss = 5;
-          }
-
-          let actualHealthLoss = Math.floor(
-            baseHealthLoss * (Game.healthDecay || 1),
-          );
-          Game.health -= actualHealthLoss;
-          Game.happy -= Math.floor(3 * (Game.happyDecay || 1));
-
-          // 快樂值過高計數
-          if (Game.happy > 80) {
-            Game.happyYears++;
-          }
-
-          // 顯示年度總結
-          if (yearChanges.length > 0) {
-            log(`🎂 ${Game.age} 歲：${yearChanges.join("、")}`);
-          }
-
-          // ===== 10. 人生階段檢查 =====
-          const newStage =
-            LIFE_STAGES.find((s) => Game.age >= s.min && Game.age <= s.max) ||
-            LIFE_STAGES[LIFE_STAGES.length - 1];
-
-          if (oldStage && newStage && oldStage.name !== newStage.name) {
-            log(`${newStage.icon} 進入${newStage.name}階段！`);
-            if (typeof showPopup === "function") {
-              showPopup(`${newStage.icon} 進入${newStage.name}`, "blue");
-            }
-          }
-
-          // ===== 11. 更新UI、檢查成就 =====
-          checkAchievements();
-          updateUI();
-
-          if (typeof renderChildrenList === "function") {
-            renderChildrenList();
-          }
-        } catch (error) {
-          console.error("❌ 遊戲發生錯誤:", error);
-          alert("❌ 遊戲發生錯誤，請按F12查看控制台");
-        } finally {
-          // 延遲重置鎖，避免連點
-          setTimeout(() => {
-            isProcessing = false;
-          }, 300);
-        }
-      }
-
       // ===== 🏫 教育系統 =====
       const EDUCATION_LEVELS = [
         { id: "none", name: "無學歷", minAge: 0, unlock: true },
