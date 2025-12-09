@@ -4,6 +4,7 @@ let currentJobIndex = 0; // 當前顯示的職業索引
 let isProcessing = false; // 防止重复点击
 let lastUpdateTime = 0;
 const UPDATE_THROTTLE = 50; // UI更新节流
+
 let Game = {
   name: "",
   origin: "",
@@ -74,7 +75,27 @@ let Game = {
   skillBonus: 1,
   luckBonus: 0,
 };
-
+function getStatName(key) {
+    const map = {
+        money: "💰 金錢",
+        health: "❤️ 健康",
+        happy: "😊 快樂",
+        intel: "🧠 智力",
+        stamina: "⚡ 體力",
+        jobYears: "⏳ 年資",
+        // 技能類
+        programming: "💻 程式",
+        art: "🎨 藝術",
+        medical: "⚕️ 醫療",
+        cooking: "🍳 烹飪",
+        finance: "📈 理財",
+        communication: "🗣️ 溝通",
+        charm: "✨ 魅力",
+        leadership: "🚩 領導",
+        management: "💼 管理",
+    };
+    return map[key] || key; // 如果找不到對應的中文，就回傳原本的英文
+}
 let activeEvent = null;
 let selectedOriginId = "common";
 let currentTraitIndex = 0; // ✅ 新增：當前顯示的特質索引
@@ -1429,81 +1450,97 @@ function rnd(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 function action(actId) {
-    // 1. 防抖檢查 (避免連點)
     if (isProcessing) return;
     
-    // 2. 尋找動作物件
-    // 先從「本回合隨機動作」找 (通常是按鈕觸發)
+    // 1. 尋找動作
     let act = currentTurnActions.find(a => a.id === actId);
     
-    // 防呆機制：如果找不到 (例如是固定介面上的舊按鈕)，嘗試從「總動作庫」找
+    // 備用搜尋 (防呆)
     if (!act) {
         for (const key in ACTIONS_POOL) {
             const found = ACTIONS_POOL[key].find(a => a.id === actId);
-            if (found) { 
-                act = found; 
-                break; 
-            }
+            if (found) { act = found; break; }
         }
     }
     
-    // 如果還是找不到，報錯並退出
     if (!act) return console.error("❌ 找不到動作 ID:", actId);
 
-    // 3. 檢查資源消耗
-    // 取得體力消耗 (預設 0)
+    // 2. 檢查資源消耗
     const staminaCost = act.cost && act.cost.stamina ? act.cost.stamina : 0;
-    
-    // 檢查體力
-    if (Game.stamina < staminaCost) {
-        return alert("❌ 體力不足！");
-    }
+    if (Game.stamina < staminaCost) return showPopup("❌ 體力不足！", "red");
 
-    // 計算金錢消耗 (需計算通膨)
     let realMoneyCost = 0;
     if (act.cost && act.cost.money) {
         realMoneyCost = getInflatedPrice(act.cost.money);
-        
-        // 檢查金錢
-        if (Game.money < realMoneyCost) {
-            return alert(`💸 金錢不足！需要 $${realMoneyCost.toLocaleString()}`);
-        }
+        if (Game.money < realMoneyCost) return showPopup(`💸 金錢不足！需要 $${realMoneyCost.toLocaleString()}`, "red");
     }
 
-    // 4. 開始執行 (鎖定狀態)
+    // 鎖定狀態
     isProcessing = true;
 
-    // 扣除資源
+    // 3. 執行消耗
     Game.stamina -= staminaCost;
-    if (realMoneyCost > 0) {
-        Game.money -= realMoneyCost;
-    }
-    
+    if (realMoneyCost > 0) Game.money -= realMoneyCost;
     Game.totalActions++;
 
-    // 5. 執行效果函數
+    // 4. 執行效果 (並收集數值變化)
     let resultMsg = "";
-    try {
-        // 檢查是否有條件限制 (例如上班需要有工作)
-        if (act.condition && !act.condition(Game)) {
-             isProcessing = false;
-             return alert("❌ 你不符合執行此動作的條件");
-        }
+    // 我們需要攔截效果函數裡的數值變化，但因為效果函數是直接修改 Game 物件，
+    // 最簡單的方法是比較執行前後的 Game 狀態，或者手動記錄。
+    // 為了簡化且不改動 data.js，我們這裡用一個小技巧：
+    // 在 data.js 的 effect 裡通常只會修改屬性。
+    // 我們這裡手動解析 data.js 裡的 effect 寫法比較困難，
+    // 所以我們改用「手動記錄變化」的方式，這需要修改 data.js 的結構會太大工程。
+    // ✅ 替代方案：我們再次執行一次 effect 邏輯來計算，或是讓 effect 回傳變化。
+    // 但因為你的 data.js 已經寫死了直接修改 g[key]，我們採用「快照比較法」。
+    
+    const snapshot = { ...Game, skills: { ...Game.skills } }; // 淺拷貝狀態
 
+    try {
         if (act.effect) {
             resultMsg = act.effect(Game);
         }
     } catch (e) {
-        console.error("執行動作效果時發生錯誤:", e);
+        console.error("Action Error:", e);
         resultMsg = "發生未知錯誤";
     }
 
-    // 6. 顯示結果與更新畫面
+    // 5. 計算變化並顯示 (中文化)
+    const changes = [];
+    
+    // 檢查消耗顯示
+    if (staminaCost > 0) changes.push(`${getStatName('stamina')} -${staminaCost}`);
+    if (realMoneyCost > 0) changes.push(`${getStatName('money')} -${realMoneyCost.toLocaleString()}`);
+
+    // 檢查屬性變化
+    ['money', 'health', 'happy', 'intel'].forEach(key => {
+        const diff = Game[key] - snapshot[key];
+        // 排除掉剛剛扣除的錢 (避免重複顯示)
+        if (key === 'money' && diff === -realMoneyCost) return; 
+        
+        if (diff !== 0) {
+            changes.push(`${getStatName(key)} ${diff > 0 ? "+" : ""}${key === 'money' ? diff.toLocaleString() : diff}`);
+        }
+    });
+
+    // 檢查技能變化
+    Object.keys(Game.skills).forEach(key => {
+        const diff = Game.skills[key] - snapshot.skills[key];
+        if (diff !== 0) {
+            changes.push(`${getStatName(key)} ${diff > 0 ? "+" : ""}${diff}`);
+        }
+    });
+
+    // 6. 記錄日誌與彈出提示
     log(`${act.name}：${resultMsg}`);
+    
+    // 顯示數值變化浮動視窗 (只在有變化時顯示)
+    if (changes.length > 0) {
+        showChanges(changes);
+    }
     
     updateUI();
     
-    // 7. 解鎖狀態 (延遲 300ms)
     setTimeout(() => { isProcessing = false; }, 300);
 }
 // 新增函數
@@ -2466,7 +2503,7 @@ function nextYear() {
     // ===== 4. 過年：增加年齡、重置體力、增加工齡 =====
     Game.age++;
     Game.stamina = 100;
-
+    Game.currentLocation = "home";
     generateTurnActions();
     Game.workYears++;
     Game.promotionChecked = false;
@@ -2679,7 +2716,10 @@ function nextYear() {
     // ===== 11. 更新UI、檢查成就 =====
     checkAchievements();
     updateUI();
-
+    const mapPage = document.getElementById("page-map");
+    if (mapPage && mapPage.classList.contains("active")) {
+        renderMap();
+    }
     if (typeof renderChildrenList === "function") {
       renderChildrenList();
     }
@@ -4157,10 +4197,7 @@ function renderShop() {
     </div>
   `;
   
-  // 先清空，再加入銀行按鈕
   const carContainer = document.getElementById("car-shop");
-  // 為了美觀，我們把銀行按鈕插在車庫上面，或者你可以找個更好的位置
-  // 這裡我建議直接用 JS 插在 page-assets 的最上面
   const assetPage = document.getElementById("page-assets");
   
   // 檢查是否已經有銀行按鈕，沒有才加 (避免重複)
@@ -4365,7 +4402,6 @@ function nav(page, event) {
                 </div>
             </div>
         `;
-
     // 显示所有成就（包括未解锁的）
     ACHIEVEMENTS.forEach((ach) => {
       const isUnlocked = Game.unlockedAchievements.includes(ach.id);
@@ -4427,10 +4463,7 @@ function restartGame() {
     location.reload();
   }
 }
-// ==========================================
 // 🔴 出身專屬事件系統
-// ==========================================
-
 function triggerOriginEvent() {
   const originEvents = {
     rich: [
@@ -5028,10 +5061,10 @@ function renderMap() {
 }
 
 // 🚕 移動邏輯
+
 function travelTo(locId) {
   if (locId === Game.currentLocation) return; // 已經在這裡
 
-  // 移動消耗 10 體力
   const travelCost = 10;
   
   if (Game.stamina < travelCost) {
@@ -5044,20 +5077,27 @@ function travelTo(locId) {
     Game.stamina -= travelCost;
     Game.currentLocation = locId;
     
+    const changes = [`${getStatName('stamina')} -${travelCost}`];
+    
     // 🎲 移動隨機事件 (15% 機率)
     if (Math.random() < 0.15) {
        const event = Math.random();
        if(event < 0.5) {
-           log("🚕 移動途中塞車了，心情變差...", ["😊-5"]);
+           log("🚕 移動途中塞車了，心情變差...", [`${getStatName('happy')} -5`]);
            Game.happy -= 5;
+           changes.push(`${getStatName('happy')} -5`);
        } else {
-           log("🍀 路上撿到 100 元！", ["💰+100"]);
+           log("🍀 路上撿到 100 元！", [`${getStatName('money')} +100`]);
            Game.money += 100;
+           changes.push(`${getStatName('money')} +100`);
        }
     }
 
+    // ✨ 顯示數值變化 (中文)
+    showChanges(changes);
+
     updateUI();
-    renderMap(); // 重新渲染地圖以更新狀態
+    renderMap(); // 重新渲染地圖以更新狀態 (目前位置標記)
   }
 }
 
