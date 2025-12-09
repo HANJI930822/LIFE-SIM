@@ -1399,424 +1399,86 @@ function rnd(min, max) {
 }
 // ✅ 修正後的 action 函數 (確保 ID 與 HTML 一致)
 
-function action(type) {
-  // 1. 防抖與狀態檢查
-  if (isProcessing) return;
-  if (Game.stamina <= 0) {
-    alert("❌ 體力不足！");
-    return;
-  }
+// game.js
 
-  isProcessing = true;
-  let cost = 20;
-  let effects = {};
-  let actionName = getActionName(type);
-  let crit = false; // 是否觸發暴擊 (大成功)
-
-  // 🎲 暴擊判定：10% 機率觸發「大成功」，效果提升 50%~100%
-  if (Math.random() < 0.1) {
-    crit = true;
-    actionName = "✨ 大成功！" + actionName;
-  }
-
-  // 輔助：計算數值 (基礎值 * 學習加成 * 暴擊加成)
-  const calc = (baseMin, baseMax, multiplier = 1) => {
-    let val = rnd(baseMin, baseMax) * multiplier;
-    if (crit) val = Math.floor(val * 1.5);
-    return Math.floor(val);
-  };
-
-  // 2. 行動邏輯 Switch
-  switch (type) {
-    // === 0-2 歲 ===
-    case "cry":
-      cost = 10;
-      effects = { happy: rnd(3, 6) };
-      break;
-    case "sleep":
-      cost = 20;
-      effects = { health: rnd(2, 5), happy: rnd(2, 4) };
-      break;
-    case "play_toy":
-      cost = 15;
-      effects = { happy: rnd(6, 12), intel: rnd(0, 1) };
-      break;
-    case "act_cute": // 新增：賣萌
-      cost = 15;
-      effects = {
-        happy: rnd(5, 10),
-        skills: { charm: calc(2, 4, Game.skillBonus) },
-      };
-      // 小機率獲得父母零用錢
-      if (Math.random() < 0.3) {
-        const bonus = rnd(100, 500);
-        effects.money = bonus;
-        log(`😍 父母被你萌到了，給了零用錢 $${bonus}`);
-      }
-      break;
-    case "explore_house": // 新增：探索
-      cost = 20;
-      effects = { intel: calc(2, 5, Game.learnBonus) };
-      if (Math.random() < 0.2) {
-        effects.health = -rnd(1, 5);
-        log("🤕 探索時不小心撞到了頭...");
-      }
-      break;
-    case "learn_speak":
-      cost = 25;
-      effects = {
-        intel: calc(2, 4, Game.learnBonus),
-        skills: { communication: calc(2, 5, Game.skillBonus) },
-      };
-      break;
-
-    // === 3-5 歲 ===
-    case "kindergarten":
-      cost = 20;
-      effects = {
-        intel: calc(2, 4, Game.learnBonus),
-        skills: { communication: calc(2, 4, Game.skillBonus) },
-        happy: rnd(2, 6),
-      };
-      break;
-    case "play_outside":
-      cost = 20;
-      effects = {
-        health: rnd(3, 7),
-        happy: rnd(5, 12),
-        skills: { charm: calc(1, 3, Game.skillBonus) },
-      };
-      break;
-    case "draw":
-      cost = 15;
-      effects = {
-        skills: { art: calc(3, 6, Game.skillBonus) },
-        happy: rnd(3, 8),
-      };
-      break;
-    case "prank": // 新增：惡作劇
-      cost = 15;
-      effects = { happy: rnd(10, 20), skills: { charm: -rnd(1, 3) } }; // 快樂但扣魅力
-      if (Math.random() < 0.4) {
-        effects.happy = -5;
-        log("😡 惡作劇被抓到，被罵了一頓...");
-      }
-      break;
-    case "ask_pocket_money": // 新增：要零用錢
-      cost = 10;
-      // 看魅力決定成功率
-      if (Math.random() * 100 < Game.skills.charm + 20) {
-        const money = rnd(500, 2000);
-        effects = { money: money, happy: 5 };
-        log(`💰 成功要到了零用錢 $${money}！`);
-      } else {
-        effects = { happy: -5 };
-        log("😢 爸媽不給零用錢...");
-      }
-      break;
-    case "learn_music":
-      if (Game.money < 5000) {
-        isProcessing = false;
-        return alert("💸 金錢不足！");
-      }
-      cost = 25;
-      effects = {
-        money: -5000,
-        skills: { art: calc(5, 9, Game.skillBonus) },
-        happy: rnd(2, 6),
-      };
-      break;
-
-    // === 6-12 歲 ===
-    case "study_hard":
-      cost = 30;
-      effects = { intel: calc(4, 8, Game.learnBonus), happy: -rnd(2, 5) };
-
-      // ✨【關鍵修復】如果有在學，增加學習進度
-      if (Game.isStudying) {
-        studyProgress();
-      }
-      break;
-    case "read_comic": // 新增：看漫畫
-      cost = 15;
-      effects = { happy: rnd(8, 15), intel: -rnd(0, 2) }; // 快樂但可能微扣智力
-      break;
-    case "internet_surf": // 新增：上網
-      cost = 15;
-      effects = {
-        intel: rnd(1, 3),
-        happy: rnd(5, 10),
-        health: -rnd(1, 3),
-      };
-      break;
-    case "sports":
-      cost = 20;
-      effects = {
-        health: rnd(4, 8),
-        happy: rnd(4, 8),
-        skills: { charm: calc(1, 3, Game.skillBonus) },
-      };
-      break;
-    case "play_game":
-      cost = 15;
-      effects = { happy: rnd(10, 18), intel: -rnd(1, 3) };
-      break;
-    case "help_parent":
-      cost = 20;
-      effects = {
-        happy: rnd(3, 7),
-        skills: { communication: calc(2, 5, Game.skillBonus) },
-      };
-      break;
-    case "cram_school":
-      if (Game.money < 2000) {
-        isProcessing = false;
-        return alert("💸 金錢不足！");
-      }
-      cost = 25;
-      effects = {
-        intel: calc(7, 12, Game.learnBonus),
-        money: -2000,
-        happy: -rnd(4, 8),
-      };
-      break;
-
-    // === 13-17 歲 ===
-    case "exam_prep":
-      cost = 35;
-      effects = {
-        intel: calc(8, 15, Game.learnBonus),
-        happy: -rnd(5, 12),
-      };
-      break;
-    case "club":
-      cost = 20;
-      effects = {
-        skills: {
-          communication: calc(3, 7, Game.skillBonus),
-          charm: calc(2, 5, Game.skillBonus),
-        },
-        happy: rnd(8, 15),
-      };
-      break;
-    case "skip_class": // 新增：翹課
-      cost = 10;
-      effects = { happy: rnd(15, 25), intel: -rnd(5, 10) };
-      if (Math.random() < 0.3) {
-        log("📞 學校打電話回家了... 被禁足");
-        effects.happy = -20;
-      }
-      break;
-    case "write_novel": // 新增：寫小說
-      cost = 25;
-      effects = {
-        skills: { art: calc(3, 8, Game.skillBonus) },
-        intel: calc(2, 5, Game.learnBonus),
-      };
-      if (Math.random() < 0.1) {
-        log("🌟 小說在網路上爆紅！");
-        effects.happy = 20;
-        effects.skills.charm = 10;
-      }
-      break;
-    case "date_crush":
-      if (Game.money < 500) {
-        isProcessing = false;
-        return alert("💸 金錢不足！");
-      }
-      cost = 30;
-      effects = {
-        money: -500,
-        happy: rnd(10, 20),
-        skills: { charm: calc(4, 8, Game.skillBonus) },
-      };
-      break;
-    case "part_time":
-      cost = 30;
-      const salary = rnd(10000, 18000); // 隨機薪水
-      effects = {
-        money: salary,
-        happy: -rnd(3, 8),
-        skills: { communication: calc(2, 5, Game.skillBonus) },
-      };
-      break;
-    case "learn_code":
-      cost = 35;
-      effects = {
-        intel: calc(4, 8, Game.learnBonus),
-        skills: { programming: calc(6, 12, Game.skillBonus) },
-        happy: -rnd(3, 6),
-      };
-      break;
-
-    // === 18歲以上 ===
-    // 在 switch (type) 裡面找到這段並替換
-    case "work":
-      cost = 35;
-      const job = JOBS.find((j) => j.id === Game.jobId);
-      if (job && job.salary > 0) {
-        // ✨【關鍵修復】加入 inflationRate (通膨率) 計算
-        // 確保薪水會隨著物價上漲而增加，避免後期餓死
-        const inflation = Game.inflationRate || 1;
-
-        const base = Math.floor(
-          (job.salary * Game.incomeBonus * inflation) / Game.workPenalty,
-        );
-        const fluctuation = 1 + (Math.random() * 0.2 - 0.1);
-        const finalSal = Math.floor(base * fluctuation);
-
-        effects = {
-          money: finalSal,
-          happy: -rnd(3, 8),
-          health: -rnd(2, 5),
-        };
-        Game.jobYears++;
-
-        if (job.effect) job.effect(Game);
-      } else {
-        effects = { happy: -10 };
-        log("😟 沒有工作只能待在家...");
-      }
-      break;
-    case "side_hustle": // 新增：接案副業
-      cost = 30;
-      const hustleMoney = rnd(5000, 50000);
-      effects = { money: hustleMoney, health: -rnd(5, 10), happy: -5 };
-      break;
-    case "lottery": // 新增：買彩券
-      if (Game.money < 500) {
-        isProcessing = false;
-        return alert("💸 金錢不足！");
-      }
-      cost = 5;
-      effects = { money: -500, happy: 2 };
-      if (Math.random() < 0.01) {
-        // 1% 中大獎
-        const jackpot = rnd(100000, 1000000);
-        effects.money += jackpot;
-        effects.happy = 50;
-        log(`🎉 中大獎啦！！獲得 $${jackpot.toLocaleString()}`);
-      } else if (Math.random() < 0.1) {
-        effects.money += 2000;
-        log("🎫 中了小獎 $2,000");
-      }
-      break;
-    case "night_club": // 新增：去夜店
-      if (Game.money < 3000) {
-        isProcessing = false;
-        return alert("💸 金錢不足！");
-      }
-      cost = 30;
-      effects = {
-        money: -3000,
-        happy: rnd(20, 40),
-        skills: { charm: calc(5, 10, Game.skillBonus) },
-        health: -rnd(5, 15),
-      };
-      break;
-    case "socialize":
-      if (Game.money < 2000) {
-        isProcessing = false;
-        return alert("💸 金錢不足！");
-      }
-      cost = 20;
-      effects = {
-        money: -2000,
-        happy: rnd(8, 15),
-        skills: {
-          communication: calc(4, 9, Game.skillBonus),
-          charm: calc(2, 6, Game.skillBonus),
-        },
-      };
-      if (Math.random() < 0.6) addFriend();
-      break;
-    case "invest":
-      if (Game.money < 10000) {
-        isProcessing = false;
-        return alert("💸 金錢不足！");
-      }
-      cost = 20;
-      // 投資波動變大 (-30% ~ +40%)
-      const roi = Math.random() * 0.7 - 0.3;
-      const profit = Math.floor(10000 * roi);
-
-      // 商業頭腦特質加成
-      if (Game.traits.some((t) => t.id === "businessmind")) {
-        if (profit > 0)
-          profit *= 1.5; // 賺更多
-        else profit *= 0.5; // 賠更少
-      }
-
-      effects = {
-        money: profit,
-        skills: { finance: calc(4, 9, Game.skillBonus) },
-        happy: profit > 0 ? rnd(5, 10) : -rnd(10, 20),
-      };
-      break;
-    case "exercise":
-      if (Game.money < 1500) {
-        isProcessing = false;
-        return alert("💸 金錢不足！");
-      }
-      cost = 25;
-      effects = {
-        money: -1500,
-        health: rnd(5, 10),
-        skills: { charm: calc(2, 5, Game.skillBonus) },
-        happy: rnd(3, 8),
-      };
-      break;
-    case "travel":
-      if (Game.money < 20000) {
-        isProcessing = false;
-        return alert("💸 金錢不足！");
-      }
-      cost = 30;
-      effects = {
-        money: -20000,
-        happy: rnd(20, 35),
-        intel: rnd(2, 5),
-        skills: { communication: calc(2, 6, Game.skillBonus) },
-      };
-      break;
-    default:
-      isProcessing = false;
-      return alert("❌ 未知操作: " + type);
-  }
-
-  // 3. 再次檢查體力 (保險)
-  if (Game.stamina < cost) {
-    isProcessing = false;
-    return alert("❌ 體力不足！");
-  }
-
-  Game.stamina -= cost;
-  Game.totalActions++;
-
-  // 4. 應用數值效果
-  const changes = [];
-  Object.keys(effects).forEach((key) => {
-    if (key === "skills") {
-      Object.keys(effects.skills).forEach((sk) => {
-        const val = Math.floor(effects.skills[sk]); // 確保整數
-        Game.skills[sk] += val;
-        changes.push(`${sk} ${val > 0 ? "+" : ""}${val}`);
-      });
-    } else {
-      const val = Math.floor(effects[key]); // 確保整數
-      Game[key] += val;
-      changes.push(`${key} ${val > 0 ? "+" : ""}${val}`);
+// ⚠️ 請用這個新函數取代舊的 function action(type)
+function action(actId) {
+    // 1. 防抖檢查 (避免連點)
+    if (isProcessing) return;
+    
+    // 2. 尋找動作物件
+    // 先從「本回合隨機動作」找 (通常是按鈕觸發)
+    let act = currentTurnActions.find(a => a.id === actId);
+    
+    // 防呆機制：如果找不到 (例如是固定介面上的舊按鈕)，嘗試從「總動作庫」找
+    if (!act) {
+        for (const key in ACTIONS_POOL) {
+            const found = ACTIONS_POOL[key].find(a => a.id === actId);
+            if (found) { 
+                act = found; 
+                break; 
+            }
+        }
     }
-  });
+    
+    // 如果還是找不到，報錯並退出
+    if (!act) return console.error("❌ 找不到動作 ID:", actId);
 
-  // 5. 更新畫面與日誌
-  updateUI();
-  log(actionName, changes);
-  if (changes.length > 0 && changes.length <= 4) showChanges(changes); // 變化太多就不彈窗擋畫面了
+    // 3. 檢查資源消耗
+    // 取得體力消耗 (預設 0)
+    const staminaCost = act.cost && act.cost.stamina ? act.cost.stamina : 0;
+    
+    // 檢查體力
+    if (Game.stamina < staminaCost) {
+        return alert("❌ 體力不足！");
+    }
 
-  setTimeout(() => {
-    isProcessing = false;
-  }, 300);
+    // 計算金錢消耗 (需計算通膨)
+    let realMoneyCost = 0;
+    if (act.cost && act.cost.money) {
+        realMoneyCost = getInflatedPrice(act.cost.money);
+        
+        // 檢查金錢
+        if (Game.money < realMoneyCost) {
+            return alert(`💸 金錢不足！需要 $${realMoneyCost.toLocaleString()}`);
+        }
+    }
+
+    // 4. 開始執行 (鎖定狀態)
+    isProcessing = true;
+
+    // 扣除資源
+    Game.stamina -= staminaCost;
+    if (realMoneyCost > 0) {
+        Game.money -= realMoneyCost;
+    }
+    
+    Game.totalActions++;
+
+    // 5. 執行效果函數
+    let resultMsg = "";
+    try {
+        // 檢查是否有條件限制 (例如上班需要有工作)
+        if (act.condition && !act.condition(Game)) {
+             isProcessing = false;
+             return alert("❌ 你不符合執行此動作的條件");
+        }
+
+        if (act.effect) {
+            resultMsg = act.effect(Game);
+        }
+    } catch (e) {
+        console.error("執行動作效果時發生錯誤:", e);
+        resultMsg = "發生未知錯誤";
+    }
+
+    // 6. 顯示結果與更新畫面
+    log(`${act.name}：${resultMsg}`);
+    
+    updateUI();
+    
+    // 7. 解鎖狀態 (延遲 300ms)
+    setTimeout(() => { isProcessing = false; }, 300);
 }
 // 新增函數
 function triggerOriginEvent() {
