@@ -1648,63 +1648,123 @@ const LIFE_STAGES = [
         { min: 66, max: 200, name: "老年期", icon: "👴" }, // 確保最大值夠大
       ];
 const ACHIEVEMENTS = [
-        {
-          id: "first_bucket",
-          name: "第一桶金",
-          desc: "擁有 100 萬現金",
-          icon: "💰",
-          check: (g) => g.money >= 1000000,
-        },
-        {
-          id: "multi_millionaire",
-          name: "千萬富翁",
-          desc: "擁有 1000 萬現金",
-          icon: "💎",
-          check: (g) => g.money >= 10000000,
-        },
-        {
-          id: "centenarian",
-          name: "百歲人瑞",
-          desc: "活到 100 歲",
-          icon: "🎂",
-          check: (g) => g.age >= 100,
-        },
-        {
-          id: "scholar",
-          name: "博學多聞",
-          desc: "獲得博士學位",
-          icon: "🎓",
-          check: (g) => g.education === "phd",
-        },
-        {
-          id: "top_charm",
-          name: "萬人迷",
-          desc: "魅力達到 100",
-          icon: "✨",
-          check: (g) => g.skills.charm >= 100,
-        },
-        {
-          id: "top_intel",
-          name: "愛因斯坦",
-          desc: "智力達到 100",
-          icon: "🧠",
-          check: (g) => g.intel >= 100,
-        },
-        {
-          id: "social_butterfly",
-          name: "社交名流",
-          desc: "擁有 10 個以上的朋友",
-          icon: "🦋",
-          check: (g) => g.npcs.length >= 10,
-        },
-        {
-          id: "happy_life",
-          name: "快樂人生",
-          desc: "快樂值維持 100",
-          icon: "😊",
-          check: (g) => g.happy >= 100,
-        },
-      ];
+  // ==========================================
+  // 💰 財富與資產 (Money & Assets)
+  // ==========================================
+  { id: "first_bucket", name: "第一桶金", desc: "擁有 100 萬現金", icon: "💰", check: (g) => g.money >= 1000000 },
+  { id: "multi_millionaire", name: "千萬富翁", desc: "擁有 1000 萬現金", icon: "💎", check: (g) => g.money >= 10000000 },
+  { id: "billionaire", name: "億萬富翁", desc: "擁有 1 億現金", icon: "🏦", check: (g) => g.money >= 100000000 },
+  { id: "trillionaire", name: "富可敵國", desc: "擁有 10 億現金", icon: "🌍", check: (g) => g.money >= 1000000000 },
+  { id: "money_god", name: "鈔能力者", desc: "擁有 50 億現金", icon: "🤑", check: (g) => g.money >= 5000000000 },
+  
+  { id: "car_lover", name: "車庫滿滿", desc: "擁有 3 輛以上的車", icon: "🏎️", check: (g) => g.inventory.filter(i => i.startsWith('car')).length >= 3 },
+  { id: "jay_leno", name: "汽車收藏家", desc: "擁有 6 輛所有的車", icon: "🅿️", check: (g) => g.inventory.filter(i => i.startsWith('car')).length >= 6 },
+  
+  { id: "landlord", name: "包租公", desc: "擁有 3 間以上的房產", icon: "🔑", check: (g) => g.inventory.filter(i => i.startsWith('house')).length >= 3 },
+  { id: "real_estate_tycoon", name: "地產大亨", desc: "擁有 6 間所有的房產", icon: "🏘️", check: (g) => g.inventory.filter(i => i.startsWith('house')).length >= 6 },
+  
+  { id: "luxury_beginner", name: "小小奢華", desc: "擁有 1 件奢侈品", icon: "⌚", check: (g) => g.inventory.filter(i => i.startsWith('lux')).length >= 1 },
+  { id: "luxury_king", name: "極致奢華", desc: "擁有 5 件所有的奢侈品", icon: "👑", check: (g) => g.inventory.filter(i => i.startsWith('lux')).length >= 5 },
+  
+  { id: "shopaholic", name: "購物狂", desc: "總共擁有超過 15 件物品", icon: "🛍️", check: (g) => g.inventory.length >= 15 },
+  { id: "warehouse", name: "移動倉庫", desc: "總共擁有超過 30 件物品", icon: "📦", check: (g) => g.inventory.length >= 30 },
+
+  // ==========================================
+  // 📉 貧窮與負債 (Poverty & Debt)
+  // ==========================================
+  { id: "poor_guy", name: "月光族", desc: "18歲後現金低於 1000 元", icon: "💸", check: (g) => g.age >= 18 && g.money < 1000 && g.money >= 0 },
+  { id: "debt_starter", name: "負債累累", desc: "負債超過 100 萬", icon: "😰", check: (g) => g.money <= -1000000 },
+  { id: "bankruptcy_expert", name: "破產專家", desc: "負債超過 1000 萬", icon: "📉", check: (g) => g.money <= -10000000 },
+  { id: "debt_king", name: "債務王", desc: "負債超過 5000 萬", icon: "💀", check: (g) => g.money <= -50000000 },
+  { id: "homeless", name: "無家可歸", desc: "30歲且沒有房產", icon: "⛺", check: (g) => g.age >= 30 && !g.inventory.some(i => i.startsWith('house')) },
+
+  // ==========================================
+  // 🧠 屬性極限 (Stats Limits)
+  // ==========================================
+  { id: "genius_brain", name: "愛因斯坦", desc: "智力達到 120", icon: "🧠", check: (g) => g.intel >= 120 },
+  { id: "super_brain", name: "超級電腦", desc: "智力達到 180", icon: "💾", check: (g) => g.intel >= 180 },
+  
+  { id: "charm_master", name: "萬人迷", desc: "魅力達到 120", icon: "✨", check: (g) => g.skills.charm >= 120 },
+  { id: "idol_king", name: "國民偶像", desc: "魅力達到 180", icon: "🌟", check: (g) => g.skills.charm >= 180 },
+  
+  { id: "muscle_man", name: "健美先生", desc: "健康達到 120", icon: "💪", check: (g) => g.health >= 120 },
+  { id: "iron_body", name: "金剛不壞", desc: "健康達到 150", icon: "🛡️", check: (g) => g.health >= 150 },
+  
+  { id: "happy_life", name: "快樂似神仙", desc: "快樂達到 120", icon: "😊", check: (g) => g.happy >= 120 },
+  { id: "nirvana", name: "極樂世界", desc: "快樂達到 150", icon: "🌈", check: (g) => g.happy >= 150 },
+
+  { id: "all_rounder", name: "全能天才", desc: "所有技能都超過 60", icon: "🎯", check: (g) => Object.values(g.skills).every(s => s >= 60) },
+  { id: "perfect_human", name: "完美人類", desc: "健康、快樂、智力同時達到 120", icon: "😇", check: (g) => g.health >= 120 && g.happy >= 120 && g.intel >= 120 },
+
+  // ==========================================
+  // 🛠️ 技能專精 (Skill Mastery)
+  // ==========================================
+  { id: "hacker_god", name: "駭客任務", desc: "程式技能達到 100", icon: "💻", check: (g) => g.skills.programming >= 100 },
+  { id: "invest_god", name: "華爾街之狼", desc: "理財技能達到 100", icon: "📈", check: (g) => g.skills.finance >= 100 },
+  { id: "art_master", name: "達文西再世", desc: "藝術技能達到 100", icon: "🎨", check: (g) => g.skills.art >= 100 },
+  { id: "medical_god", name: "神醫下山", desc: "醫療技能達到 100", icon: "⚕️", check: (g) => g.skills.medical >= 100 },
+  { id: "chef_god", name: "食神", desc: "烹飪技能達到 100", icon: "🍳", check: (g) => g.skills.cooking >= 100 },
+  { id: "talk_master", name: "談判專家", desc: "溝通技能達到 100", icon: "🗣️", check: (g) => g.skills.communication >= 100 },
+  { id: "leader_god", name: "天生領袖", desc: "領導力達到 100", icon: "🚩", check: (g) => g.skills.leadership >= 100 },
+
+  // ==========================================
+  // 🎂 壽命與階段 (Life Stages)
+  // ==========================================
+  { id: "adult", name: "成年禮", desc: "平安活到 18 歲", icon: "🕯️", check: (g) => g.age >= 18 },
+  { id: "thirty_standing", name: "三十而立", desc: "活到 30 歲", icon: "🚶", check: (g) => g.age >= 30 },
+  { id: "midlife", name: "中年危機", desc: "活到 40 歲", icon: "🧔", check: (g) => g.age >= 40 },
+  { id: "know_destiny", name: "知天命", desc: "活到 50 歲", icon: "🧘", check: (g) => g.age >= 50 },
+  { id: "retirement", name: "光榮退休", desc: "活到 65 歲", icon: "👴", check: (g) => g.age >= 65 },
+  { id: "longevity", name: "長命百歲", desc: "活到 100 歲", icon: "🎂", check: (g) => g.age >= 100 },
+  { id: "history_witness", name: "歷史見證者", desc: "活到 110 歲", icon: "📜", check: (g) => g.age >= 110 },
+  { id: "immortal_legend", name: "不朽傳奇", desc: "活到 125 歲", icon: "🐉", check: (g) => g.age >= 125 },
+
+  // ==========================================
+  // 💼 職業與教育 (Career & Education)
+  // ==========================================
+  { id: "bachelor", name: "大學生", desc: "獲得大學學位", icon: "🎓", check: (g) => g.education === "university" },
+  { id: "master_degree", name: "碩士生", desc: "獲得碩士學位", icon: "📜", check: (g) => g.education === "master" },
+  { id: "phd_degree", name: "博學多聞", desc: "獲得博士學位", icon: "👨‍🎓", check: (g) => g.education === "phd" },
+  
+  { id: "work_rookie", name: "職場菜鳥", desc: "工作年資達到 1 年", icon: "🐤", check: (g) => g.jobYears >= 1 },
+  { id: "work_veteran", name: "資深社畜", desc: "工作年資達到 20 年", icon: "🕰️", check: (g) => g.jobYears >= 20 },
+  { id: "work_legend", name: "公司元老", desc: "工作年資達到 40 年", icon: "🏺", check: (g) => g.jobYears >= 40 },
+  { id: "lifetime_dedication", name: "終身奉獻", desc: "工作年資達到 60 年", icon: "🏆", check: (g) => g.jobYears >= 60 },
+  
+  { id: "manager", name: "基層主管", desc: "職位達到主管", icon: "📋", check: (g) => g.job === "主管" },
+  { id: "director", name: "高層領導", desc: "職位達到部門經理", icon: "💼", check: (g) => g.job === "部門經理" },
+  { id: "ceo", name: "打工皇帝", desc: "職位達到總經理", icon: "👔", check: (g) => g.job === "總經理" },
+  
+  { id: "freelancer_king", name: "斜槓青年", desc: "無正職但存款超過 500 萬", icon: "☕", check: (g) => g.jobId === "none" && g.money >= 5000000 },
+  { id: "neet_king", name: "啃老之王", desc: "50歲且從未工作過(年資0)", icon: "🎮", check: (g) => g.age >= 50 && g.jobYears === 0 },
+
+  // ==========================================
+  // 👥 社交與家庭 (Social & Family)
+  // ==========================================
+  { id: "friend_collector", name: "好人緣", desc: "認識 5 個 NPC", icon: "👋", check: (g) => g.npcs.length >= 5 },
+  { id: "social_butterfly", name: "社交名流", desc: "認識 15 個 NPC", icon: "🦋", check: (g) => g.npcs.length >= 15 },
+  { id: "party_king", name: "派對之王", desc: "認識 30 個 NPC", icon: "🕺", check: (g) => g.npcs.length >= 30 },
+  
+  { id: "in_love", name: "墜入愛河", desc: "擁有戀人", icon: "❤️", check: (g) => g.npcs.some(n => n.type === 'lover') },
+  { id: "married", name: "成家立業", desc: "擁有配偶", icon: "💍", check: (g) => g.npcs.some(n => n.type === 'spouse') },
+  { id: "parent", name: "初為父母", desc: "擁有 1 個孩子", icon: "👶", check: (g) => g.children.length >= 1 },
+  { id: "big_family", name: "多子多孫", desc: "擁有 3 個以上的孩子", icon: "👨‍👩‍👧‍👦", check: (g) => g.children.length >= 3 },
+  { id: "super_clan", name: "超級家族", desc: "擁有 5 個以上的孩子", icon: "🏰", check: (g) => g.children.length >= 5 },
+  
+  { id: "loner", name: "孤獨美食家", desc: "50歲且沒有伴侶和孩子", icon: "🍜", check: (g) => g.age >= 50 && !g.npcs.some(n => n.type === 'spouse') && g.children.length === 0 },
+  { id: "widow", name: "孤單老人", desc: "80歲且朋友少於 2 人", icon: "🍂", check: (g) => g.age >= 80 && g.npcs.length < 2 },
+
+  // ==========================================
+  // 🎭 特殊與惡搞 (Special & Fun)
+  // ==========================================
+  { id: "unlucky", name: "衰神附體", desc: "快樂值低於 5", icon: "🌧️", check: (g) => g.happy <= 5 },
+  { id: "sick_bay", name: "藥罐子", desc: "健康值低於 10", icon: "🤒", check: (g) => g.health <= 10 },
+  { id: "stress_explosion", name: "壓力山大", desc: "健康與快樂同時低於 30", icon: "🤯", check: (g) => g.health <= 30 && g.happy <= 30 },
+  { id: "dumb_luck", name: "傻人有傻福", desc: "智力低於 30 但現金超過 1000 萬", icon: "🤪", check: (g) => g.intel <= 30 && g.money >= 10000000 },
+  { id: "action_master", name: "過動兒", desc: "總行動次數超過 1000 次", icon: "⚡", check: (g) => g.totalActions >= 1000 },
+  { id: "event_magnet", name: "事件體質", desc: "觸發超過 50 次隨機事件", icon: "🎲", check: (g) => g.totalEvents >= 50 },
+  { id: "lucky_star", name: "天選之人", desc: "觸發 5 次以上「大成功」", icon: "🍀", check: (g) => g.luckyEventCount >= 5 },
+];
 const ORIGIN_STORY = {
         common:
           "你出生在一個平凡的家庭，父母看著你的眼神充滿慈愛，雖然家裡不富裕，但也不愁吃穿。牆上的日曆顯示著今天是發薪日，爸爸買了一個小蛋糕慶祝你的誕生。",

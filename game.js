@@ -1268,6 +1268,10 @@ function updateActionButtons() {
   let html = "";
   const age = Game.age;
 
+  // ... (這裡原本的 switch/if-else 生成 html 的邏輯保持不變，不用動) ...
+  // 為了節省篇幅，我這邊只列出你需要修改的後半段邏輯
+  
+  // 請確保你的 html 生成邏輯還在 (你可以直接複製你原本檔案裡這一大段生成 html 的代碼)
   if (age <= 2) {
     html = `
             <button onclick="action('cry')">😭 哭鬧<span class="cost-tag">⚡-10</span></button>
@@ -1319,16 +1323,18 @@ function updateActionButtons() {
 
   btns.innerHTML = html;
 
-  // 檢查狀態禁用按鈕
+  // ⚠️ 關鍵修正這裡：檢查狀態禁用按鈕
   const allBtns = btns.querySelectorAll("button");
   allBtns.forEach((btn) => {
-    if (Game.stamina < 10 || Game.health <= 0) {
+    // 原本是 Game.stamina < 10，改為 <= 0
+    // 這樣就算只剩 5 體力，只要不是 0，按鈕都會亮著
+    // (具體能不能執行，交給點擊後的 action 函數去判斷錢夠不夠、體力夠不夠)
+    if (Game.stamina <= 0 || Game.health <= 0) {
       btn.disabled = true;
       btn.style.opacity = 0.5;
     }
   });
 }
-
 function getActionName(type) {
   const actionNames = {
     // === 嬰兒期 ===
