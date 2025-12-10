@@ -4,7 +4,7 @@ let currentJobIndex = 0; // 當前顯示的職業索引
 let isProcessing = false; // 防止重复点击
 let lastUpdateTime = 0;
 let allocationState = {
-  points: 20,
+  points: 40,
   intel: 0,
   charm: 0,
   health: 0,
@@ -558,8 +558,10 @@ function showPopup(message, color = "green") {
 }
 function startGame() {
   const name = document.getElementById("inp-name").value.trim();
-  if (!name) return alert("請輸入姓名");
-
+  if (!name) return alert("請輸入姓名")
+  if (!selectedOriginId) {
+      return alert("🚫 此出身背景尚未解鎖，無法選擇！\n請先收集更多成就來解鎖頂級出身。");
+  }
   const origin = ORIGINS.find((o) => o.id === selectedOriginId);
   const gender = document.getElementById("inp-gender").value;
 
@@ -583,7 +585,7 @@ function startGame() {
   console.log("📂 載入已保存的成就:", savedAchievements);
 
   allocationState = {
-    points: 20, // 確保點數為 20
+    points: 40, // 確保點數為 20
     intel: 0,
     charm: 0,
     health: 0,
@@ -4615,111 +4617,107 @@ function giveGiftToNPC(npcId) {
 }
 
 // NPC 更新生命周期
+
 function updateNPCLifecycle() {
-  const toRemove = [];
+  // 定義一個處理單個 NPC 的通用函數
+  const processNPC = (npc, list, index) => {
+    // 初始化 NPC 年齡與健康 (防止舊存檔報錯)
+    if (typeof npc.age === 'undefined') npc.age = 50;
+    if (typeof npc.health === 'undefined') npc.health = 100;
 
-  Game.relationships.forEach((npc, index) => {
-    // 跳过特殊 NPC（配偶、子女）
-    if (npc.type === "spouse" || npc.type === "child") {
-      // 配偶和子女也会变老
-      if (!npc.age) npc.age = npc.type === "spouse" ? Game.age : 0;
-      npc.age++;
-
-      // 子女成年后变成朋友
-      if (npc.type === "child" && npc.age >= 18) {
-        npc.type = "friend";
-        npc.relation += 10;
-        log(`👨‍👩‍👧 ${npc.name} 已成年，關係轉為朋友`);
-      }
-      return;
-    }
-
-    // 初始化 NPC 年龄（如果没有）
-    if (!npc.age) {
-      npc.age = Math.floor(Math.random() * 20) + Game.age - 10;
-      if (npc.age < 0) npc.age = Game.age;
-    }
-
-    // NPC 年龄增长
+    // 1. 年齡增長
     npc.age++;
 
-    // 初始化健康值
-    if (!npc.health) {
-      npc.health = 100;
-    }
-
-    // ===== NPC 健康衰减 =====
-    let healthDecay = 3;
-    if (npc.age > 60) healthDecay = 5;
+    // 2. 健康衰減 (年紀越大扣越多)
+    let healthDecay = 2; // 基礎衰減
+    if (npc.age > 60) healthDecay = 4;
+    if (npc.age > 70) healthDecay = 6;
     if (npc.age > 80) healthDecay = 10;
+    
     npc.health -= healthDecay;
 
-    // ===== NPC 生病事件 =====
-    if (npc.health < 50 && npc.health > 0 && !npc.isSick) {
+    // 3. 生病判定
+    if (npc.health < 40 && npc.health > 0 && !npc.isSick) {
       npc.isSick = true;
-      log(`🏥 ${npc.name} 生病了（${npc.age}歲）`);
+      log(`🏥 ${npc.name} (${npc.role}) 生病了 (健康: ${npc.health})`);
+      // 有機率觸發探病事件...
+    }
 
-      // 20% 机率触发帮助事件
-      if (Math.random() < 0.2) {
-        showNPCSickEvent(npc);
+    // 4. 死亡判定
+    const naturalDeathChance = npc.age > 80 ? (npc.age - 80) * 0.05 : 0; // 80歲後每年增加 5% 死亡率
+    if (npc.health <= 0 || Math.random() < naturalDeathChance) {
+      handleNPCDeath(npc); // 處理死亡邏輯
+      list.splice(index, 1); // 從清單移除
+      return true; // 標記已移除
+    }
+    return false;
+  };
+
+  // 處理家人與導師 (Game.npcs) - 從後往前迴圈以免刪除時出錯
+  if (Game.npcs) {
+    for (let i = Game.npcs.length - 1; i >= 0; i--) {
+      processNPC(Game.npcs[i], Game.npcs, i);
+    }
+  }
+
+  // 處理朋友與伴侶 (Game.relationships)
+  if (Game.relationships) {
+    for (let i = Game.relationships.length - 1; i >= 0; i--) {
+      const npc = Game.relationships[i];
+      // 跳過配偶和子女 (他們有自己的邏輯，或者您也可以統一在這裡處理)
+      if (npc.type === 'spouse' || npc.type === 'child') {
+          npc.age++; // 簡單增加年齡
+          continue; 
       }
-    } else if (npc.health >= 50 && npc.isSick) {
-      npc.isSick = false;
-      log(`❤️ ${npc.name} 康復了`);
+      processNPC(npc, Game.relationships, i);
     }
+  }
+}
 
-    // ===== NPC 死亡 =====
-    if (npc.health <= 0 || (npc.age > 85 && Math.random() < 0.15)) {
-      toRemove.push(index);
-      log(`💀 ${npc.name} 去世了，享年 ${npc.age} 歲`);
-      Game.happy -= 15;
+// ✅ 新增：處理 NPC 死亡與遺產的函數
+function handleNPCDeath(npc) {
+    log(`⚰️ ${npc.name} (${npc.role}) 去世了，享年 ${npc.age} 歲。`);
+    Game.happy -= 20; // 親友過世扣快樂
 
-      // 好友去世特殊提示
-      if (npc.relation > 80) {
-        Game.happy -= 10;
-        showDeathModal(npc);
-      }
+    // === 💰 遺產機制 ===
+    if (npc.type === 'parent' || npc.type === 'grandparent') {
+        let heritage = 0;
+
+        // 根據出身決定遺產基數 (您要求的 "多一點")
+        if (Game.originId === 'rich' || Game.originId === 'royal') {
+            // 富有家庭：5000萬 ~ 1億
+            heritage = 50000000 + Math.floor(Math.random() * 50000000);
+        } else if (Game.originId === 'common') {
+            // 平凡家庭：200萬 ~ 500萬 (不少了！)
+            heritage = 2000000 + Math.floor(Math.random() * 3000000); 
+        } else if (Game.originId === 'mafia' || Game.originId === 'politician') {
+            // 特殊家庭：1000萬 ~ 3000萬
+            heritage = 10000000 + Math.floor(Math.random() * 20000000);
+        } else {
+            // 其他/困難：50萬 ~ 150萬
+            heritage = 500000 + Math.floor(Math.random() * 1000000);
+        }
+
+        // 加上通膨影響 (隨遊戲時間貶值或增值，這裡簡單乘上通膨率)
+        heritage = Math.floor(heritage * (Game.inflationRate || 1));
+
+        Game.money += heritage;
+
+        showModal(
+            "🕯️ 告別親人",
+            `你的 ${npc.name} (${npc.role}) 離開了人世...\n\n律師宣讀了遺囑，你獲得了遺產：\n\n<span style="color:var(--gold); font-size:1.5em; font-weight:bold;">$${heritage.toLocaleString()}</span>`,
+            [
+                { text: "R.I.P. 謝謝您的養育", action: () => closeModal() }
+            ]
+        );
+        
+        log(`💰 獲得 ${npc.name} 的遺產 $${heritage.toLocaleString()}`);
+    } else if (npc.relation >= 80) {
+        // 好朋友過世
+        showModal("😢 摯友離世", `你的好友 ${npc.name} 離開了...\n希望他在另一個世界過得好。`, [
+            { text: "懷念他", action: () => closeModal() }
+        ]);
     }
-
-    // ===== NPC 结婚生子（朋友类型）=====
-    if (
-      npc.type === "friend" &&
-      npc.age >= 25 &&
-      npc.age <= 40 &&
-      !npc.hasFamily
-    ) {
-      if (Math.random() < 0.1) {
-        npc.hasFamily = true;
-        log(`💑 ${npc.name} 結婚了`);
-      }
-    }
-
-    if (npc.hasFamily && !npc.hasChild && npc.age >= 28 && npc.age <= 45) {
-      if (Math.random() < 0.08) {
-        npc.hasChild = true;
-        log(`👶 ${npc.name} 有了孩子`);
-      }
-    }
-
-    // ===== 关系自然衰减 =====
-    if (npc.relation > 0) {
-      npc.relation -= 2;
-      if (npc.relation < 0) npc.relation = 0;
-    }
-
-    // 关系太低自动断联
-    if (npc.relation < 20 && npc.type === "friend") {
-      toRemove.push(index);
-      log(`💔 與 ${npc.name} 失去聯絡`);
-    }
-  });
-
-  // 移除死亡或断联的 NPC（从后往前删除避免索引错乱）
-  toRemove
-    .sort((a, b) => b - a)
-    .forEach((index) => {
-      Game.relationships.splice(index, 1);
-    });
 }
 
 // NPC 生病事件
