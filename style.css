@@ -1858,3 +1858,34 @@ body {
   font-weight: bold;
   color: #ddd;
 }
+
+/* 屬性輸入框樣式 */
+.stat-input {
+    width: 60px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    color: var(--gold);
+    font-size: 1.2em;
+    font-weight: bold;
+    text-align: center;
+    padding: 5px;
+    margin: 0 10px;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.stat-input:focus {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+/* 隱藏瀏覽器預設的數字增減箭頭 (因為我們有自己的大按鈕) */
+.stat-input::-webkit-outer-spin-button,
+.stat-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.stat-input[type=number] {
+  -moz-appearance: textfield;
+}

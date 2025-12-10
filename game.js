@@ -270,24 +270,58 @@ function selectOrigin(originId) {
   // 顯示屬性分配畫面
   document.getElementById("stats-allocation-screen").style.display = "flex"; // 或 block
 }
-// 更新分配介面 UI
+
+
+// 1. 修改：更新介面顯示 (改為更新 input 的 value)
 function updateAllocationUI() {
   document.getElementById("free-points").textContent = allocationState.points;
-  document.getElementById("alloc-intel").textContent = allocationState.intel;
-  document.getElementById("alloc-charm").textContent = allocationState.charm;
-  document.getElementById("alloc-health").textContent = allocationState.health;
-  document.getElementById("alloc-money").textContent = allocationState.money;
+  
+  // ✅ 修改：使用 .value 來更新輸入框
+  document.getElementById("alloc-intel").value = allocationState.intel;
+  document.getElementById("alloc-charm").value = allocationState.charm;
+  document.getElementById("alloc-health").value = allocationState.health;
+  document.getElementById("alloc-money").value = allocationState.money;
 
-  // 禁用/啟用按鈕
+  // 禁用/啟用按鈕邏輯保持不變
   document.querySelectorAll(".btn-plus").forEach((btn) => {
     btn.disabled = allocationState.points <= 0;
   });
 
-  // 負值檢查 (雖然設計上不會有負值，但可防呆)
   document.querySelectorAll(".btn-minus").forEach((btn) => {
     const type = btn.parentElement.dataset.stat;
     btn.disabled = allocationState[type] <= 0;
   });
+}
+
+// 2. 新增：處理手動輸入數值
+function manualInputStat(type, inputValue) {
+    let newValue = parseInt(inputValue);
+    
+    // 防呆：如果輸入無效或負數，歸零
+    if (isNaN(newValue) || newValue < 0) newValue = 0;
+    
+    const oldValue = allocationState[type];
+    const diff = newValue - oldValue;
+    
+    if (diff > 0) {
+        // 嘗試增加點數
+        if (allocationState.points >= diff) {
+            // 點數足夠
+            allocationState[type] = newValue;
+            allocationState.points -= diff;
+        } else {
+            // 點數不足，全部梭哈
+            allocationState[type] += allocationState.points;
+            allocationState.points = 0;
+        }
+    } else if (diff < 0) {
+        // 減少點數（退還點數）
+        allocationState[type] = newValue;
+        allocationState.points += Math.abs(diff);
+    }
+    
+    // 更新介面 (會自動把輸入框的數字修正為合法值)
+    updateAllocationUI();
 }
 
 // 調整點數
@@ -1373,18 +1407,21 @@ function generateTurnActions() {
   if (Game.isInSchool) {
     pool = ACTIONS_POOL.school_life;
   } else if (typeof ACTIONS_POOL === "undefined") {
-    // 根據年齡決定動作庫
-    // 防呆：確保 ACTIONS_POOL 存在 (在 data.js 中)
     console.error("ACTIONS_POOL 未定義！請檢查 data.js");
     return;
   }
 
-  if (Game.age <= 2) pool = ACTIONS_POOL.infant;
-  else if (Game.age <= 5) pool = ACTIONS_POOL.toddler;
-  else if (Game.age <= 12) pool = ACTIONS_POOL.child;
-  else if (Game.age <= 17) pool = ACTIONS_POOL.teen;
-  else pool = ACTIONS_POOL.adult;
-
+  if (Game.isInSchool) {
+    // 如果在學校，強制使用學校行動池
+    pool = ACTIONS_POOL.school_life;
+  } else {
+    // 只有「不在學校」時，才根據年齡決定行動池
+    if (Game.age <= 2) pool = ACTIONS_POOL.infant;
+    else if (Game.age <= 5) pool = ACTIONS_POOL.toddler;
+    else if (Game.age <= 12) pool = ACTIONS_POOL.child;
+    else if (Game.age <= 17) pool = ACTIONS_POOL.teen;
+    else pool = ACTIONS_POOL.adult;
+  }
   if (!pool) pool = [];
 
   // 過濾符合條件的動作 (例如有工作才能上班)
@@ -1430,11 +1467,13 @@ function generateTurnActions() {
 }
 // game.js - 請替換原本的 updateActionButtons
 
+// game.js - 修改 updateActionButtons
+
 function updateActionButtons() {
   const btns = document.getElementById("action-buttons");
   if (!btns) return;
 
-  // 如果 currentTurnActions 是空的（剛讀檔或剛開始），生成一次
+  // 如果沒有動作列表，嘗試生成
   if (!currentTurnActions || currentTurnActions.length === 0) {
     generateTurnActions();
   }
@@ -1442,14 +1481,28 @@ function updateActionButtons() {
   let html = "";
 
   currentTurnActions.forEach((act) => {
-    // 安全檢查：避免 undefined
+    // 1. 取得消耗數值
     const staminaCost = act.cost?.stamina || 0;
+    const schoolStaminaCost = act.cost?.schoolStamina || 0; // ✅ 讀取學校精力消耗
     const moneyCost = act.cost?.money || 0;
 
-    let costText = `⚡-${staminaCost}`;
+    // 2. 根據所在模式決定顯示文字
+    let costText = "";
+    
+    if (Game.isInSchool) {
+        // 🏫 學校模式顯示邏輯
+        if (schoolStaminaCost > 0) {
+            costText = `🏫-${schoolStaminaCost}`;
+        } else {
+            costText = `🏫-0`; // 免費動作
+        }
+    } else {
+        // ⚡ 一般模式顯示邏輯
+        costText = `⚡-${staminaCost}`;
+    }
 
+    // 顯示金錢消耗
     if (moneyCost > 0) {
-      // 錢也會通膨顯示
       const realCost = getInflatedPrice(moneyCost);
       const costDisplay =
         realCost >= 10000
@@ -1458,14 +1511,23 @@ function updateActionButtons() {
       costText += ` / 💸-${costDisplay}`;
     }
 
-    // 檢查是否禁用
+    // 3. 檢查是否禁用 (關鍵修正！)
     let disabled = "";
     let style = "";
 
-    // 體力檢查 (只要還有體力就亮著，點下去再檢查夠不夠，避免 5 體力無法點 5 體力動作的問題)
-    if (Game.stamina <= 0) {
-      disabled = "disabled";
-      style = "opacity:0.5;";
+    if (Game.isInSchool) {
+        // 🏫 學校模式：檢查學校精力
+        // 如果該動作需要學校精力，但目前歸零，則禁用
+        if (Game.schoolStamina <= 0 && schoolStaminaCost > 0) {
+             disabled = "disabled";
+             style = "opacity:0.5;";
+        }
+    } else {
+        // ⚡ 一般模式：檢查一般體力
+        if (Game.stamina <= 0 && staminaCost > 0) {
+            disabled = "disabled";
+            style = "opacity:0.5;";
+        }
     }
 
     html += `
@@ -1478,6 +1540,10 @@ function updateActionButtons() {
 
   if (html === "")
     html = "<div style='color:#aaa; padding:10px;'>本回合無可用行動...</div>";
+
+  // ✅ 確保放學按鈕在學校模式下一定出現
+  // (雖然 updateUI 有加，但如果這裡清空重繪可能會覆蓋，這裡做雙重保險或由 updateUI 處理追加)
+  // 由於 updateUI 是先呼叫 updateActionButtons 再 append 放學按鈕，所以這裡不需要額外加。
 
   btns.innerHTML = html;
 }
@@ -4617,11 +4683,12 @@ function giveGiftToNPC(npcId) {
 }
 
 // NPC 更新生命周期
-
 function updateNPCLifecycle() {
-  // 定義一個處理單個 NPC 的通用函數
+  // 定義處理單個 NPC 的邏輯
   const processNPC = (npc, list, index) => {
-    // 初始化 NPC 年齡與健康 (防止舊存檔報錯)
+    if (!npc) return false;
+    
+    // 初始化
     if (typeof npc.age === 'undefined') npc.age = 50;
     if (typeof npc.health === 'undefined') npc.health = 100;
 
@@ -4629,7 +4696,7 @@ function updateNPCLifecycle() {
     npc.age++;
 
     // 2. 健康衰減 (年紀越大扣越多)
-    let healthDecay = 2; // 基礎衰減
+    let healthDecay = 2; 
     if (npc.age > 60) healthDecay = 4;
     if (npc.age > 70) healthDecay = 6;
     if (npc.age > 80) healthDecay = 10;
@@ -4639,34 +4706,35 @@ function updateNPCLifecycle() {
     // 3. 生病判定
     if (npc.health < 40 && npc.health > 0 && !npc.isSick) {
       npc.isSick = true;
-      log(`🏥 ${npc.name} (${npc.role}) 生病了 (健康: ${npc.health})`);
-      // 有機率觸發探病事件...
+      log(`🏥 ${npc.name} (${npc.role || '朋友'}) 生病了 (健康: ${npc.health})`);
     }
 
     // 4. 死亡判定
-    const naturalDeathChance = npc.age > 80 ? (npc.age - 80) * 0.05 : 0; // 80歲後每年增加 5% 死亡率
+    // 80歲後每年增加 5% 自然死亡率，或健康歸零時死亡
+    const naturalDeathChance = npc.age > 80 ? (npc.age - 80) * 0.05 : 0; 
+    
     if (npc.health <= 0 || Math.random() < naturalDeathChance) {
-      handleNPCDeath(npc); // 處理死亡邏輯
+      handleNPCDeath(npc); // ✅ 呼叫剛剛新增的遺產處理函式
       list.splice(index, 1); // 從清單移除
-      return true; // 標記已移除
+      return true; // 代表已移除
     }
     return false;
   };
 
-  // 處理家人與導師 (Game.npcs) - 從後往前迴圈以免刪除時出錯
+  // ✅ 1. 處理家人與導師 (Game.npcs) - 從後往前迴圈
   if (Game.npcs) {
     for (let i = Game.npcs.length - 1; i >= 0; i--) {
       processNPC(Game.npcs[i], Game.npcs, i);
     }
   }
 
-  // 處理朋友與伴侶 (Game.relationships)
+  // ✅ 2. 處理朋友與伴侶 (Game.relationships)
   if (Game.relationships) {
     for (let i = Game.relationships.length - 1; i >= 0; i--) {
       const npc = Game.relationships[i];
-      // 跳過配偶和子女 (他們有自己的邏輯，或者您也可以統一在這裡處理)
+      // 跳過配偶和子女 (他們通常有另外的邏輯，或也可在此處理)
       if (npc.type === 'spouse' || npc.type === 'child') {
-          npc.age++; // 簡單增加年齡
+          npc.age++; 
           continue; 
       }
       processNPC(npc, Game.relationships, i);
@@ -4674,49 +4742,67 @@ function updateNPCLifecycle() {
   }
 }
 
-// ✅ 新增：處理 NPC 死亡與遺產的函數
+// ✅ 新增：處理 NPC 死亡與遺產的函數 (包含通知視窗)
 function handleNPCDeath(npc) {
-    log(`⚰️ ${npc.name} (${npc.role}) 去世了，享年 ${npc.age} 歲。`);
-    Game.happy -= 20; // 親友過世扣快樂
-
-    // === 💰 遺產機制 ===
+    // 1. 扣除快樂值
+    Game.happy -= 20; 
+    
+    // 2. 判斷是否為直系親屬 (父母、祖父母)
     if (npc.type === 'parent' || npc.type === 'grandparent') {
         let heritage = 0;
 
-        // 根據出身決定遺產基數 (您要求的 "多一點")
+        // 3. 根據出身計算遺產金額
         if (Game.originId === 'rich' || Game.originId === 'royal') {
-            // 富有家庭：5000萬 ~ 1億
-            heritage = 50000000 + Math.floor(Math.random() * 50000000);
+            heritage = 50000000 + Math.floor(Math.random() * 50000000); // 5000萬~1億
         } else if (Game.originId === 'common') {
-            // 平凡家庭：200萬 ~ 500萬 (不少了！)
-            heritage = 2000000 + Math.floor(Math.random() * 3000000); 
+            heritage = 2000000 + Math.floor(Math.random() * 3000000); // 200萬~500萬
         } else if (Game.originId === 'mafia' || Game.originId === 'politician') {
-            // 特殊家庭：1000萬 ~ 3000萬
-            heritage = 10000000 + Math.floor(Math.random() * 20000000);
+            heritage = 10000000 + Math.floor(Math.random() * 20000000); // 1000萬~3000萬
         } else {
-            // 其他/困難：50萬 ~ 150萬
-            heritage = 500000 + Math.floor(Math.random() * 1000000);
+            heritage = 500000 + Math.floor(Math.random() * 1000000); // 50萬~150萬
         }
 
-        // 加上通膨影響 (隨遊戲時間貶值或增值，這裡簡單乘上通膨率)
+        // 4. 加上通膨影響
         heritage = Math.floor(heritage * (Game.inflationRate || 1));
 
+        // 5. 發放遺產
         Game.money += heritage;
 
+        // 6. ✅ 彈出通知視窗 (這裡就是您關心的部分)
         showModal(
             "🕯️ 告別親人",
-            `你的 ${npc.name} (${npc.role}) 離開了人世...\n\n律師宣讀了遺囑，你獲得了遺產：\n\n<span style="color:var(--gold); font-size:1.5em; font-weight:bold;">$${heritage.toLocaleString()}</span>`,
+            `
+            <div style="text-align: center; line-height: 1.6;">
+                <div style="font-size: 3em; margin-bottom: 10px;">⚰️</div>
+                <div style="color: #ddd;">你的 <b>${npc.name}</b> (${npc.role}) 離開了人世...</div>
+                <div style="font-size: 0.9em; color: #888; margin-bottom: 15px;">享年 ${npc.age} 歲</div>
+                <div style="border-top: 1px solid #444; margin: 10px 0;"></div>
+                <div style="color: #aaa; font-size: 0.9em;">律師宣讀了遺囑，你獲得了遺產：</div>
+                <div style="color: var(--gold); font-size: 1.8em; font-weight: bold; margin-top: 5px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);">
+                    $${heritage.toLocaleString()}
+                </div>
+            </div>
+            `,
             [
-                { text: "R.I.P. 謝謝您的養育", action: () => closeModal() }
+                { text: "R.I.P. 謝謝您的養育", action: () => {
+                    closeModal();
+                    updateUI(); // 記得更新介面顯示金錢變化
+                }}
             ]
         );
         
-        log(`💰 獲得 ${npc.name} 的遺產 $${heritage.toLocaleString()}`);
+        log(`⚰️ ${npc.name} 去世了，獲得遺產 $${heritage.toLocaleString()}`);
+
     } else if (npc.relation >= 80) {
-        // 好朋友過世
-        showModal("😢 摯友離世", `你的好友 ${npc.name} 離開了...\n希望他在另一個世界過得好。`, [
-            { text: "懷念他", action: () => closeModal() }
-        ]);
+        // 好朋友過世的通知 (沒有遺產)
+        showModal("😢 摯友離世", 
+            `<div style="text-align:center;">你的好友 <b>${npc.name}</b> 離開了...<br>享年 ${npc.age} 歲。<br><br><span style="color:#aaa; font-style:italic;">"謝謝你陪伴我的人生旅程"</span></div>`, 
+            [{ text: "懷念他", action: () => closeModal() }]
+        );
+        log(`💀 好友 ${npc.name} 去世了。`);
+    } else {
+        // 普通 NPC 過世 (只寫日誌，不彈窗打擾)
+        log(`💀 ${npc.name} (${npc.role}) 去世了。`);
     }
 }
 

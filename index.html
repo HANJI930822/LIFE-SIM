@@ -50,58 +50,30 @@
         <div class="stats-group">
           <div class="stat-row" data-stat="intel">
             <span class="stat-label">🧠 智力</span>
-            <button
-              class="btn-stat btn-minus"
-              onclick="adjustStat('intel', -1)"
-            >
-              -
-            </button>
-            <span class="stat-value" id="alloc-intel">0</span>
-            <button class="btn-stat btn-plus" onclick="adjustStat('intel', 1)">
-              +
-            </button>
+            <button class="btn-stat btn-minus" onclick="adjustStat('intel', -1)">-</button>
+            <input type="number" id="alloc-intel" class="stat-input" value="0" onchange="manualInputStat('intel', this.value)">
+            <button class="btn-stat btn-plus" onclick="adjustStat('intel', 1)">+</button>
           </div>
 
           <div class="stat-row" data-stat="charm">
             <span class="stat-label">✨ 魅力</span>
-            <button
-              class="btn-stat btn-minus"
-              onclick="adjustStat('charm', -1)"
-            >
-              -
-            </button>
-            <span class="stat-value" id="alloc-charm">0</span>
-            <button class="btn-stat btn-plus" onclick="adjustStat('charm', 1)">
-              +
-            </button>
+            <button class="btn-stat btn-minus" onclick="adjustStat('charm', -1)">-</button>
+            <input type="number" id="alloc-charm" class="stat-input" value="0" onchange="manualInputStat('charm', this.value)">
+            <button class="btn-stat btn-plus" onclick="adjustStat('charm', 1)">+</button>
           </div>
 
           <div class="stat-row" data-stat="health">
             <span class="stat-label">💪 健康</span>
-            <button
-              class="btn-stat btn-minus"
-              onclick="adjustStat('health', -1)"
-            >
-              -
-            </button>
-            <span class="stat-value" id="alloc-health">0</span>
-            <button class="btn-stat btn-plus" onclick="adjustStat('health', 1)">
-              +
-            </button>
+            <button class="btn-stat btn-minus" onclick="adjustStat('health', -1)">-</button>
+            <input type="number" id="alloc-health" class="stat-input" value="0" onchange="manualInputStat('health', this.value)">
+            <button class="btn-stat btn-plus" onclick="adjustStat('health', 1)">+</button>
           </div>
 
           <div class="stat-row" data-stat="money">
             <span class="stat-label">💰 財富</span>
-            <button
-              class="btn-stat btn-minus"
-              onclick="adjustStat('money', -1)"
-            >
-              -
-            </button>
-            <span class="stat-value" id="alloc-money">0</span>
-            <button class="btn-stat btn-plus" onclick="adjustStat('money', 1)">
-              +
-            </button>
+            <button class="btn-stat btn-minus" onclick="adjustStat('money', -1)">-</button>
+            <input type="number" id="alloc-money" class="stat-input" value="0" onchange="manualInputStat('money', this.value)">
+            <button class="btn-stat btn-plus" onclick="adjustStat('money', 1)">+</button>
             <span class="stat-hint">(1點 = $2,000)</span>
           </div>
         </div>
