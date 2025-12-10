@@ -4491,30 +4491,6 @@ function renderStats() {
 
   document.getElementById("stats-panel").innerHTML = html;
 }
-
-  const totalWealth =
-    Game.money +
-    Game.inventory.reduce((sum, id) => {
-      const item = [...CARS, ...HOUSES, ...LUXURIES].find((i) => i.id === id);
-      return sum + (item ? item.price : 0);
-    }, 0);
-
-  const html = `
-                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
-                          <div>🎂 當前年齡: ${Game.age}歲</div>
-                          <div>🏠 出身: ${Game.origin}</div>
-                          <div>💰 總資產: $${totalWealth.toLocaleString()}</div>
-                          <div>💼 工作年資: ${Game.jobYears}年</div>
-                          <div>👥 人際關係: ${Game.relationships.length}人</div>
-                          <div>🏆 成就數: ${Game.unlockedAchievements.length}/${ACHIEVEMENTS.length}</div>
-                          <div>🎯 執行行動: ${Game.totalActions}次</div>
-                          <div>📢 觸發事件: ${Game.totalEvents}次</div>
-                          <div>😊 快樂年數: ${Game.happyYears}年</div>
-                          <div>🌟 最強技能: ${highestSkill}</div>
-                      </div>
-                  `;
-
-  document.getElementById("stats-panel").innerHTML = html;
 function nav(page, event) {
   event.preventDefault();
   event.stopPropagation();
