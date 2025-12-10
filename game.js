@@ -3866,10 +3866,17 @@ function showEducationMenu() {
 
   if (Game.isStudying) {
     html += `<div style="margin-bottom: 20px;">`;
-    html += `<p style="color: var(--blue);">📚 學習進度: ${Math.floor(Game.studyProgress)}%</p>`;
-    html += `<div style="background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px;">`;
-    html += `<div style="width: ${Game.studyProgress}%; height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.3s;"></div>`;
-    html += `</div></div>`;
+    // 判斷是否為義務教育階段，顯示不同的進度文字
+    const currentEduLevel = EDUCATION_LEVELS.find(e => e.id === Game.education);
+    if (currentEduLevel && currentEduLevel.compulsory) {
+        html += `<p style="color: var(--blue);">🎒 義務教育中 (隨年齡自動畢業)</p>`;
+    } else {
+        html += `<p style="color: var(--blue);">📚 學習進度: ${Math.floor(Game.studyProgress)}%</p>`;
+        html += `<div style="background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px;">`;
+        html += `<div style="width: ${Game.studyProgress}%; height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.3s;"></div>`;
+        html += `</div>`;
+    }
+    html += `</div>`;
   }
 
   html += '<div style="display: flex; flex-direction: column; gap: 10px;">';
@@ -3882,32 +3889,47 @@ function showEducationMenu() {
       (e) => e.id === Game.education,
     );
     const isCompleted = currentEduIndex >= index;
-    const isStudyingThis =
-      Game.isStudying && EDUCATION_LEVELS[currentEduIndex + 1]?.id === edu.id;
+    
+    // 判斷是否正在就讀該階段
+    // 注意：原本的邏輯是 education 指向「畢業學歷」，所以就讀中通常是 education 還在前一階
+    // 但為了配合新的義務教育邏輯 (一入學就把 education 設為該階段)，我們直接比對 id
+    const isStudyingThis = (Game.isStudying && Game.education === edu.id);
 
     let statusHtml = "";
-    let onClickAction = "";
     let cardStyle = "opacity: 0.6;";
 
-    if (isCompleted) {
-      statusHtml = `<span style="color:var(--green)">✅ 已完成</span>`;
-      cardStyle = "border-left: 3px solid var(--green);";
-    } else if (isStudyingThis) {
-      statusHtml = `<span style="color:var(--blue)">📚 就讀中</span>`;
-      cardStyle =
-        "border-left: 3px solid var(--blue); background:rgba(33, 150, 243, 0.1);";
-    } else if (canEnter) {
-      // 如果該學歷有科系選擇 (MAJORS 裡有對應 key)
-      if (MAJORS[edu.id]) {
-        statusHtml = `<button class="btn-main" style="padding:5px 15px; font-size:0.9em;" onclick="showMajorSelection('${edu.id}')">選擇科系</button>`;
-      } else {
-        // 沒有科系 (如小學、國中)，直接入學
-        statusHtml = `<button class="btn-main" style="padding:5px 15px; font-size:0.9em;" onclick="enterEducation('${edu.id}')">申請入學</button>`;
-      }
-      cardStyle = "border-left: 3px solid var(--gold); opacity: 1;";
+    // ✅ 核心修改：區分「義務教育」與「高等教育」的顯示方式
+    if (edu.compulsory) {
+        // === 義務教育 (國小/國中/高中) ===
+        if (isCompleted && !isStudyingThis) {
+             statusHtml = `<span style="color:var(--green)">✅ 已畢業</span>`;
+             cardStyle = "border-left: 3px solid var(--green);";
+        } else if (isStudyingThis) {
+             statusHtml = `<span style="color:var(--blue)">🎒 在學中</span>`;
+             cardStyle = "border-left: 3px solid var(--blue); background:rgba(33, 150, 243, 0.1); opacity: 1;";
+        } else {
+             // 還沒到入學年齡
+             statusHtml = `<span style="color:var(--text-dim)">⏳ 等待入學</span>`;
+        }
     } else {
-      statusHtml = `<span style="color:var(--red)">🔒 未達標</span>`;
-      cardStyle = "border-left: 3px solid var(--red); opacity: 0.5;";
+        // === 高等教育 (大學/碩士/博士) - 保持原有手動申請邏輯 ===
+        if (isCompleted) {
+            statusHtml = `<span style="color:var(--green)">✅ 已完成</span>`;
+            cardStyle = "border-left: 3px solid var(--green);";
+        } else if (isStudyingThis) {
+            statusHtml = `<span style="color:var(--blue)">📚 就讀中</span>`;
+            cardStyle = "border-left: 3px solid var(--blue); background:rgba(33, 150, 243, 0.1);";
+        } else if (canEnter) {
+            if (MAJORS[edu.id]) {
+                statusHtml = `<button class="btn-main" style="padding:5px 15px; font-size:0.9em;" onclick="showMajorSelection('${edu.id}')">選擇科系</button>`;
+            } else {
+                statusHtml = `<button class="btn-main" style="padding:5px 15px; font-size:0.9em;" onclick="enterEducation('${edu.id}')">申請入學</button>`;
+            }
+            cardStyle = "border-left: 3px solid var(--gold); opacity: 1;";
+        } else {
+            statusHtml = `<span style="color:var(--red)">🔒 未達標</span>`;
+            cardStyle = "border-left: 3px solid var(--red); opacity: 0.5;";
+        }
     }
 
     html += `
@@ -3915,7 +3937,7 @@ function showEducationMenu() {
             <div>
                 <div style="font-size: 1.1em; font-weight: bold; color: var(--white);">${edu.name}</div>
                 <div style="font-size: 0.8em; color: var(--text-dim); margin-top: 4px;">
-                    需 ${edu.minAge} 歲 | 學費 $${(edu.cost || 0).toLocaleString()}
+                    需 ${edu.minAge} 歲 ${edu.compulsory ? '(義務教育)' : `| 學費 $${(edu.cost || 0).toLocaleString()}`}
                 </div>
             </div>
             <div>${statusHtml}</div>
