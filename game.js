@@ -5569,15 +5569,27 @@ function renderLocationButtons(locId) {
       actionIds = ["see_doctor", "rehab", "gym"];
       break;
     case "school":
-      // 特殊按鈕：教育選單
+      // 1. 教育選單 (入學/升學)
       container.innerHTML += `<button class="btn-main" onclick="showEducationMenu()">🎓 教務處 (入學/升學)</button>`;
 
-      // 判斷是否為學生，顯示不同按鈕
+      // 2. 指定技能進修 (新功能)
+      container.innerHTML += `
+          <button class="btn-main" style="background: linear-gradient(135deg, #667eea, #764ba2);" onclick="showSkillSelection()">
+              📖 報名進修課程 <span class="cost-tag">⚡-30 / 💸-$5,000</span>
+          </button>`;
+
+      // 3. 學生專屬功能
       if (Game.isStudying) {
-        actionIds.push("attend_class", "school_lunch", "library");
-      } else {
-        actionIds.push("library", "learn_skill");
+        actionIds.push("attend_class", "school_lunch");
       }
+      break;
+
+    // ✅ 新增：圖書館 (重點功能：閱讀、自習)
+    case "library":
+      // 自習 (原本 data.js 裡的 library 動作就是自習，加智力)
+      actionIds.push("library"); 
+      
+      // 如果是學生，讀書效果更好或有額外選項 (這裡暫時共用 library 動作)
       break;
     case "temple":
       actionIds = ["pray_god", "volunteer"];
@@ -5699,7 +5711,7 @@ function startSchoolDay() {
   Game.schoolStamina = Game.maxSchoolStamina; // 補滿學校精力
   Game.stamina = 0; // 暫時歸零一般體力 (放學才給)
 
-  log("🏫 早上到了，揹著書包去上學！(進入學校模式)");
+  log("🏫 早上到了，揹著書包去學校上學！");
 
   // 強制更新動作列表為學校動作
   generateTurnActions();
@@ -5722,5 +5734,86 @@ function endSchoolDay() {
   updateUI();
   renderMap(); // 更新地圖顯示
 }
+// game.js - 新增於檔案末尾
 
+// 📖 顯示技能進修選單
+function showSkillSelection() {
+    // 定義技能與對應圖示
+    const skillsMap = {
+        programming: { name: "程式設計", icon: "💻" },
+        art: { name: "藝術創作", icon: "🎨" },
+        finance: { name: "金融理財", icon: "📈" },
+        communication: { name: "溝通表達", icon: "🗣️" },
+        medical: { name: "醫療護理", icon: "⚕️" },
+        cooking: { name: "烹飪料理", icon: "🍳" },
+        leadership: { name: "領導統御", icon: "🚩" },
+        management: { name: "企業管理", icon: "💼" }
+    };
+
+    let html = `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">`;
+
+    Object.keys(skillsMap).forEach(key => {
+        const skill = skillsMap[key];
+        const currentVal = Game.skills[key] || 0;
+        
+        html += `
+            <button onclick="learnSelectedSkill('${key}', '${skill.name}')" class="btn-job" style="padding: 12px 5px;">
+                <div style="font-size: 1.5em; margin-bottom: 5px;">${skill.icon}</div>
+                <div style="font-weight:bold;">${skill.name}</div>
+                <div style="font-size:0.8em; color:#ddd; margin-top:2px;">Lv. ${currentVal}</div>
+            </button>
+        `;
+    });
+
+    html += `</div>
+             <div style="margin-top:15px; padding:10px; background:rgba(0,0,0,0.3); border-radius:8px; font-size:0.9em; color:#aaa; text-align:center;">
+                每次進修消耗：<span style="color:var(--blue)">30 體力</span> + <span style="color:var(--gold)">$5,000</span><br>
+                效果：該技能 +3~5 (受天賦影響)
+             </div>`;
+
+    showModal("📖 選擇進修課程", html, [
+        { text: "取消", action: () => closeModal() }
+    ]);
+}
+
+// 📚 執行學習特定技能
+function learnSelectedSkill(skillKey, skillName) {
+    // 1. 檢查成本
+    const staminaCost = 30;
+    const moneyCost = 5000;
+
+    if (Game.stamina < staminaCost) return showPopup("❌ 體力不足！", "red");
+    if (Game.money < moneyCost) return showPopup("💸 學費不足 ($5,000)", "red");
+
+    // 2. 扣除成本
+    Game.stamina -= staminaCost;
+    Game.money -= moneyCost;
+    Game.totalActions++;
+
+    // 3. 計算成長值 (基礎 3 點 + 浮動 + 天賦加成)
+    let gain = 3 + Math.floor(Math.random() * 3); // 3~5 點
+    
+    // 應用加成
+    if (Game.skillBonus) gain = Math.floor(gain * Game.skillBonus);
+    if (Game.learnBonus) gain = Math.floor(gain * Game.learnBonus); // 聰明人學得快
+    
+    // 特殊天賦加成
+    if (skillKey === 'programming' && Game.traits.some(t => t.id === 'techsavvy')) gain += 2;
+    if (skillKey === 'art' && Game.traits.some(t => t.id === 'artistic')) gain += 2;
+    // ... 其他特質可依此類推
+
+    Game.skills[skillKey] += gain;
+
+    // 4. 記錄與回饋
+    log(`📖 參加了${skillName}課程，技能大幅提升！`, [
+        `⚡ -${staminaCost}`,
+        `💸 -$${moneyCost.toLocaleString()}`,
+        `📊 ${skillName} +${gain}`
+    ]);
+
+    // 5. 更新介面
+    closeModal(); // 關閉選單
+    updateUI();
+    showChanges([`${skillName} +${gain}`]); // 顯示浮動數值
+}
 initCreation();
