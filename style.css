@@ -755,6 +755,86 @@ button:disabled {
     opacity: 1;
   }
 }
+/* style.css */
+
+/* 屬性分配畫面容器 */
+.allocation-container {
+    max-width: 500px;
+    margin: 50px auto;
+    background: rgba(30, 30, 40, 0.95);
+    padding: 30px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.highlight-point {
+    color: var(--gold);
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 0 5px;
+}
+
+.stats-group {
+    margin: 30px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 20px;
+    border-radius: 10px;
+}
+
+.stat-label {
+    width: 80px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.stat-value {
+    width: 40px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--accent);
+}
+
+.btn-stat {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    color: white;
+    cursor: pointer;
+    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-stat:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-stat:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.stat-hint {
+    font-size: 0.8em;
+    color: var(--text-dim);
+    margin-left: 10px;
+}
 
 .section-title {
   font-size: 1.2em;
@@ -897,283 +977,354 @@ button,
   }
 }
 
-/* === 手机端 (小于 768px) === */
-/* ===== 📱 手機版深度優化 (緊湊儀表板) ===== */
+/* =========================================
+   📱 手機版深度重構 (Mobile Refactoring)
+   目標：解決擁擠感，增加呼吸感，優化拇指操作
+   ========================================= */
+
 @media (max-width: 767px) {
-  
-  /* 1. 全局佈局調整 */
+
+  /* 1. 全局設定：移除多餘邊距，背景全屏 */
   body {
-    padding: 0 0 80px 0; /* 底部留白給導航列 */
-    background: #111; /* 深色背景防眩光 */
+    padding: 0 0 70px 0; /* 底部留白給導航列 */
+    background: #0f0f13; /* 更深邃的背景 */
+    font-size: 14px; /* 基準字體微調 */
   }
 
-  /* 2. 頭部儀表板 (Header) - 極致緊湊 */
+  /* 2. 極簡頂部列 (Sticky Header) */
   .header {
-    padding: 8px 12px;
-    background: rgba(30, 30, 46, 0.95);
-    backdrop-filter: blur(10px);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+  /* 使用 safe-area-inset-top 避開瀏海 */
+  padding: env(safe-area-inset-top) 15px 10px 15px; 
+  /* 如果瀏覽器不支援 env()，給一個預設的頂部內距 */
+  padding-top: max(20px, env(safe-area-inset-top)); 
+  
+  background: rgba(20, 20, 30, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  
+  /* 改用 auto 高度，讓內容撐開，避免寫死 height 導致溢出 */
+  height: auto; 
+  min-height: 80px; /* 增加最小高度以容納瀏海區域 */
+  
+  display: flex;
+  flex-direction: column; /* 改為垂直排列，因為有了安全區，空間變大了 */
+  justify-content: center;
+}
+
+/* 額外修正：確保 Body 內容不會被變高的 Header 擋住 */
+body {
+  /* 增加頂部內距，數值 = Header 的預估高度 */
+  scroll-padding-top: 100px; 
+}
+
+  /* 隱藏非核心資訊 */
+  .player-subtitle, 
+  .skills-container, 
+  .skills-section,
+  .status-alerts {
+    display: none !important; /* 手機版首頁不顯示這些細節 */
   }
 
-  /* 第一行：頭像、名字、錢 (Flex 橫排) */
+  /* 頂部佈局：頭像左，資產右 */
   .dashboard-wrapper {
-    flex-direction: row; /* 強制橫排 */
-    align-items: center;
+    display: flex;
     justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 5px;
+    align-items: center;
     width: 100%;
+    margin: 0;
+    gap: 0;
   }
 
-  /* 左側：玩家資訊 */
+  /* 左側：頭像與狀態 */
   .player-info-section {
-    min-width: auto;
     flex: 1;
-  }
-
-  .player-base {
-    gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .player-avatar {
-    width: 38px;
-    height: 38px;
-    font-size: 1.2em;
-    border: 2px solid var(--accent); /* 增加辨識度 */
+    width: 42px;
+    height: 42px;
+    border-radius: 12px; /* 圓角方形更現代 */
+    font-size: 1.4em;
+    background: linear-gradient(135deg, #333, #444);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
 
   .player-text {
+    display: flex;
+    flex-direction: column;
     justify-content: center;
   }
 
   .player-name-line {
-    font-size: 1em;
-    line-height: 1.2;
-  }
-
-  /* 隱藏職業細節，只保留年齡，省空間 */
-  .player-subtitle {
-    font-size: 0.75em;
-    opacity: 0.8;
-    display: flex; 
-    gap: 5px;
-  }
-  
-  /* 右側：金錢 (獨立顯示) */
-  .big-stat {
-    font-size: 1.2em;
-    margin: 0;
-    text-align: right;
-    color: var(--gold);
-    text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
-  }
-
-  /* 3. 核心數值欄 (健康/快樂/智力) - 改為橫條微型顯示 */
-  .stat-grid {
-    display: flex;
-    justify-content: space-between;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 6px 12px;
-    border-radius: 8px;
-    margin: 5px 0;
-    gap: 0;
-  }
-
-  .stat-item {
-    background: none;
-    border: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
-    position: relative;
-  }
-  
-  /* 增加分隔線 */
-  .stat-item:not(:last-child)::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    top: 10%;
-    height: 80%;
-    width: 1px;
-    background: rgba(255,255,255,0.1);
-  }
-
-  .stat-item span:first-child {
-    font-size: 0.7em;
-    color: #aaa;
+    font-size: 1.1em;
+    color: #fff;
+    font-weight: 600;
     margin-bottom: 2px;
   }
-
-  .stat-value {
-    font-size: 1.1em;
+  
+  /* 用小標籤顯示年齡 */
+  .player-name-line::after {
+    content: attr(data-age) "歲"; /* 需配合 JS 寫入 data-age */
+    font-size: 0.7em;
+    background: var(--accent);
+    color: #000;
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
   }
 
-  /* 4. 技能區塊 - 改為「水平滾動」 (關鍵優化！) */
-  .skills-section {
+  /* 右側：金錢 (大字體) */
+  .big-stat {
+    font-size: 1.2em;
+    color: var(--gold);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: rgba(255, 215, 0, 0.1);
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+  }
+
+  /* 3. 狀態條 (Status Bars) - 移至 Header 下方作為次級導航 */
+  /* 將原本的 .stat-grid 改造成細長的進度條總覽 */
+  .stat-grid {
+    position: fixed;
+    top: 60px; /* 接在 Header 下方 */
+    left: 0;
     width: 100%;
-    margin-top: 5px;
-    padding-top: 5px;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    align-items: flex-start; /* 靠左 */
-  }
-
-  .section-label {
-    display: none; /* 手機版隱藏標題，直接看圖標 */
-  }
-
-  .skills-grid-layout {
+    height: 4px; /* 極細 */
+    background: #222;
+    z-index: 900;
     display: flex;
-    flex-wrap: nowrap; /* 禁止換行 */
-    overflow-x: auto; /* 開啟水平滾動 */
-    width: 100%;
-    justify-content: flex-start;
-    gap: 6px;
-    padding-bottom: 5px; /* 預留滾動條空間 */
-    -webkit-overflow-scrolling: touch; /* iOS 滑動優化 */
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    border: none;
   }
 
-  /* 隱藏滾動條但保留功能 */
-  .skills-grid-layout::-webkit-scrollbar {
-    display: none; 
+  /* 我們用偽元素來模擬三個狀態條的顏色，這裡需要 JS 配合修改寬度，
+     或者保持簡單：只顯示健康條 */
+  
+  /* 如果不想改 JS，我們將其隱藏，改在「個人檔案」頁顯示詳細 */
+  .stat-grid {
+    display: none !important; 
   }
 
-  .skill-tag {
-    flex: 0 0 auto; /* 防止被壓縮 */
-    font-size: 0.75em;
-    padding: 4px 10px;
-    background: rgba(255, 255, 255, 0.1);
-    white-space: nowrap;
-  }
-
-  /* 5. 體力條 - 更細緻 */
+  /* 替代方案：在 Header 底部加一條體力條 */
   .stamina-container {
-    margin-top: 5px;
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    z-index: 1001;
   }
-  .stamina-label { font-size: 0.7em; margin-bottom: 2px; }
-  .progress-bg { height: 8px; }
+  .stamina-label { display: none; } /* 隱藏文字 */
+  .progress-bg {
+    height: 3px;
+    background: transparent;
+    border-radius: 0;
+  }
+  .progress-fill {
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 5px var(--blue);
+  }
 
-  /* 6. 遊戲內容區 (卡片與按鈕) */
+  /* 4. 主要內容區 (Content Area) */
   .page {
-    padding: 10px;
+    padding: 15px;
+    animation: slideUp 0.3s ease-out; /* 切換時由下往上滑入 */
   }
 
+  /* 卡片設計優化 */
   .card {
-    margin: 0 0 15px 0;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.08);
+    background: #1a1a24;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    margin: 0 0 20px 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    overflow: hidden;
   }
 
   .card-header {
-    padding: 10px 15px;
-    font-size: 0.95em;
+    background: transparent;
+    padding: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 1.05em;
+    color: var(--text-dim);
   }
 
   .card-body {
-    padding: 12px;
+    padding: 15px;
   }
 
-  /* 行動按鈕 - 緊湊網格 */
+  /* 5. 互動按鈕 (Action Buttons) - 大按鈕，易點擊 */
   .btn-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 雙列 */
+    gap: 12px;
   }
 
   button {
-    padding: 12px 5px;
-    font-size: 0.9em;
-    min-height: 50px; /* 確保手指好點 */
+    height: auto;
+    min-height: 60px; /* 增加高度 */
+    border-radius: 12px;
+    background: #2a2a35;
+    border: 1px solid rgba(255,255,255,0.1);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    padding: 10px;
+    box-shadow: none; /* 扁平化 */
+    position: relative;
   }
 
+  /* 按鈕按下的效果 */
+  button:active {
+    background: #333;
+    transform: scale(0.96);
+  }
+
+  /* 按鈕內文字 */
+  button span:first-child {
+    font-size: 1.05em;
+    margin-bottom: 2px;
+    color: #eee;
+  }
+  
+  /* 消耗/成本標籤 */
   .cost-tag {
-    font-size: 0.7em;
-    opacity: 0.7;
-    margin-top: 2px;
-  }
-
-  /* 7. 日誌區塊 - 縮小高度，避免佔滿螢幕 */
-  .log-box {
-    height: 120px;
-    font-size: 0.85em;
-    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.75em;
+    color: #888;
     background: rgba(0,0,0,0.3);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 4px;
   }
 
-  /* 8. 底部導航列 - 優化觸控 */
+  /* 特殊按鈕顏色 */
+  .btn-risk { background: rgba(207, 102, 121, 0.15); border-color: rgba(207, 102, 121, 0.3); }
+  .btn-buy { background: rgba(3, 218, 198, 0.15); border-color: rgba(3, 218, 198, 0.3); }
+
+  /* 6. 事件日誌 (Log) - 改為底部浮層或簡化 */
+  .log-box {
+    height: auto;
+    max-height: 120px; /* 限制高度 */
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-top: 10px;
+    mask-image: linear-gradient(to bottom, transparent, black 20%); /* 頂部漸層淡入 */
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%);
+  }
+  
+  /* 讓最新一條日誌特別顯眼 */
+  .log-box div:last-child {
+    background: rgba(187, 134, 252, 0.1);
+    border-left: 3px solid var(--accent);
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 0 8px 8px 0;
+    animation: pulse 1s;
+  }
+
+  /* 7. 底部導航列 (Bottom Nav) - iOS 風格 */
   .nav-bar {
-    height: 60px;
-    padding-bottom: env(safe-area-inset-bottom); /* 適配 iPhone X+ 底部橫條 */
-    background: rgba(20, 20, 30, 0.98);
+    height: 65px; /* 稍微加高 */
+    background: #14141f; /* 純色背景 */
     border-top: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: env(safe-area-inset-bottom);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
   }
 
   .nav-item {
+    flex: 1;
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    font-size: 0.7em;
+    align-items: center;
+    color: #666;
+    gap: 4px;
+    position: relative;
+  }
+
+  .nav-item.active {
+    color: var(--accent);
+  }
+  
+  /* 活躍狀態的小光點 */
+  .nav-item.active::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    width: 4px;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
   }
 
   .nav-icon {
     font-size: 1.4em;
-    margin-bottom: 3px;
+    margin: 0;
   }
 
-  /* 9. 彈窗優化 */
+  /* 8. 模態視窗 (Modal) - 底部半屏彈窗 (Bottom Sheet) 風格 */
+  .modal-overlay {
+    align-items: flex-end; /* 改為從底部彈出 */
+  }
+
   .modal-box {
-    width: 90%;
-    max-height: 85vh; /* 避免超出螢幕 */
-    padding: 20px;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0; /* 只有上面圓角 */
+    padding: 25px 20px 40px 20px; /* 底部多留白 */
+    margin: 0;
+    animation: slideUpModal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    background: #1e1e2c;
   }
   
-  /* 特質與天賦標籤 */
-  .talent-tag {
-    font-size: 0.7em;
-    padding: 2px 6px;
+  /* 彈窗頂部的小把手 (Handle) */
+  .modal-box::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
   }
 
-  /* 出身選擇優化 */
-  button[onclick="prevOrigin()"],
-  button[onclick="nextOrigin()"] {
-    width: 40px !important;
-    height: 40px !important;
-    font-size: 1.2em !important;
-    left: 5px !important;
-  }
-
-  button[onclick="nextOrigin()"] {
-    right: 5px !important;
-    left: auto !important;
-  }
-
-  div[style*="padding: 0 80px"] {
-    padding: 0 50px !important;
-  }
-  
-  /* 職業選擇箭頭優化 */
-  button[onclick="prevJob()"],
-  button[onclick="nextJob()"] {
-    width: 40px !important;
-    height: 40px !important;
-    font-size: 1.2em !important;
-    left: -5px !important;
-  }
-
-  button[onclick="nextJob()"] {
-    right: -5px !important;
-    left: auto !important;
+  /* 特質卡片在手機上的特別調整 */
+  .trait-card-container {
+    height: 70vh; /* 固定高度 */
   }
 }
+
+/* 額外動畫定義 */
+@keyframes slideUpModal {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 
 /* === 极小屏幕 (小于 375px) === */
 @media (max-width: 374px) {
