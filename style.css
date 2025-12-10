@@ -1889,3 +1889,42 @@ body {
 .stat-input[type=number] {
   -moz-appearance: textfield;
 }
+/* style.css - 加在檔案最下面 */
+
+/* 🎵 音樂按鈕樣式 (固定在右上角) */
+.music-btn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--gold);
+    color: var(--gold);
+    font-size: 1.2em;
+    cursor: pointer;
+    z-index: 2000; /* 確保在最上層 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    transition: all 0.3s;
+}
+.music-btn.next-btn {
+    top: 70px; /* 往下移動，避免擋住開關 */
+    font-size: 1em; /*稍微小一點*/
+}
+.music-btn:hover {
+    background: var(--gold);
+    color: #000;
+    transform: rotate(15deg) scale(1.1);
+}
+
+/* 靜音時的樣式 */
+.music-btn.muted {
+    border-color: #666;
+    color: #666;
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: none;
+}

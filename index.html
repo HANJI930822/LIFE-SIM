@@ -398,7 +398,20 @@
         </button>
       </div>
     </div>
+    <audio id="bgm-player" loop>
+        <source src="bgm.mp3" type="audio/mpeg">
+    </audio>
 
+    <button id="music-toggle-btn" class="music-btn" onclick="toggleMusic()">
+        🎵
+    </button>
+    <button id="music-next-btn" class="music-btn next-btn" onclick="nextMusic()">
+        ⏭️
+    </button>
+    <script src="data.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
     <script src="data.js"></script>
     <script src="game.js"></script>
   </body>

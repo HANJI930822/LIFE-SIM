@@ -27,8 +27,8 @@ let Game = {
   health: 100,
   happy: 80,
   intel: 50,
-  stamina: 100,
-  maxStamina: 100,
+  stamina: 120,
+  maxStamina: 120,
   schoolStamina: 0, // 學校精力
   maxSchoolStamina: 60, // 學校精力上限 (較少，因為只佔白天)
   isInSchool: false, // 是否處於「上學期間」模式
@@ -229,24 +229,24 @@ function renderOriginCard() {
   if (locked) {
     // 🔒 鎖定狀態
     selectedOriginId = null; // 設定為無效值，防止程式讀取到舊的 ID
-    
+
     if (startBtn) {
-        startBtn.disabled = true; // 禁用按鈕
-        startBtn.innerHTML = "🔒 未解鎖 (需解鎖更多成就)";
-        startBtn.style.opacity = "0.5";
-        startBtn.style.cursor = "not-allowed";
-        startBtn.style.background = "#555"; // 變灰
+      startBtn.disabled = true; // 禁用按鈕
+      startBtn.innerHTML = "🔒 未解鎖 (需解鎖更多成就)";
+      startBtn.style.opacity = "0.5";
+      startBtn.style.cursor = "not-allowed";
+      startBtn.style.background = "#555"; // 變灰
     }
   } else {
     // 🔓 解鎖狀態
     selectedOriginId = o.id; // 更新為當前選擇的 ID
-    
+
     if (startBtn) {
-        startBtn.disabled = false; // 啟用按鈕
-        startBtn.innerHTML = "🚀 開始人生冒險";
-        startBtn.style.opacity = "1";
-        startBtn.style.cursor = "pointer";
-        startBtn.style.background = ""; // 恢復原本背景色 (CSS控制)
+      startBtn.disabled = false; // 啟用按鈕
+      startBtn.innerHTML = "🚀 開始人生冒險";
+      startBtn.style.opacity = "1";
+      startBtn.style.cursor = "pointer";
+      startBtn.style.background = ""; // 恢復原本背景色 (CSS控制)
     }
   }
 }
@@ -271,11 +271,10 @@ function selectOrigin(originId) {
   document.getElementById("stats-allocation-screen").style.display = "flex"; // 或 block
 }
 
-
 // 1. 修改：更新介面顯示 (改為更新 input 的 value)
 function updateAllocationUI() {
   document.getElementById("free-points").textContent = allocationState.points;
-  
+
   // ✅ 修改：使用 .value 來更新輸入框
   document.getElementById("alloc-intel").value = allocationState.intel;
   document.getElementById("alloc-charm").value = allocationState.charm;
@@ -295,33 +294,33 @@ function updateAllocationUI() {
 
 // 2. 新增：處理手動輸入數值
 function manualInputStat(type, inputValue) {
-    let newValue = parseInt(inputValue);
-    
-    // 防呆：如果輸入無效或負數，歸零
-    if (isNaN(newValue) || newValue < 0) newValue = 0;
-    
-    const oldValue = allocationState[type];
-    const diff = newValue - oldValue;
-    
-    if (diff > 0) {
-        // 嘗試增加點數
-        if (allocationState.points >= diff) {
-            // 點數足夠
-            allocationState[type] = newValue;
-            allocationState.points -= diff;
-        } else {
-            // 點數不足，全部梭哈
-            allocationState[type] += allocationState.points;
-            allocationState.points = 0;
-        }
-    } else if (diff < 0) {
-        // 減少點數（退還點數）
-        allocationState[type] = newValue;
-        allocationState.points += Math.abs(diff);
+  let newValue = parseInt(inputValue);
+
+  // 防呆：如果輸入無效或負數，歸零
+  if (isNaN(newValue) || newValue < 0) newValue = 0;
+
+  const oldValue = allocationState[type];
+  const diff = newValue - oldValue;
+
+  if (diff > 0) {
+    // 嘗試增加點數
+    if (allocationState.points >= diff) {
+      // 點數足夠
+      allocationState[type] = newValue;
+      allocationState.points -= diff;
+    } else {
+      // 點數不足，全部梭哈
+      allocationState[type] += allocationState.points;
+      allocationState.points = 0;
     }
-    
-    // 更新介面 (會自動把輸入框的數字修正為合法值)
-    updateAllocationUI();
+  } else if (diff < 0) {
+    // 減少點數（退還點數）
+    allocationState[type] = newValue;
+    allocationState.points += Math.abs(diff);
+  }
+
+  // 更新介面 (會自動把輸入框的數字修正為合法值)
+  updateAllocationUI();
 }
 
 // 調整點數
@@ -370,8 +369,8 @@ function confirmAllocation() {
 
   // 其他基礎初始化
   Game.yearlyMoney = origin.yearlyMoney;
-  Game.stamina = 100;
-  Game.maxStamina = 100;
+  Game.stamina = 120;
+  Game.maxStamina = 120;
   Game.jobId = "none";
   Game.job = "無業";
   Game.unlockedAchievements = loadAchievements();
@@ -592,9 +591,11 @@ function showPopup(message, color = "green") {
 }
 function startGame() {
   const name = document.getElementById("inp-name").value.trim();
-  if (!name) return alert("請輸入姓名")
+  if (!name) return alert("請輸入姓名");
   if (!selectedOriginId) {
-      return alert("🚫 此出身背景尚未解鎖，無法選擇！\n請先收集更多成就來解鎖頂級出身。");
+    return alert(
+      "🚫 此出身背景尚未解鎖，無法選擇！\n請先收集更多成就來解鎖頂級出身。",
+    );
   }
   const origin = ORIGINS.find((o) => o.id === selectedOriginId);
   const gender = document.getElementById("inp-gender").value;
@@ -629,6 +630,11 @@ function startGame() {
   //切換畫面：隱藏創角 -> 顯示分配
   document.getElementById("scene-creation").style.display = "none";
   document.getElementById("stats-allocation-screen").style.display = "flex";
+  const audio = document.getElementById("bgm-player");
+  if (audio) {
+    audio.volume = 0.4; // 音量設定 40%
+    audio.play().catch((e) => console.log("瀏覽器阻擋自動播放:", e));
+  }
 }
 // ===== ✅ 新增特質卡片渲染函數 =====
 function renderTraitCard() {
@@ -1212,7 +1218,7 @@ function updateUI() {
   const jobTitle = Game.job && Game.job !== "無業" ? ` (${Game.job})` : "";
   document.getElementById("player-job").textContent = jobName + jobTitle;
   document.getElementById("money-display").textContent =
-    "$" + Game.money.toLocaleString();
+    "$" + Math.floor(Game.money).toLocaleString();
 
   // 數值
   document.getElementById("health").textContent = Math.max(
@@ -1331,43 +1337,43 @@ function updateUI() {
   const staminaLabel = document.querySelector(".stamina-label span"); // 取得 "體力" 文字標籤
 
   if (Game.isInSchool) {
-      // === 🏫 學校模式 ===
-      // 計算比例
-      const maxSchool = Game.maxSchoolStamina || 60; // 防呆預設值
-      const currentSchool = Math.max(0, Game.schoolStamina);
-      const ratio = currentSchool / maxSchool;
-      
-      // 更新樣式 (橘色系)
-      staminaBar.style.transform = `scaleX(${ratio})`;
-      staminaBar.style.background = "linear-gradient(90deg, #ff9800, #ff5722)"; 
-      staminaText.textContent = `${Math.floor(currentSchool)}/${maxSchool}`;
-      
-      // 更新標籤文字
-      if(staminaLabel) staminaLabel.textContent = "🏫 學校精力";
-      
-      // 學校模式下移除低體力警示色
-      staminaBar.classList.remove("low");
-  } else {
-      // === ⚡ 一般模式 ===
-      // 計算比例
-      const maxStamina = Game.maxStamina || 100;
-      const currentStamina = Math.max(0, Math.min(maxStamina, Game.stamina));
-      const ratio = currentStamina / maxStamina;
-      
-      // 更新樣式 (原本的藍綠色系)
-      staminaBar.style.transform = `scaleX(${ratio})`;
-      staminaBar.style.background = "linear-gradient(90deg, #2196f3, #03dac6)"; 
-      staminaText.textContent = `${Math.floor(currentStamina)}/${maxStamina}`;
-      
-      // 更新標籤文字
-      if(staminaLabel) staminaLabel.textContent = "⚡ 體力";
+    // === 🏫 學校模式 ===
+    // 計算比例
+    const maxSchool = Game.maxSchoolStamina || 60; // 防呆預設值
+    const currentSchool = Math.max(0, Game.schoolStamina);
+    const ratio = currentSchool / maxSchool;
 
-      // 低體力警示 (紅色)
-      if (currentStamina < 20) {
-        staminaBar.classList.add("low");
-      } else {
-        staminaBar.classList.remove("low");
-      }
+    // 更新樣式 (橘色系)
+    staminaBar.style.transform = `scaleX(${ratio})`;
+    staminaBar.style.background = "linear-gradient(90deg, #ff9800, #ff5722)";
+    staminaText.textContent = `${Math.floor(currentSchool)}/${maxSchool}`;
+
+    // 更新標籤文字
+    if (staminaLabel) staminaLabel.textContent = "🏫 學校精力";
+
+    // 學校模式下移除低體力警示色
+    staminaBar.classList.remove("low");
+  } else {
+    // === ⚡ 一般模式 ===
+    // 計算比例
+    const maxStamina = Game.maxStamina || 100;
+    const currentStamina = Math.max(0, Math.min(maxStamina, Game.stamina));
+    const ratio = currentStamina / maxStamina;
+
+    // 更新樣式 (原本的藍綠色系)
+    staminaBar.style.transform = `scaleX(${ratio})`;
+    staminaBar.style.background = "linear-gradient(90deg, #2196f3, #03dac6)";
+    staminaText.textContent = `${Math.floor(currentStamina)}/${maxStamina}`;
+
+    // 更新標籤文字
+    if (staminaLabel) staminaLabel.textContent = "⚡ 體力";
+
+    // 低體力警示 (紅色)
+    if (currentStamina < 20) {
+      staminaBar.classList.add("low");
+    } else {
+      staminaBar.classList.remove("low");
+    }
   }
 
   // 狀態警告
@@ -1389,9 +1395,9 @@ function updateUI() {
   // 更新行動按鈕
   updateActionButtons();
   if (Game.isInSchool) {
-      const btnContainer = document.getElementById("action-buttons");
-      // 插入一個顯眼的放學按鈕
-      btnContainer.innerHTML += `
+    const btnContainer = document.getElementById("action-buttons");
+    // 插入一個顯眼的放學按鈕
+    btnContainer.innerHTML += `
         <button onclick="endSchoolDay()" style="background: linear-gradient(135deg, #444, #666); border: 2px solid var(--accent);">
             <div style="font-weight:bold;">🔔 放學回家</div>
             <div class="cost-tag">精力歸零</div>
@@ -1465,9 +1471,6 @@ function generateTurnActions() {
     }
   }
 }
-// game.js - 請替換原本的 updateActionButtons
-
-// game.js - 修改 updateActionButtons
 
 function updateActionButtons() {
   const btns = document.getElementById("action-buttons");
@@ -1481,27 +1484,39 @@ function updateActionButtons() {
   let html = "";
 
   currentTurnActions.forEach((act) => {
-    // 1. 取得消耗數值
+    // 1. 取得各種消耗數值
     const staminaCost = act.cost?.stamina || 0;
-    const schoolStaminaCost = act.cost?.schoolStamina || 0; // ✅ 讀取學校精力消耗
+    const schoolCost = act.cost?.schoolStamina || 0; // 學校精力
     const moneyCost = act.cost?.money || 0;
 
-    // 2. 根據所在模式決定顯示文字
+    // 2. 決定顯示文字與按鈕狀態
     let costText = "";
-    
+    let disabled = "";
+    let style = "";
+
     if (Game.isInSchool) {
-        // 🏫 學校模式顯示邏輯
-        if (schoolStaminaCost > 0) {
-            costText = `🏫-${schoolStaminaCost}`;
-        } else {
-            costText = `🏫-0`; // 免費動作
-        }
+      // === 🏫 學校模式 ===
+      // 顯示學校精力消耗
+      costText = schoolCost > 0 ? `🏫-${schoolCost}` : `🏫-0`;
+
+      // 檢查：如果學校精力不足，則禁用按鈕
+      if (Game.schoolStamina < schoolCost) {
+        disabled = "disabled";
+        style = "opacity: 0.5; cursor: not-allowed;";
+      }
     } else {
-        // ⚡ 一般模式顯示邏輯
-        costText = `⚡-${staminaCost}`;
+      // === ⚡ 一般模式 ===
+      // 顯示一般體力消耗
+      costText = `⚡-${staminaCost}`;
+
+      // 檢查：如果一般體力不足，則禁用按鈕
+      if (Game.stamina < staminaCost) {
+        disabled = "disabled";
+        style = "opacity: 0.5; cursor: not-allowed;";
+      }
     }
 
-    // 顯示金錢消耗
+    // 顯示金錢消耗 (共通)
     if (moneyCost > 0) {
       const realCost = getInflatedPrice(moneyCost);
       const costDisplay =
@@ -1511,39 +1526,18 @@ function updateActionButtons() {
       costText += ` / 💸-${costDisplay}`;
     }
 
-    // 3. 檢查是否禁用 (關鍵修正！)
-    let disabled = "";
-    let style = "";
-
-    if (Game.isInSchool) {
-        // 🏫 學校模式：檢查學校精力
-        // 如果該動作需要學校精力，但目前歸零，則禁用
-        if (Game.schoolStamina <= 0 && schoolStaminaCost > 0) {
-             disabled = "disabled";
-             style = "opacity:0.5;";
-        }
-    } else {
-        // ⚡ 一般模式：檢查一般體力
-        if (Game.stamina <= 0 && staminaCost > 0) {
-            disabled = "disabled";
-            style = "opacity:0.5;";
-        }
-    }
-
+    // 3. 生成按鈕 HTML
     html += `
-            <button onclick="action('${act.id}')" ${disabled} style="${style} position:relative;">
+            <button onclick="action('${act.id}')" ${disabled} style="${style}">
                 <div style="font-weight:bold;">${act.name}</div>
                 <div class="cost-tag" style="font-size:0.8em; opacity:0.8;">${costText}</div>
             </button>
         `;
   });
 
-  if (html === "")
+  if (html === "") {
     html = "<div style='color:#aaa; padding:10px;'>本回合無可用行動...</div>";
-
-  // ✅ 確保放學按鈕在學校模式下一定出現
-  // (雖然 updateUI 有加，但如果這裡清空重繪可能會覆蓋，這裡做雙重保險或由 updateUI 處理追加)
-  // 由於 updateUI 是先呼叫 updateActionButtons 再 append 放學按鈕，所以這裡不需要額外加。
+  }
 
   btns.innerHTML = html;
 }
@@ -1609,13 +1603,14 @@ function getActionName(type) {
 function rnd(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+// game.js - 完全替換 action
+
 function action(actId) {
   if (isProcessing) return;
 
   // 1. 尋找動作
   let act = currentTurnActions.find((a) => a.id === actId);
-
-  // 備用搜尋 (防呆)
+  // 備用搜尋 (防止找不到)
   if (!act) {
     for (const key in ACTIONS_POOL) {
       const found = ACTIONS_POOL[key].find((a) => a.id === actId);
@@ -1625,80 +1620,100 @@ function action(actId) {
       }
     }
   }
-
   if (!act) return console.error("❌ 找不到動作 ID:", actId);
 
-  // ✅ 2. 資源檢查 (區分學校精力與一般體力)
-  const staminaCost = act.cost?.stamina || 0;
-  const schoolStaminaCost = act.cost?.schoolStamina || 0; // 新增
+  // 2. 準備消耗數值
+  // 計算年齡懲罰 (僅針對一般體力)
+  let agePenalty = 1;
+  if (Game.age > 40) {
+    agePenalty = 1 + Math.pow((Game.age - 40) / 50, 2);
+  }
 
-  if (staminaCost > 0 && Game.stamina < staminaCost)
-    return showPopup("❌ 體力不足！", "red");
+  const baseStaminaCost = act.cost?.stamina || 0;
+  const staminaCost = Math.ceil(baseStaminaCost * agePenalty); // 應用懲罰
+  const schoolCost = act.cost?.schoolStamina || 0; // 學校精力 (通常不隨年齡懲罰)
 
-  if (schoolStaminaCost > 0 && Game.schoolStamina < schoolStaminaCost)
-    return showPopup("❌ 學校精力不足，該放學了！", "orange");
+  // 3. 檢查資源是否足夠
+  if (Game.isInSchool) {
+    // 🏫 學校模式檢查
+    if (schoolCost > 0 && Game.schoolStamina < schoolCost) {
+      return showPopup("❌ 學校精力不足，該放學了！", "orange");
+    }
+  } else {
+    // ⚡ 一般模式檢查
+    if (staminaCost > 0 && Game.stamina < staminaCost) {
+      return showPopup(`❌ 體力不足！(需 ${staminaCost})`, "red");
+    }
+  }
 
+  // 金錢檢查
   let realMoneyCost = 0;
   if (act.cost && act.cost.money) {
     realMoneyCost = getInflatedPrice(act.cost.money);
     if (Game.money < realMoneyCost) return showPopup(`💸 金錢不足！`, "red");
   }
 
+  // 鎖定防止連點
   isProcessing = true;
 
-  // ✅ 3. 執行消耗
-  Game.stamina -= staminaCost;
-  Game.schoolStamina -= schoolStaminaCost; // 扣除學校精力
+  // 4. ✅ 執行扣除 (核心修正)
+  if (Game.isInSchool) {
+    Game.schoolStamina -= schoolCost;
+  } else {
+    Game.stamina -= staminaCost;
+  }
+
   if (realMoneyCost > 0) Game.money -= realMoneyCost;
+
   Game.totalActions++;
 
-  // 4. 執行效果 (保持原本邏輯)
+  // 5. 執行效果與快照比較
   const snapshot = { ...Game, skills: { ...Game.skills } };
   let resultMsg = "";
+
   try {
     if (act.effect) resultMsg = act.effect(Game);
   } catch (e) {
-    console.error(e);
+    console.error("Action Error:", e);
+    resultMsg = "執行錯誤";
   }
 
-  // 5. 計算變化 (加入 schoolStamina 顯示)
+  // 6. 計算變化顯示
   const changes = [];
-  if (staminaCost > 0)
+
+  // 顯示對應的體力消耗
+  if (Game.isInSchool && schoolCost > 0) {
+    changes.push(`🏫精力 -${schoolCost}`);
+  } else if (!Game.isInSchool && staminaCost > 0) {
     changes.push(`${getStatName("stamina")} -${staminaCost}`);
-  if (schoolStaminaCost > 0) changes.push(`🏫精力 -${schoolStaminaCost}`); // 顯示變化
+  }
+
   if (realMoneyCost > 0)
     changes.push(`${getStatName("money")} -${realMoneyCost.toLocaleString()}`);
-  // 檢查屬性變化
+
+  // 屬性變化
   ["money", "health", "happy", "intel"].forEach((key) => {
     const diff = Game[key] - snapshot[key];
-    // 排除掉剛剛扣除的錢 (避免重複顯示)
-    if (key === "money" && diff === -realMoneyCost) return;
-
+    if (key === "money" && diff === -realMoneyCost) return; // 排除花費
     if (diff !== 0) {
-      changes.push(
-        `${getStatName(key)} ${diff > 0 ? "+" : ""}${key === "money" ? diff.toLocaleString() : diff}`,
-      );
+      const val = Math.floor(diff);
+      if (val !== 0)
+        changes.push(`${getStatName(key)} ${val > 0 ? "+" : ""}${val}`);
     }
   });
 
-  // 檢查技能變化
+  // 技能變化
   Object.keys(Game.skills).forEach((key) => {
     const diff = Game.skills[key] - snapshot.skills[key];
-    if (diff !== 0) {
+    if (diff !== 0)
       changes.push(`${getStatName(key)} ${diff > 0 ? "+" : ""}${diff}`);
-    }
   });
 
-  // 6. 記錄日誌與彈出提示
   log(`${act.name}：${resultMsg}`);
 
-  // 顯示數值變化浮動視窗 (只在有變化時顯示)
-  if (changes.length > 0) {
-    showChanges(changes);
-  }
+  if (changes.length > 0) showChanges(changes);
 
   updateUI();
-
   setTimeout(() => {
     isProcessing = false;
   }, 300);
@@ -1912,7 +1927,7 @@ function triggerOriginEvent() {
             txt: "追求真愛拒絕",
             effect: (g) => {
               g.happy += 10;
-              g.yearlyMoney /= 2;
+              g.yearlyMoney = Math.floor(g.yearlyMoney / 2);
               return "被削減皇室津貼，但心靈自由";
             },
           },
@@ -2722,16 +2737,16 @@ function renderChildrenList() {
 function updateInflation() {
   Game.yearsPassed++;
   if (Game.yearsPassed % 5 === 0) {
-    // 產生 0.0 ~ 3.0 之間的隨機數字 (例如 1.5, 2.7)
-    const percent = Math.random() * 3;
+    // ✅ 修改：降低通膨幅度
+    const percent = Math.random() * 1.3;
 
-    // 計算倍率 (例如 1.5% -> 0.015 -> 1.015)
+    // 計算倍率
     const multiplier = 1 + percent / 100;
 
     Game.inflationRate *= multiplier;
 
-    // 顯示時取小數點後 1 位，看起來比較整潔
-    log(`💸 物價上漲了 ${percent.toFixed(1)}%`);
+    // 顯示時取小數點後 2 位，因為數值變小了
+    log(`💸 物價上漲了 ${percent.toFixed(2)}%`);
   }
 }
 
@@ -2970,6 +2985,10 @@ function repayPersonalLoan() {
   }
 }
 function nextYear() {
+  // ✅ 新增：確認視窗
+  if (!confirm("確定要結束這一年，進入下一歲嗎？\n(未使用的體力將會歸零)")) {
+    return;
+  }
   // ===== 1. 防止重複執行 =====
   if (isProcessing) {
     console.log("⚠️ 正在處理中...");
@@ -3186,14 +3205,15 @@ function nextYear() {
     if (Game.relationships) {
       updateNPCLifecycle();
     }
-
     // ===== 8. 年度收入 =====
     const yearChanges = [];
 
     // 家庭年度收入
     if (Game.yearlyMoney > 0) {
-      Game.money += Game.yearlyMoney;
-      yearChanges.push(`+${Game.yearlyMoney.toLocaleString()} 💰 家庭收入`);
+      // ✅ 修改：確保加進去的是整數
+      const income = Math.floor(Game.yearlyMoney);
+      Game.money += income;
+      yearChanges.push(`+${income.toLocaleString()} 💰 家庭收入`);
     }
 
     // 房產被動收入
@@ -3201,6 +3221,7 @@ function nextYear() {
       if (typeof HOUSES !== "undefined") {
         const house = HOUSES.find((h) => h.id === item);
         if (house && house.passive) {
+          // ✅ 修改：這行原本已經有 Math.floor 了，保持原樣即可，確認一下
           const rent = Math.floor(house.passive * (Game.inflationRate || 1));
           Game.money += rent;
           yearChanges.push(
@@ -3210,26 +3231,41 @@ function nextYear() {
       }
     });
 
-    // ===== 9. 年度屬性衰減 =====
-    let baseHealthLoss = 5;
-    if (Game.age < 40) {
-      baseHealthLoss = 2;
-    } else if (Game.age >= 60) {
-      baseHealthLoss = 3;
-    } else if (Game.age >= 80) {
-      baseHealthLoss = 5;
+    // ===== 9. 年度屬性衰減 (非線性老化版) =====
+    // 基礎衰減：每年至少扣 2 點
+    let baseHealthLoss = 2;
+
+    // 📉 老化因子：(年齡 / 25) 的平方
+    // 25歲: +1 (共扣3) -> 年輕力壯
+    // 50歲: +4 (共扣6) -> 開始有感
+    // 75歲: +9 (共扣11) -> 老化明顯
+    // 100歲: +16 (共扣18) -> 非常吃力
+    let ageFactor = Math.floor(Math.pow(Game.age / 25, 2));
+
+    // 計算最終扣除值 (含天賦減免)
+    let actualHealthLoss = Math.floor(
+      (baseHealthLoss + ageFactor) * (Game.healthDecay || 1),
+    );
+
+    // 快樂值衰減 (年老孤獨感)
+    let happyLoss = Math.floor(3 * (Game.happyDecay || 1));
+    if (Game.age > 80) happyLoss += 2; // 80歲後心情更容易低落
+
+    // 執行扣除
+    Game.health -= actualHealthLoss;
+    Game.happy -= happyLoss;
+
+    // 👴 老化提示 (如果扣太多就警告玩家)
+    if (actualHealthLoss > 10) {
+      log(`👴 身體機能明顯衰退，健康 -${actualHealthLoss}`);
     }
 
-    let actualHealthLoss = Math.floor(baseHealthLoss * (Game.healthDecay || 1));
-    Game.health -= actualHealthLoss;
-    Game.happy -= Math.floor(3 * (Game.happyDecay || 1));
-
-    // 快樂值過高計數
+    // 快樂值過高計數 (保持不變)
     if (Game.happy > 80) {
       Game.happyYears++;
     }
 
-    // 顯示年度總結
+    // 顯示年度總結 (保持不變)
     if (yearChanges.length > 0) {
       log(`🎂 ${Game.age} 歲：${yearChanges.join("、")}`);
     }
@@ -4473,26 +4509,33 @@ function selectJob(jobId) {
 function renderSocial() {
   let html = "";
 
-  // === NPC 列表 ===
-  if (Game.npcs && Game.npcs.length > 0) {
+  // 1. 合併家人與朋友列表進行顯示
+  let allNPCs = [...(Game.npcs || []), ...(Game.relationships || [])];
+
+  // 排序優化：活著的排前面，已故的排後面
+  allNPCs.sort((a, b) => {
+    if (a.isDead && !b.isDead) return 1;
+    if (!a.isDead && b.isDead) return -1;
+    return 0;
+  });
+
+  if (allNPCs.length > 0) {
     html += '<div style="margin-bottom: 20px;">';
     html +=
       '<h3 style="color: var(--gold); margin-bottom: 10px;">👥 人際關係</h3>';
 
-    Game.npcs.forEach((npc) => {
-      // 計算顏色
-      const relationColor =
-        npc.relation >= 80
-          ? "var(--green)"
-          : npc.relation >= 50
-            ? "var(--blue)"
-            : npc.relation >= 30
-              ? "var(--orange)"
-              : "var(--red)";
-
-      // 設定圖示
+    allNPCs.forEach((npc) => {
+      // 設定基本圖示與稱呼
       let typeIcon = "👤";
       let typeName = "朋友";
+      if (npc.type === "parent") {
+        typeIcon = "👪";
+        typeName = "父母";
+      }
+      if (npc.type === "grandparent") {
+        typeIcon = "👴";
+        typeName = "祖父母";
+      }
       if (npc.type === "romantic") {
         typeIcon = "💕";
         typeName = "曖昧對象";
@@ -4514,62 +4557,91 @@ function renderSocial() {
         typeName = "同學";
       }
 
-      // 互動按鈕邏輯
-      let actionButtons = `
-        <button class="btn-job" style="flex: 1; min-width: 80px; padding: 8px; font-size: 0.85em;" onclick="interactWithNPC('${npc.id}', 'chat')">💬 閒聊</button>
-        <button class="btn-job" style="flex: 1; min-width: 80px; padding: 8px; font-size: 0.85em;" onclick="interactWithNPC('${npc.id}', 'gift')">🎁 送禮</button>
-      `;
-
-      if (npc.type === "romantic" || npc.type === "lover") {
-        actionButtons += `<button class="btn-buy" style="flex: 1; min-width: 80px; padding: 8px; font-size: 0.85em;" onclick="interactWithNPC('${npc.id}', 'date')">💕 約會</button>`;
-      }
-      if (npc.type === "lover" && npc.relation >= 90) {
-        actionButtons += `<button class="btn-main" style="flex: 1; min-width: 100px; padding: 8px; font-size: 0.85em;" onclick="proposeMarriage('${npc.id}')">💍 求婚</button>`;
-      }
-
-      // 修正：直接使用 html 變數串接，不要用未定義的 npcHtml
-      html += `
-        <div class="job-card" style="cursor: default;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <div style="font-size: 1.1em; font-weight: bold; color: var(--gold);">
-                        ${typeIcon} ${npc.name}
+      // ✅ 判斷是否已故
+      if (npc.isDead) {
+        // === ⚰️ 已故樣式 (灰色、無法互動) ===
+        html += `
+            <div class="job-card" style="cursor: default; opacity: 0.6; filter: grayscale(100%); border: 1px solid #555;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 1.1em; font-weight: bold; color: #888;">
+                            ⚰️ ${npc.name} (已故)
+                        </div>
+                        <div style="font-size: 0.85em; color: #666; margin-top: 3px;">
+                            ${typeName} (${npc.role || ""}) | 享年 ${npc.age}歲
+                        </div>
                     </div>
-                    <div style="font-size: 0.85em; color: var(--text-dim); margin-top: 3px;">
-                        ${typeName} | ${npc.age}歲
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="color: ${relationColor}; font-weight: bold;">
-                        💗 ${npc.relation}
+                    <div style="text-align: right;">
+                        <div style="color: #888; font-weight: bold; font-size: 0.9em;">R.I.P.</div>
                     </div>
                 </div>
             </div>
-            <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
-                ${actionButtons}
+          `;
+      } else {
+        // === 😊 活著的樣式 (正常顯示與互動) ===
+        const relationColor =
+          npc.relation >= 80
+            ? "var(--green)"
+            : npc.relation >= 50
+              ? "var(--blue)"
+              : npc.relation >= 30
+                ? "var(--orange)"
+                : "var(--red)";
+
+        let actionButtons = `
+            <button class="btn-job" style="flex: 1; min-width: 80px; padding: 8px; font-size: 0.85em;" onclick="interactWithNPC('${npc.id}', 'chat')">💬 閒聊</button>
+            <button class="btn-job" style="flex: 1; min-width: 80px; padding: 8px; font-size: 0.85em;" onclick="interactWithNPC('${npc.id}', 'gift')">🎁 送禮</button>
+          `;
+
+        // 特殊按鈕
+        if (npc.type === "romantic" || npc.type === "lover") {
+          actionButtons += `<button class="btn-buy" style="flex: 1; min-width: 80px; padding: 8px; font-size: 0.85em;" onclick="interactWithNPC('${npc.id}', 'date')">💕 約會</button>`;
+        }
+        if (npc.type === "lover" && npc.relation >= 90) {
+          actionButtons += `<button class="btn-main" style="flex: 1; min-width: 100px; padding: 8px; font-size: 0.85em;" onclick="proposeMarriage('${npc.id}')">💍 求婚</button>`;
+        }
+
+        html += `
+            <div class="job-card" style="cursor: default;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 1.1em; font-weight: bold; color: var(--gold);">
+                            ${typeIcon} ${npc.name}
+                        </div>
+                        <div style="font-size: 0.85em; color: var(--text-dim); margin-top: 3px;">
+                            ${typeName} (${npc.role || ""}) | ${npc.age}歲
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="color: ${relationColor}; font-weight: bold;">
+                            💗 ${npc.relation}
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
+                    ${actionButtons}
+                </div>
             </div>
-        </div>
-      `;
+          `;
+      }
     });
     html += "</div>";
   }
 
-  // === 固定關係 (父母等) ===
-  if (Game.relationships.length > 0) {
-    // ... (你可以保留原本處理 relationships 的代碼，或者簡化顯示)
-    // 這裡為了避免錯誤，確保主要邏輯正確即可
-  }
-
-  if (!html && Game.relationships.length === 0) {
+  if (!html) {
     html =
       '<div style="color: var(--text-dim); text-align: center; padding: 20px;">還沒有任何人際關係</div>';
   }
 
-  // 交友軟體按鈕區域
+  // 交友軟體按鈕 (過濾掉已故伴侶)
   const hasPartner =
     Game.relationships.some(
-      (r) => r.type === "partner" || r.type === "spouse",
-    ) || Game.npcs.some((n) => n.type === "lover" || n.type === "spouse");
+      (r) => (r.type === "partner" || r.type === "spouse") && !r.isDead,
+    ) ||
+    Game.npcs.some(
+      (n) => (n.type === "lover" || n.type === "spouse") && !n.isDead,
+    );
+
   document.getElementById("find-partner-area").style.display =
     Game.age >= 18 && !hasPartner ? "block" : "none";
 
@@ -4683,95 +4755,99 @@ function giveGiftToNPC(npcId) {
 }
 
 // NPC 更新生命周期
+
 function updateNPCLifecycle() {
   // 定義處理單個 NPC 的邏輯
   const processNPC = (npc, list, index) => {
     if (!npc) return false;
-    
-    // 初始化
-    if (typeof npc.age === 'undefined') npc.age = 50;
-    if (typeof npc.health === 'undefined') npc.health = 100;
 
-    // 1. 年齡增長
+    // ✅ 1. 如果已經過世，就跳過所有老化與判定，直接保留在清單中
+    if (npc.isDead) return false;
+
+    // 初始化
+    if (typeof npc.age === "undefined") npc.age = 50;
+    if (typeof npc.health === "undefined") npc.health = 100;
+
+    // 2. 年齡增長
     npc.age++;
 
-    // 2. 健康衰減 (年紀越大扣越多)
-    let healthDecay = 2; 
+    // 3. 健康衰減 (年紀越大扣越多)
+    let healthDecay = 2;
     if (npc.age > 60) healthDecay = 4;
     if (npc.age > 70) healthDecay = 6;
     if (npc.age > 80) healthDecay = 10;
-    
+
     npc.health -= healthDecay;
 
-    // 3. 生病判定
+    // 4. 生病判定
     if (npc.health < 40 && npc.health > 0 && !npc.isSick) {
       npc.isSick = true;
-      log(`🏥 ${npc.name} (${npc.role || '朋友'}) 生病了 (健康: ${npc.health})`);
+      log(
+        `🏥 ${npc.name} (${npc.role || "朋友"}) 生病了 (健康: ${npc.health})`,
+      );
     }
 
-    // 4. 死亡判定
-    // 80歲後每年增加 5% 自然死亡率，或健康歸零時死亡
-    const naturalDeathChance = npc.age > 80 ? (npc.age - 80) * 0.05 : 0; 
-    
+    // 5. 死亡判定
+    const naturalDeathChance = npc.age > 80 ? (npc.age - 80) * 0.05 : 0;
+
     if (npc.health <= 0 || Math.random() < naturalDeathChance) {
-      handleNPCDeath(npc); // ✅ 呼叫剛剛新增的遺產處理函式
-      list.splice(index, 1); // 從清單移除
-      return true; // 代表已移除
+      // ✅ 標記為死亡，觸發事件，但「不」從清單中移除
+      npc.isDead = true;
+      npc.health = 0; // 確保健康歸零
+
+      handleNPCDeath(npc); // 呼叫遺產與通知函數
+
+      // list.splice(index, 1); // ❌ 絕對不要有這行！我們不刪除他了
+      return false;
     }
     return false;
   };
 
-  // ✅ 1. 處理家人與導師 (Game.npcs) - 從後往前迴圈
+  // 處理家人 (Game.npcs)
   if (Game.npcs) {
     for (let i = Game.npcs.length - 1; i >= 0; i--) {
       processNPC(Game.npcs[i], Game.npcs, i);
     }
   }
 
-  // ✅ 2. 處理朋友與伴侶 (Game.relationships)
+  // 處理朋友 (Game.relationships)
   if (Game.relationships) {
     for (let i = Game.relationships.length - 1; i >= 0; i--) {
-      const npc = Game.relationships[i];
-      // 跳過配偶和子女 (他們通常有另外的邏輯，或也可在此處理)
-      if (npc.type === 'spouse' || npc.type === 'child') {
-          npc.age++; 
-          continue; 
-      }
-      processNPC(npc, Game.relationships, i);
+      processNPC(Game.relationships[i], Game.relationships, i);
     }
   }
 }
 
 // ✅ 新增：處理 NPC 死亡與遺產的函數 (包含通知視窗)
 function handleNPCDeath(npc) {
-    // 1. 扣除快樂值
-    Game.happy -= 20; 
-    
-    // 2. 判斷是否為直系親屬 (父母、祖父母)
-    if (npc.type === 'parent' || npc.type === 'grandparent') {
-        let heritage = 0;
+  // 1. 扣除快樂值
+  Game.happy -= 20;
 
-        // 3. 根據出身計算遺產金額
-        if (Game.originId === 'rich' || Game.originId === 'royal') {
-            heritage = 50000000 + Math.floor(Math.random() * 50000000); // 5000萬~1億
-        } else if (Game.originId === 'common') {
-            heritage = 2000000 + Math.floor(Math.random() * 3000000); // 200萬~500萬
-        } else if (Game.originId === 'mafia' || Game.originId === 'politician') {
-            heritage = 10000000 + Math.floor(Math.random() * 20000000); // 1000萬~3000萬
-        } else {
-            heritage = 500000 + Math.floor(Math.random() * 1000000); // 50萬~150萬
-        }
+  // 2. 判斷是否為直系親屬 (父母、祖父母)
+  if (npc.type === "parent" || npc.type === "grandparent") {
+    let heritage = 0;
 
-        // 4. 加上通膨影響
-        heritage = Math.floor(heritage * (Game.inflationRate || 1));
+    // 3. 根據出身計算遺產金額
+    if (Game.originId === "rich" || Game.originId === "royal") {
+      heritage = 50000000 + Math.floor(Math.random() * 50000000); // 5000萬~1億
+    } else if (Game.originId === "common") {
+      heritage = 2000000 + Math.floor(Math.random() * 3000000); // 200萬~500萬
+    } else if (Game.originId === "mafia" || Game.originId === "politician") {
+      heritage = 10000000 + Math.floor(Math.random() * 20000000); // 1000萬~3000萬
+    } else {
+      heritage = 500000 + Math.floor(Math.random() * 1000000); // 50萬~150萬
+    }
 
-        // 5. 發放遺產
-        Game.money += heritage;
+    // 4. 加上通膨影響
+    heritage = Math.floor(heritage * (Game.inflationRate || 1));
 
-        // 6. ✅ 彈出通知視窗 (這裡就是您關心的部分)
-        showModal(
-            "🕯️ 告別親人",
-            `
+    // 5. 發放遺產
+    Game.money += heritage;
+
+    // 6. ✅ 彈出通知視窗 (這裡就是您關心的部分)
+    showModal(
+      "🕯️ 告別親人",
+      `
             <div style="text-align: center; line-height: 1.6;">
                 <div style="font-size: 3em; margin-bottom: 10px;">⚰️</div>
                 <div style="color: #ddd;">你的 <b>${npc.name}</b> (${npc.role}) 離開了人世...</div>
@@ -4783,27 +4859,30 @@ function handleNPCDeath(npc) {
                 </div>
             </div>
             `,
-            [
-                { text: "R.I.P. 謝謝您的養育", action: () => {
-                    closeModal();
-                    updateUI(); // 記得更新介面顯示金錢變化
-                }}
-            ]
-        );
-        
-        log(`⚰️ ${npc.name} 去世了，獲得遺產 $${heritage.toLocaleString()}`);
+      [
+        {
+          text: "R.I.P. 謝謝您的養育",
+          action: () => {
+            closeModal();
+            updateUI(); // 記得更新介面顯示金錢變化
+          },
+        },
+      ],
+    );
 
-    } else if (npc.relation >= 80) {
-        // 好朋友過世的通知 (沒有遺產)
-        showModal("😢 摯友離世", 
-            `<div style="text-align:center;">你的好友 <b>${npc.name}</b> 離開了...<br>享年 ${npc.age} 歲。<br><br><span style="color:#aaa; font-style:italic;">"謝謝你陪伴我的人生旅程"</span></div>`, 
-            [{ text: "懷念他", action: () => closeModal() }]
-        );
-        log(`💀 好友 ${npc.name} 去世了。`);
-    } else {
-        // 普通 NPC 過世 (只寫日誌，不彈窗打擾)
-        log(`💀 ${npc.name} (${npc.role}) 去世了。`);
-    }
+    log(`⚰️ ${npc.name} 去世了，獲得遺產 $${heritage.toLocaleString()}`);
+  } else if (npc.relation >= 80) {
+    // 好朋友過世的通知 (沒有遺產)
+    showModal(
+      "😢 摯友離世",
+      `<div style="text-align:center;">你的好友 <b>${npc.name}</b> 離開了...<br>享年 ${npc.age} 歲。<br><br><span style="color:#aaa; font-style:italic;">"謝謝你陪伴我的人生旅程"</span></div>`,
+      [{ text: "懷念他", action: () => closeModal() }],
+    );
+    log(`💀 好友 ${npc.name} 去世了。`);
+  } else {
+    // 普通 NPC 過世 (只寫日誌，不彈窗打擾)
+    log(`💀 ${npc.name} (${npc.role}) 去世了。`);
+  }
 }
 
 // NPC 生病事件
@@ -5464,27 +5543,43 @@ function renderMap() {
 // 🚕 移動邏輯
 // game.js - 替換原本的 travelTo
 
+// game.js - 修正 travelTo 函式 (鎖定上學期間的移動)
+
 function travelTo(locId) {
   if (locId === Game.currentLocation) return;
+
+  // ✅ 1. 新增防呆：上學期間禁止離開學校
   if (Game.isInSchool) {
-      return showPopup("🚫 上課期間不能離開學校！請等放學。", "orange");
+    if (typeof showPopup === "function") {
+      showPopup("🚫 上課期間無法離開學校！\n請先按「放學回家」。", "orange");
+    } else {
+      alert("🚫 上課期間無法離開學校！\n請先按「放學回家」。");
+    }
+    return; // 直接中斷，不執行移動
   }
+
   const travelCost = 10;
 
   if (Game.stamina < travelCost) {
-    return showPopup("❌ 體力不足，無法移動！", "red");
+    if (typeof showPopup === "function") {
+      return showPopup("❌ 體力不足，無法移動！", "red");
+    } else {
+      return alert("❌ 體力不足，無法移動！");
+    }
   }
 
-  const targetName = LOCATIONS.find((l) => l.id === locId).name;
+  // 確保 LOCATIONS 資料存在
+  const targetLoc = LOCATIONS.find((l) => l.id === locId);
+  const targetName = targetLoc ? targetLoc.name : "未知地點";
 
   if (confirm(`要前往【${targetName}】嗎？\n(消耗 ${travelCost} 體力)`)) {
     Game.stamina -= travelCost;
     Game.currentLocation = locId;
 
-    // ✨ 顯示移動消耗 (中文)
+    // 顯示移動消耗
     const changes = [`${getStatName("stamina")} -${travelCost}`];
 
-    // 🎲 移動隨機事件
+    // 🎲 移動隨機事件 (15%機率)
     if (Math.random() < 0.15) {
       const event = Math.random();
       if (event < 0.5) {
@@ -5498,9 +5593,12 @@ function travelTo(locId) {
       }
     }
 
-    showChanges(changes); // 彈出浮動提示
+    if (typeof showChanges === "function") {
+      showChanges(changes);
+    }
+
     updateUI();
-    renderMap();
+    renderMap(); // 重新渲染地圖以更新按鈕
   }
 }
 
@@ -5569,39 +5667,37 @@ function renderLocationButtons(locId) {
       actionIds = ["see_doctor", "rehab", "gym"];
       break;
     case "school":
+
+      // 1. 教育選單 (入學/升學)
+     case "school":
       // 1. 教育選單 (入學/升學)
       container.innerHTML += `<button class="btn-main" onclick="showEducationMenu()">🎓 教務處 (入學/升學)</button>`;
 
-      // 2. 指定技能進修 (新功能)
+      // ✅ 修改：根據是否在學校，決定顯示的圖示 (🏫 或 ⚡)
+      const stIcon = Game.isInSchool ? "🏫" : "⚡";
+
+      // 2. 指定技能進修 (顯示正確的消耗圖示)
       container.innerHTML += `
           <button class="btn-main" style="background: linear-gradient(135deg, #667eea, #764ba2);" onclick="showSkillSelection()">
-              📖 報名進修課程 <span class="cost-tag">⚡-30 / 💸-$5,000</span>
+              📖 報名進修課程 <span class="cost-tag">${stIcon}-30 / 💸-$5,000</span>
           </button>`;
 
-      // 3. 學生專屬功能
-      if (Game.isStudying) {
-        actionIds.push("attend_class", "school_lunch");
-      }
-      break;
+      // ✅ 修改：認識新同學 (顯示正確的消耗圖示)
+      container.innerHTML += `
+          <button class="btn-main" style="background: linear-gradient(135deg, #FF9800, #F57C00);" onclick="meetClassmate()">
+              👋 認識新同學 <span class="cost-tag">${stIcon}-15</span>
+          </button>`;
 
-    // ✅ 新增：圖書館 (重點功能：閱讀、自習)
-    case "library":
-      // 自習 (原本 data.js 裡的 library 動作就是自習，加智力)
-      actionIds.push("library"); 
-      
-      // 如果是學生，讀書效果更好或有額外選項 (這裡暫時共用 library 動作)
-      break;
-    case "temple":
-      actionIds = ["pray_god", "volunteer"];
-      break;
-    case "park":
-      actionIds = ["sports", "meet_friend"]; // meet_friend 是特殊函數，稍後手動加
-      break;
-    case "club_area":
-      actionIds = ["night_club_map", "casino_map", "socialize"];
-      break;
-    case "airport":
-      actionIds = ["travel"];
+      // 3. 學生專屬功能 (區分義務教育與大學)
+      if (Game.isInSchool) {
+          // === 🎒 義務教育 (消耗學校精力) ===
+          // 這些動作 id 對應到 data.js 裡面的 _school 版本
+          actionIds.push("attend_class_school", "school_lunch_school");
+      } else if (Game.isStudying) {
+          // === 🎓 大學/研究所 (消耗一般體力) ===
+          // 這些動作 id 對應到 data.js 裡面的原版
+          actionIds.push("attend_class", "school_lunch");
+      }
       break;
   }
 
@@ -5617,13 +5713,20 @@ function renderLocationButtons(locId) {
     }
 
     if (act) {
-      // 計算顯示的消耗文字
+      // 1. 計算顯示的消耗文字 (這部分保持不變)
       const staminaCost = act.cost?.stamina || 0;
+      const schoolCost = act.cost?.schoolStamina || 0; // 讀取學校精力
       const moneyCost = act.cost?.money || 0;
 
       let costText = "";
-      if (staminaCost > 0) costText += `⚡-${staminaCost} `;
-      else if (staminaCost < 0) costText += `⚡+${Math.abs(staminaCost)} `; // 負消耗=恢復
+      // 根據是否在學校，顯示不同的消耗提示
+      if (Game.isInSchool && schoolCost > 0) {
+          costText += `🏫-${schoolCost} `;
+      } else if (staminaCost > 0) {
+          costText += `⚡-${staminaCost} `;
+      } else if (staminaCost < 0) {
+          costText += `⚡+${Math.abs(staminaCost)} `;
+      }
 
       if (moneyCost > 0) {
         const realCost = getInflatedPrice(moneyCost);
@@ -5634,12 +5737,33 @@ function renderLocationButtons(locId) {
         costText += `💸-${costDisplay}`;
       }
 
-      // 判斷是否禁用
+      // === ✅ 修改這裡：合併並替換舊的禁用邏輯 ===
+      // (請確保這裡只有一次 let disabled 的宣告)
+      
       let disabled = "";
       let style = "";
-      if (Game.stamina < staminaCost && staminaCost > 0) {
-        disabled = "disabled";
-        style = "opacity:0.5;";
+
+      // 1. 檢查條件 (例如：營養午餐只能吃一次)
+      if (act.condition && !act.condition(Game)) {
+          disabled = "disabled";
+          style = "opacity: 0.5; cursor: not-allowed; filter: grayscale(1);"; 
+      }
+      
+      // 2. 檢查精力/體力 (如果不符合條件就不用檢查體力了)
+      if (!disabled) {
+          if (Game.isInSchool) {
+              // 學校模式：檢查學校精力
+              if (schoolCost > 0 && Game.schoolStamina < schoolCost) {
+                  disabled = "disabled";
+                  style = "opacity: 0.5; cursor: not-allowed;";
+              }
+          } else {
+              // 一般模式：檢查一般體力
+              if (staminaCost > 0 && Game.stamina < staminaCost) {
+                  disabled = "disabled";
+                  style = "opacity:0.5;";
+              }
+          }
       }
 
       html += `
@@ -5702,7 +5826,56 @@ function meetFriend() {
   updateUI();
   setTimeout(() => (isProcessing = false), 300);
 }
-// game.js - 新增於任意位置
+
+// 👋 學校認識新同學
+function meetClassmate() {
+  const cost = 15; 
+  // 1. 檢查體力
+  if (Game.schoolStamina < cost) return showPopup("❌ 學校精力不足！", "orange");
+  if (isProcessing) return;
+
+  // 2. 扣除消耗
+  Game.schoolStamina -= cost; // 這裡確定是學校功能，直接扣學校精力
+  isProcessing = true;
+
+  // 3. 機率判定 (40% 機率遇到)
+  if (Math.random() < 0.4) {
+    // 使用系統內建的 addNPC 生成 "classmate" 類型的 NPC
+    // (data.js 裡已經有設定好 classmate 的姓名庫了)
+    const npc = addNPC("classmate");
+
+    if (npc) {
+      // 彈出視窗通知
+      showModal(
+        "👋 校園邂逅",
+        `<div style="text-align:center;">
+                <div style="font-size:3em; margin-bottom:10px;">🎒</div>
+                你在走廊上遇到了 <b>${npc.name}</b>。<br>
+                <div style="font-size:0.9em; color:#aaa; margin-top:5px;">看起來你們很聊得來！</div>
+                <div style="color:var(--green); font-weight:bold; margin-top:5px;">好友度: ${npc.relation}</div>
+             </div>`,
+        [{ text: "打個招呼", action: () => closeModal() }],
+      );
+      // addNPC 內部已經會寫入 log，所以這裡不用重複寫
+    } else {
+      // 防呆：如果 data.js 沒設定好
+      log("🤔 好像沒看到什麼人...", ["⚡-15"]);
+    }
+  } else {
+    // 沒遇到的情況
+    const failMsgs = [
+      "🏫 在校園裡晃了一圈，沒遇到認識的人。",
+      "👀 大家都行色匆匆，沒機會搭話。",
+      "🍃 風吹過走廊，只有你一個人。",
+      "📚 大家都在埋頭苦讀，不好意思打擾。",
+    ];
+    const msg = failMsgs[Math.floor(Math.random() * failMsgs.length)];
+    log(msg, ["⚡-15"]);
+  }
+
+  updateUI();
+  setTimeout(() => (isProcessing = false), 300);
+}
 
 // 🎒 開始上學：鎖定地點，切換精力條
 function startSchoolDay() {
@@ -5710,7 +5883,7 @@ function startSchoolDay() {
   Game.currentLocation = "school"; // 強制移動到學校
   Game.schoolStamina = Game.maxSchoolStamina; // 補滿學校精力
   Game.stamina = 0; // 暫時歸零一般體力 (放學才給)
-
+  Game.hasEatenLunch = false; 
   log("🏫 早上到了，揹著書包去學校上學！");
 
   // 強制更新動作列表為學校動作
@@ -5738,82 +5911,151 @@ function endSchoolDay() {
 
 // 📖 顯示技能進修選單
 function showSkillSelection() {
-    // 定義技能與對應圖示
-    const skillsMap = {
-        programming: { name: "程式設計", icon: "💻" },
-        art: { name: "藝術創作", icon: "🎨" },
-        finance: { name: "金融理財", icon: "📈" },
-        communication: { name: "溝通表達", icon: "🗣️" },
-        medical: { name: "醫療護理", icon: "⚕️" },
-        cooking: { name: "烹飪料理", icon: "🍳" },
-        leadership: { name: "領導統御", icon: "🚩" },
-        management: { name: "企業管理", icon: "💼" }
-    };
+  // 定義技能與對應圖示
+  const skillsMap = {
+    programming: { name: "程式設計", icon: "💻" },
+    art: { name: "藝術創作", icon: "🎨" },
+    finance: { name: "金融理財", icon: "📈" },
+    communication: { name: "溝通表達", icon: "🗣️" },
+    medical: { name: "醫療護理", icon: "⚕️" },
+    cooking: { name: "烹飪料理", icon: "🍳" },
+    leadership: { name: "領導統御", icon: "🚩" },
+    management: { name: "企業管理", icon: "💼" },
+  };
 
-    let html = `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">`;
+  let html = `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">`;
 
-    Object.keys(skillsMap).forEach(key => {
-        const skill = skillsMap[key];
-        const currentVal = Game.skills[key] || 0;
-        
-        html += `
+  Object.keys(skillsMap).forEach((key) => {
+    const skill = skillsMap[key];
+    const currentVal = Game.skills[key] || 0;
+
+    html += `
             <button onclick="learnSelectedSkill('${key}', '${skill.name}')" class="btn-job" style="padding: 12px 5px;">
                 <div style="font-size: 1.5em; margin-bottom: 5px;">${skill.icon}</div>
                 <div style="font-weight:bold;">${skill.name}</div>
                 <div style="font-size:0.8em; color:#ddd; margin-top:2px;">Lv. ${currentVal}</div>
             </button>
         `;
-    });
+  });
 
-    html += `</div>
+  html += `</div>
              <div style="margin-top:15px; padding:10px; background:rgba(0,0,0,0.3); border-radius:8px; font-size:0.9em; color:#aaa; text-align:center;">
                 每次進修消耗：<span style="color:var(--blue)">30 體力</span> + <span style="color:var(--gold)">$5,000</span><br>
                 效果：該技能 +3~5 (受天賦影響)
              </div>`;
 
-    showModal("📖 選擇進修課程", html, [
-        { text: "取消", action: () => closeModal() }
-    ]);
+  showModal("📖 選擇進修課程", html, [
+    { text: "取消", action: () => closeModal() },
+  ]);
 }
 
 // 📚 執行學習特定技能
 function learnSelectedSkill(skillKey, skillName) {
-    // 1. 檢查成本
-    const staminaCost = 30;
-    const moneyCost = 5000;
+  // 1. 檢查成本
+  const staminaCost = 30;
+  const moneyCost = 5000;
 
-    if (Game.stamina < staminaCost) return showPopup("❌ 體力不足！", "red");
-    if (Game.money < moneyCost) return showPopup("💸 學費不足 ($5,000)", "red");
+  if (Game.stamina < staminaCost) return showPopup("❌ 體力不足！", "red");
+  if (Game.money < moneyCost) return showPopup("💸 學費不足 ($5,000)", "red");
 
-    // 2. 扣除成本
-    Game.stamina -= staminaCost;
-    Game.money -= moneyCost;
-    Game.totalActions++;
+  // 2. 扣除成本
+  Game.stamina -= staminaCost;
+  Game.money -= moneyCost;
+  Game.totalActions++;
 
-    // 3. 計算成長值 (基礎 3 點 + 浮動 + 天賦加成)
-    let gain = 3 + Math.floor(Math.random() * 3); // 3~5 點
+  // 3. 計算成長值 (基礎 3 點 + 浮動 + 天賦加成)
+  let gain = 3 + Math.floor(Math.random() * 3); // 3~5 點
+
+  // 應用加成
+  if (Game.skillBonus) gain = Math.floor(gain * Game.skillBonus);
+  if (Game.learnBonus) gain = Math.floor(gain * Game.learnBonus); // 聰明人學得快
+
+  // 特殊天賦加成
+  if (
+    skillKey === "programming" &&
+    Game.traits.some((t) => t.id === "techsavvy")
+  )
+    gain += 2;
+  if (skillKey === "art" && Game.traits.some((t) => t.id === "artistic"))
+    gain += 2;
+  // ... 其他特質可依此類推
+
+  Game.skills[skillKey] += gain;
+
+  // 4. 記錄與回饋
+  log(`📖 參加了${skillName}課程，技能大幅提升！`, [
+    `⚡ -${staminaCost}`,
+    `💸 -$${moneyCost.toLocaleString()}`,
+    `📊 ${skillName} +${gain}`,
+  ]);
+
+  // 5. 更新介面
+  closeModal(); // 關閉選單
+  updateUI();
+  showChanges([`${skillName} +${gain}`]); // 顯示浮動數值
+}
+// 🎵 音樂歌單設定 (請在這裡填入你的音樂檔名)
+const PLAYLIST = [
+    "bgm1.mp3",
+    "bgm2.mp3",
+    "bgm3.mp3",
+    "bgm4.mp3",
+    "bgm5.mp3",
+    "bgm6.mp3",
+    "bgm7.mp3",
+    "bgm8.mp3" 
+];
+
+let currentSongIndex = 0; // 目前播放第幾首
+
+// 音樂開關控制
+function toggleMusic() {
+    const audio = document.getElementById("bgm-player");
+    const btn = document.getElementById("music-toggle-btn");
     
-    // 應用加成
-    if (Game.skillBonus) gain = Math.floor(gain * Game.skillBonus);
-    if (Game.learnBonus) gain = Math.floor(gain * Game.learnBonus); // 聰明人學得快
+    if (audio.paused) {
+        // 如果還沒設定過 src (剛開啟時)，先設定第一首
+        if (!audio.src || audio.src === "") {
+            audio.src = PLAYLIST[currentSongIndex];
+        }
+        
+        audio.play().then(() => {
+            btn.innerHTML = "🎵";
+            btn.classList.remove("muted");
+        }).catch(e => {
+            console.log("播放失敗:", e);
+        });
+    } else {
+        audio.pause();
+        btn.innerHTML = "🔇";
+        btn.classList.add("muted");
+    }
+}
+
+// ✅ 新增：切換下一首
+function nextMusic() {
+    const audio = document.getElementById("bgm-player");
+    const btn = document.getElementById("music-toggle-btn");
+
+    // 1. 計算下一首的索引 (循環播放)
+    currentSongIndex++;
+    if (currentSongIndex >= PLAYLIST.length) {
+        currentSongIndex = 0;
+    }
+
+    // 2. 切換來源
+    audio.src = PLAYLIST[currentSongIndex];
     
-    // 特殊天賦加成
-    if (skillKey === 'programming' && Game.traits.some(t => t.id === 'techsavvy')) gain += 2;
-    if (skillKey === 'art' && Game.traits.some(t => t.id === 'artistic')) gain += 2;
-    // ... 其他特質可依此類推
-
-    Game.skills[skillKey] += gain;
-
-    // 4. 記錄與回饋
-    log(`📖 參加了${skillName}課程，技能大幅提升！`, [
-        `⚡ -${staminaCost}`,
-        `💸 -$${moneyCost.toLocaleString()}`,
-        `📊 ${skillName} +${gain}`
-    ]);
-
-    // 5. 更新介面
-    closeModal(); // 關閉選單
-    updateUI();
-    showChanges([`${skillName} +${gain}`]); // 顯示浮動數值
+    // 3. 播放並更新按鈕狀態
+    audio.play().then(() => {
+        btn.innerHTML = "🎵";
+        btn.classList.remove("muted");
+        
+        // 顯示浮動提示告訴玩家換歌了
+        if(typeof showPopup === 'function') {
+            showPopup(`🎵 切換音樂：${PLAYLIST[currentSongIndex]}`, "blue");
+        }
+        
+    }).catch(e => console.log("切換失敗:", e));
 }
 initCreation();

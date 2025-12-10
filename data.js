@@ -3164,166 +3164,90 @@ const MAJORS = {
     },
   ],
 };
+// data.js
+
 const CARS = [
-  { id: "car1", name: "二手代步車", price: 300000, charm: 2, desc: "能動就好" },
-  {
-    id: "car2",
-    name: "Toyota Altis",
-    price: 900000,
-    charm: 5,
-    desc: "神車，省油好開",
-  },
-  {
-    id: "car3",
-    name: "Tesla Model 3",
-    price: 1700000,
-    charm: 15,
-    desc: "科技新貴的最愛",
-  },
-  {
-    id: "car4",
-    name: "BMW 5系列",
-    price: 3200000,
-    charm: 25,
-    desc: "成功的象徵",
-  },
-  {
-    id: "car5",
-    name: "Porsche 911",
-    price: 8500000,
-    charm: 45,
-    desc: "男人的夢想",
-  },
-  {
-    id: "car6",
-    name: "Ferrari F8",
-    price: 18000000,
-    charm: 80,
-    desc: "頂級超跑",
-  },
+  // === 二輪與代步 ===
+  { id: "ubike", name: "U-Bike 年票", price: 3000, health: 2, desc: "環保健身，雖然下雨會淋濕" },
+  { id: "scooter", name: "電動機車", price: 80000, charm: 1, desc: "城市穿梭，換電方便" },
+  { id: "heavy_bike", name: "紅牌重機", price: 600000, charm: 10, desc: "追風少年的夢想，這才是男人的浪漫" },
+  
+  // === 平民與實用 ===
+  { id: "car1", name: "二手代步車", price: 250000, charm: 2, desc: "冷氣會冷，能動就好" },
+  { id: "car2", name: "國民神車 Altis", price: 850000, charm: 5, desc: "省油好開，二手價超硬" },
+  { id: "van", name: "商用貨車", price: 1200000, desc: "創業好夥伴，耐操好用", effect: (g) => { g.incomeBonus *= 1.05; return "載貨方便，工作效率提升！(收入+5%)"; }},
+  { id: "suv", name: "家庭休旅車", price: 2200000, charm: 12, happy: 5, desc: "全家出遊首選，空間大" },
+  
+  // === 豪華與性能 ===
+  { id: "car3", name: "Tesla Model 3", price: 1800000, charm: 15, intel: 5, desc: "科技新貴標配，自動駕駛" },
+  { id: "car4", name: "BMW 5系列", price: 3500000, charm: 25, desc: "成功的象徵，操控性極佳" },
+  { id: "camper", name: "豪華露營車", price: 5000000, charm: 30, happy: 20, desc: "帶著家去旅行，隨處可棲" },
+  
+  // === 頂級與夢幻 ===
+  { id: "car5", name: "Porsche 911", price: 9000000, charm: 50, desc: "經典跑車，保值性佳" },
+  { id: "g_class", name: "Benz G-Class", price: 12000000, charm: 60, desc: "硬派越野，大哥的座駕" },
+  { id: "car6", name: "Ferrari F8", price: 18000000, charm: 85, desc: "義大利紅鬃烈馬，聲浪迷人" },
+  { id: "rolls", name: "Rolls-Royce", price: 35000000, charm: 100, desc: "移動的行宮，極致奢華" },
+  
+  // === 特殊載具 ===
+  { id: "helicopter", name: "私人直升機", price: 60000000, charm: 120, happy: 30, desc: "避開塞車，從天而降" },
+  { id: "tank", name: "退役坦克", price: 80000000, charm: 200, desc: "停紅燈沒人敢叭你", effect: (g) => { g.health += 50; return "感覺非常安全！(健康+50)"; }},
+  { id: "hypercar", name: "Bugatti Chiron", price: 150000000, charm: 180, desc: "地表最速量產車，極致速度" },
 ];
+
 const HOUSES = [
-  {
-    id: "house1",
-    name: "老舊套房",
-    price: 5000000,
-    happy: 5,
-    passive: 12000,
-    desc: "市區的小蝸居",
-  },
-  {
-    id: "house2",
-    name: "電梯大樓",
-    price: 15000000,
-    happy: 15,
-    passive: 28000,
-    desc: "標準的三房兩廳",
-  },
-  {
-    id: "house3",
-    name: "市區透天",
-    price: 30000000,
-    happy: 25,
-    passive: 45000,
-    desc: "稀有的市區透天",
-  },
-  {
-    id: "house4",
-    name: "郊區別墅",
-    price: 60000000,
-    happy: 40,
-    passive: 80000,
-    desc: "有車庫和花園",
-  },
-  {
-    id: "house5",
-    name: "信義區豪宅",
-    price: 150000000,
-    happy: 60,
-    passive: 200000,
-    desc: "俯瞰城市夜景",
-  },
-  {
-    id: "house6",
-    name: "私人莊園",
-    price: 800000000,
-    happy: 100,
-    passive: 800000,
-    desc: "富可敵國的象徵",
-  },
+  // === 生存與過渡 ===
+  { id: "tent", name: "公園帳篷", price: 5000, happy: -10, desc: "體驗流浪生活... (真的有人買嗎？)" },
+  { id: "container", name: "貨櫃屋", price: 800000, happy: -5, passive: 0, desc: "冬冷夏熱，但至少是個殼" },
+  { id: "old_apt", name: "老舊公寓", price: 6000000, happy: 5, passive: 15000, desc: "五樓沒電梯，每天練腿力" },
+  
+  // === 標準住宅 ===
+  { id: "elevator", name: "電梯大樓", price: 15000000, happy: 15, passive: 30000, desc: "有管理員代收包裹，生活便利" },
+  { id: "townhouse", name: "郊區透天", price: 25000000, happy: 25, passive: 45000, desc: "有天有地，三代同堂" },
+  { id: "mansion", name: "市區豪宅", price: 60000000, happy: 40, passive: 100000, desc: "黃金地段，增值潛力高" },
+  
+  // === 頂級地產 ===
+  { id: "smart_home", name: "AI 智慧別墅", price: 120000000, happy: 60, passive: 150000, intel: 20, desc: "全屋語音控制，鋼鐵人的家" },
+  { id: "penthouse", name: "信義區頂層", price: 300000000, happy: 80, passive: 350000, desc: "俯瞰整座城市，雲端生活" },
+  { id: "manor", name: "私人莊園", price: 800000000, happy: 120, passive: 800000, desc: "擁有私人森林、馬場與湖泊" },
+  
+  // === 傳說級地產 ===
+  { id: "castle", name: "歐洲古堡", price: 1500000000, happy: 150, passive: 1200000, desc: "擁有幾百年歷史，附帶貴族頭銜", effect: (g) => { g.skills.charm += 100; return "獲得伯爵頭銜！"; }},
+  { id: "island", name: "私人島嶼", price: 3000000000, happy: 200, passive: 2000000, desc: "建立自己的王國，不受法律約束" },
+  { id: "mars_base", name: "火星殖民地", price: 10000000000, happy: 500, intel: 200, desc: "人類的未來，你是火星總督", effect: (g) => { g.health += 100; return "適應低重力環境，壽命大幅延長！"; }},
 ];
+
 const LUXURIES = [
-  {
-    id: "lux1",
-    name: "勞力士手錶",
-    price: 500000,
-    charm: 10,
-    desc: "時間的藝術品",
-  },
-  {
-    id: "lux2",
-    name: "名牌包",
-    price: 300000,
-    charm: 8,
-    desc: "LV、Gucci、Hermès",
-  },
-  {
-    id: "lux3",
-    name: "高級音響",
-    price: 800000,
-    happy: 10,
-    desc: "享受頂級音質",
-  },
-  {
-    id: "lux4",
-    name: "遊艇",
-    price: 50000000,
-    charm: 50,
-    happy: 30,
-    desc: "海上移動城堡",
-  },
-  {
-    id: "lux5",
-    name: "私人飛機",
-    price: 300000000,
-    charm: 100,
-    happy: 50,
-    desc: "終極奢華",
-  },
-  {
-    id: "gym_card",
-    name: "終身健身卡",
-    price: 50000,
-    desc: "體力上限 +20",
-    effect: (g) => {
-      g.maxStamina += 20;
-      g.stamina += 20;
-      return "體力上限提升了！";
-    },
-  },
-  {
-    id: "massage_chair",
-    name: "天王按摩椅",
-    price: 250000,
-    desc: "體力上限 +50",
-    effect: (g) => {
-      g.maxStamina += 50;
-      g.stamina += 50;
-      return "全身舒暢，體力大增！";
-    },
-  },
-  {
-    id: "medical_bed",
-    name: "高科技睡眠艙",
-    price: 2000000,
-    desc: "體力上限 +100，健康+20",
-    effect: (g) => {
-      g.maxStamina += 100;
-      g.stamina += 100;
-      g.health += 20;
-      return "睡眠品質達到極致！";
-    },
-  },
+  // === 生活小物 (入門) ===
+  { id: "bubble_tea", name: "珍珠奶茶暢飲卡", price: 20000, happy: 5, desc: "一年份珍奶，快樂泉源" },
+  { id: "console", name: "最新遊戲主機", price: 18000, happy: 10, desc: "宅在家必備，精神時光屋" },
+  { id: "phone", name: "頂規旗艦手機", price: 45000, charm: 3, desc: "每年都要換最新的", effect: (g) => { g.skills.communication += 2; return "拍照好看，社交順利"; } },
+  
+  // === 專業設備 ===
+  { id: "camera", name: "全幅單眼相機", price: 120000, charm: 5, desc: "攝影窮三代，單眼毀一生", effect: (g) => { g.skills.art += 10; return "攝影技術提升！"; } },
+  { id: "gaming_pc", name: "頂級電競電腦", price: 200000, happy: 20, desc: "4090顯卡，跑分怪獸", effect: (g) => { g.skills.programming += 5; return "除了打電動，偶爾也寫寫扣"; } },
+  { id: "piano", name: "史坦威鋼琴", price: 3000000, charm: 20, desc: "鋼琴界的勞斯萊斯", effect: (g) => { g.skills.art += 30; return "琴藝突飛猛進"; } },
+
+  // === 時尚精品 ===
+  { id: "bag", name: "愛馬仕柏金包", price: 800000, charm: 25, desc: "有錢也買不到，要配貨" },
+  { id: "watch", name: "百達翡麗名錶", price: 2500000, charm: 40, desc: "沒人能擁有它，只是為下一代保管" },
+  { id: "jewelry", name: "皇家藍寶石項鍊", price: 8000000, charm: 60, desc: "鐵達尼號同款(誤)" },
+
+  // === 養生與健康 ===
+  { id: "gym_card", name: "終身健身卡", price: 60000, desc: "體力上限 +20", effect: (g) => { g.maxStamina += 20; g.stamina += 20; return "體力上限提升了！"; } },
+  { id: "massage", name: "天王按摩椅", price: 200000, desc: "體力上限 +30，快樂 +10", effect: (g) => { g.maxStamina += 30; g.stamina += 30; g.happy += 10; return "全身舒暢！"; } },
+  { id: "sleep_pod", name: "深層睡眠艙", price: 3000000, desc: "體力上限 +80，智力 +10", effect: (g) => { g.maxStamina += 80; g.stamina += 80; g.intel += 10; return "睡得像嬰兒一樣，腦袋變清楚了！"; } },
+  { id: "gene", name: "基因端粒延長", price: 50000000, desc: "老化速度減半，健康全滿", effect: (g) => { g.healthDecay *= 0.5; g.health = 100; return "返老還童！感覺年輕了20歲！"; } },
+
+  // === 收藏與投資 ===
+  { id: "wine", name: "私人酒莊", price: 80000000, happy: 30, desc: "釀造專屬紅酒，品味人生", effect: (g) => { g.skills.communication += 20; return "酒量和社交能力都變好了"; } },
+  { id: "antique", name: "故宮等級古董", price: 150000000, charm: 80, desc: "放在客廳，蓬蓽生輝", effect: (g) => { g.skills.art += 50; return "藝術鑑賞力大增"; } },
+  { id: "team", name: "職業球隊", price: 500000000, charm: 100, happy: 50, desc: "你是球隊老闆，想簽誰就簽誰" },
+  
+  // === 究極黑科技 ===
+  { id: "yacht", name: "超級遊艇", price: 800000000, charm: 150, happy: 80, desc: "配備直升機停機坪和游泳池" },
+  { id: "jet", name: "灣流私人飛機", price: 2000000000, charm: 200, happy: 100, desc: "全球首富的標準配備" },
+  { id: "satellite", name: "私人衛星", price: 5000000000, intel: 100, desc: "以你的名字命名，在太空中永存", effect: (g) => { g.luckBonus += 0.5; return "全知全能的視角！(幸運大幅提升)"; } },
 ];
 const NPC_TEMPLATES = {
   classmate: [
@@ -4464,8 +4388,7 @@ const ACTIONS_POOL = {
       effect: (g) => {
         g.money -= 80000;
         g.happy += 35;
-        g.stamina = g.maxStamina;
-        return "體力全滿！";
+        return "身心放鬆，快樂大幅提升";
       },
     }, // 修正為回滿 maxStamina
     {
@@ -4545,11 +4468,25 @@ const ACTIONS_POOL = {
       id: "overtime",
       name: "🔥 加班",
       cost: { stamina: 40 },
+      condition: (g) => g.jobId !== "none",
       effect: (g) => {
-        g.money += 2000;
-        g.health -= 4;
-        g.happy -= 8;
-        return "肝在燃燒";
+        // 1. 取得當前職業
+        const job = JOBS.find((j) => j.id === g.jobId);
+        
+        // 2. 計算正常薪資 (底薪 + 加給) * 通膨
+        const base = (job.salary + (g.salaryBonus || 0)) * (g.inflationRate || 1);
+        
+        // 3. 計算最終薪資 (含天賦/特質加成)
+        const regularPay = Math.floor(base * g.incomeBonus);
+        
+        // 4. 計算加班費：正常薪資的 1.35 倍 (高出 35%)
+        const overtimePay = Math.floor(regularPay * 1.35);
+
+        g.money += overtimePay;
+        g.health -= 4; // 比較傷身
+        g.happy -= 8;  // 心情比較差
+        
+        return `爆肝加班！獲得 $${overtimePay.toLocaleString()} (1.35倍薪資)`;
       },
     },
     {
@@ -4687,6 +4624,15 @@ const ACTIONS_POOL = {
       },
     },
     {
+      id: "attend_class_school",
+      name: "📝 專心聽講",
+      cost: { schoolStamina: 30 }, // 👈 消耗學校精力
+      effect: (g) => {
+        g.intel += calc(3, 6, g.learnBonus);
+        return "努力吸收知識";
+      },
+    },
+    {
       id: "library",
       name: "📚 圖書館自習",
       cost: { stamina: 20 },
@@ -4703,6 +4649,19 @@ const ACTIONS_POOL = {
         g.stamina += 10;
         g.health += 1;
         return "便宜大碗";
+      },
+    },
+    {
+      id: "school_lunch_school",
+      name: "🍱 營養午餐",
+      cost: { schoolStamina: -10, money: 50 },
+      // ✅ 新增限制條件：還沒吃過才能吃
+      condition: (g) => !g.hasEatenLunch,
+      effect: (g) => {
+        g.hasEatenLunch = true; // ✅ 標記為已吃過
+        g.schoolStamina += 10;
+        g.health += 1;
+        return "今天的菜色還不錯 (飽足感UP)";
       },
     },
     {
