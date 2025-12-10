@@ -4989,7 +4989,71 @@ const ACTIONS_POOL = {
       },
     },
   ],
-
+  // ✅ 新增：學校專屬動作 (消耗學校精力)
+  school_life: [
+    {
+      id: "listen_class",
+      name: "📝 專心聽講",
+      cost: { schoolStamina: 20 },
+      effect: (g) => {
+        g.intel += calc(2, 4, g.learnBonus);
+        if(g.isStudying) g.studyProgress += 5; // 如果大學有修課也能加
+        return "筆記抄好抄滿";
+      },
+    },
+    {
+      id: "doze_off",
+      name: "😴 上課睡覺",
+      cost: { schoolStamina: 10 },
+      effect: (g) => {
+        g.health += 2;
+        g.happy += 3;
+        g.intel -= 1;
+        return "老師沒發現...";
+      },
+    },
+    {
+      id: "chat_classmate",
+      name: "🗣️ 下課聊天",
+      cost: { schoolStamina: 15 },
+      effect: (g) => {
+        g.skills.communication += 2;
+        g.happy += 2;
+        return "聊八卦";
+      },
+    },
+    {
+      id: "school_club",
+      name: "🏀 參加社團",
+      cost: { schoolStamina: 25 },
+      effect: (g) => {
+        g.skills.charm += 2;
+        g.skills.leadership += 1;
+        g.health += 2;
+        return "揮灑青春汗水";
+      },
+    },
+    {
+      id: "library_school",
+      name: "📚 圖書館",
+      cost: { schoolStamina: 20 },
+      effect: (g) => {
+        g.intel += 3;
+        return "安靜閱讀";
+      },
+    },
+    {
+      id: "bullying",
+      name: "👊 找人打架",
+      cost: { schoolStamina: 30 },
+      effect: (g) => {
+        g.health -= 5;
+        g.skills.leadership += 2;
+        g.happy -= 5;
+        return "被教官記過";
+      },
+    },
+  ],
   // 🗺️ 地點專屬
   location_actions: [
     {

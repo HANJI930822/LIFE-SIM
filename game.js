@@ -29,7 +29,9 @@ let Game = {
   intel: 50,
   stamina: 100,
   maxStamina: 100,
-
+  schoolStamina: 0, // 學校精力
+  maxSchoolStamina: 60, // 學校精力上限 (較少，因為只佔白天)
+  isInSchool: false, // 是否處於「上學期間」模式
   // ✅ 必須要有這個變數，否則負債判斷會出錯
   debtYears: 0,
 
@@ -222,12 +224,30 @@ function renderOriginCard() {
 
   document.getElementById("origin-list").innerHTML = html;
 
-  // 如果是鎖住的頂級出身，就不要 selectOrigin，避免被當成可選
-  if (!locked) {
-    selectOrigin(o.id);
+  const startBtn = document.querySelector("button[onclick='startGame()']");
+
+  if (locked) {
+    // 🔒 鎖定狀態
+    selectedOriginId = null; // 設定為無效值，防止程式讀取到舊的 ID
+    
+    if (startBtn) {
+        startBtn.disabled = true; // 禁用按鈕
+        startBtn.innerHTML = "🔒 未解鎖 (需解鎖更多成就)";
+        startBtn.style.opacity = "0.5";
+        startBtn.style.cursor = "not-allowed";
+        startBtn.style.background = "#555"; // 變灰
+    }
   } else {
-    // 鎖住時，強迫 selectedOriginId 指向一個安全值（例如 common）
-    selectedOriginId = "common";
+    // 🔓 解鎖狀態
+    selectedOriginId = o.id; // 更新為當前選擇的 ID
+    
+    if (startBtn) {
+        startBtn.disabled = false; // 啟用按鈕
+        startBtn.innerHTML = "🚀 開始人生冒險";
+        startBtn.style.opacity = "1";
+        startBtn.style.cursor = "pointer";
+        startBtn.style.background = ""; // 恢復原本背景色 (CSS控制)
+    }
   }
 }
 
@@ -284,113 +304,146 @@ function adjustStat(type, change) {
 
 // game.js - 修正後的 confirmAllocation
 function confirmAllocation() {
-    // 1. 檢查點數是否分配完 (可選)
-    if (allocationState.points > 0) {
-        if (!confirm(`你還有 ${allocationState.points} 點未分配，確定要開始嗎？`)) {
-            return;
-        }
+  // 1. 檢查點數是否分配完 (可選)
+  if (allocationState.points > 0) {
+    if (!confirm(`你還有 ${allocationState.points} 點未分配，確定要開始嗎？`)) {
+      return;
     }
-    
-    // 2. 取得出身資料
-    const origin = ORIGINS.find((o) => o.id === Game.originId);
+  }
 
-    // 3. 【核心】計算最終屬性 (出身基礎 + 分配點數)
-    // 注意：1點金錢 = $2000
-    Game.money = origin.money + (allocationState.money * 2000);
-    Game.intel = origin.intel + allocationState.intel;
-    Game.health = (origin.health || 50) + allocationState.health; // 基礎健康給個預設值，例如50
-    Game.happy = origin.happy; 
-    
-    // 初始化技能物件，並加上魅力 (出身魅力 + 分配魅力)
-    Game.skills = {
-        programming: 0, art: 0, medical: 0, cooking: 0, finance: 0,
-        communication: 0, leadership: 0, management: 0,
-        charm: (origin.skills?.charm || 0) + allocationState.charm
-    };
+  // 2. 取得出身資料
+  const origin = ORIGINS.find((o) => o.id === Game.originId);
 
-    // 其他基礎初始化
-    Game.yearlyMoney = origin.yearlyMoney;
-    Game.stamina = 100;
-    Game.maxStamina = 100;
-    Game.jobId = "none";
-    Game.job = "無業";
-    Game.unlockedAchievements = loadAchievements();
-    Game.relationships = [];
-    Game.inventory = [];
-    Game.children = [];
-    Game.debtYears = 0;
-    
-    // 4. 載入 NPC (從 data.js 的設定)
-    if (origin.initNPCs && origin.initNPCs.length > 0) {
-        Game.npcs = origin.initNPCs.map(npc => ({
-            ...npc,
-            health: npc.health || 100,
-            isSick: false,
-            age: npc.age || 40,
-            relation: npc.relation || 50
-        }));
-    } else {
-        Game.npcs = [];
-    }
+  // 3. 【核心】計算最終屬性 (出身基礎 + 分配點數)
+  // 注意：1點金錢 = $2000
+  Game.money = origin.money + allocationState.money * 2000;
+  Game.intel = origin.intel + allocationState.intel;
+  Game.health = (origin.health || 50) + allocationState.health; // 基礎健康給個預設值，例如50
+  Game.happy = origin.happy;
 
-    // 5. 應用出身特殊 Buff (把原本 startGame 後半段的邏輯搬來這裡)
-    if (origin.id === "military") Game.health += 20;
-    if (origin.id === "doctor") Game.skills.medical += 30;
-    if (origin.id === "farmer") { Game.health += 15; Game.happy += 5; }
-    if (origin.id === "fisher") Game.health += 10;
-    if (origin.id === "aboriginal") { Game.skills.charm += 15; Game.skills.art += 20; Game.happy += 10; }
-    if (origin.id === "immigrant") Game.skills.communication += 20;
-    if (origin.id === "tech") Game.skills.programming += 30;
-    if (origin.id === "artist") { Game.skills.art += 40; Game.skills.charm += 10; }
-    if (origin.id === "politician") Game.skills.communication += 25;
-    if (origin.id === "temple") { Game.skills.communication += 15; Game.happy += 5; }
-    if (origin.id === "mafia") { Game.skills.charm += 20; Game.health += 15; }
-    if (origin.id === "star") Game.skills.charm += 30;
-    if (origin.id === "royal") Game.skills.charm += 30;
-    if (origin.id === "hacker") Game.skills.programming += 50;
-    if (origin.id === "monk") { Game.health += 25; Game.happy += 10; }
-    if (origin.id === "cheffamily" || origin.id === "chef_family") { Game.skills.cooking += 60; Game.skills.art += 20; }
-    if (origin.id === "fashion") { Game.skills.charm += 35; Game.skills.art += 25; }
-    if (origin.id === "scientistfamily") { Game.intel += 80; } // 補上
+  // 初始化技能物件，並加上魅力 (出身魅力 + 分配魅力)
+  Game.skills = {
+    programming: 0,
+    art: 0,
+    medical: 0,
+    cooking: 0,
+    finance: 0,
+    communication: 0,
+    leadership: 0,
+    management: 0,
+    charm: (origin.skills?.charm || 0) + allocationState.charm,
+  };
 
-    // 6. 應用天賦效果 (Talents)
-    Game.talents.forEach((t) => t.effect(Game));
+  // 其他基礎初始化
+  Game.yearlyMoney = origin.yearlyMoney;
+  Game.stamina = 100;
+  Game.maxStamina = 100;
+  Game.jobId = "none";
+  Game.job = "無業";
+  Game.unlockedAchievements = loadAchievements();
+  Game.relationships = [];
+  Game.inventory = [];
+  Game.children = [];
+  Game.debtYears = 0;
 
-    // 7. 檢查負債標記
-    if (Game.money < 0) Game.hasBeenInDebt = true;
+  // 4. 載入 NPC (從 data.js 的設定)
+  if (origin.initNPCs && origin.initNPCs.length > 0) {
+    Game.npcs = origin.initNPCs.map((npc) => ({
+      ...npc,
+      health: npc.health || 100,
+      isSick: false,
+      age: npc.age || 40,
+      relation: npc.relation || 50,
+    }));
+  } else {
+    Game.npcs = [];
+  }
 
-    // 8. 生成第一回合動作
-    generateTurnActions();
+  // 5. 應用出身特殊 Buff (把原本 startGame 後半段的邏輯搬來這裡)
+  if (origin.id === "military") Game.health += 20;
+  if (origin.id === "doctor") Game.skills.medical += 30;
+  if (origin.id === "farmer") {
+    Game.health += 15;
+    Game.happy += 5;
+  }
+  if (origin.id === "fisher") Game.health += 10;
+  if (origin.id === "aboriginal") {
+    Game.skills.charm += 15;
+    Game.skills.art += 20;
+    Game.happy += 10;
+  }
+  if (origin.id === "immigrant") Game.skills.communication += 20;
+  if (origin.id === "tech") Game.skills.programming += 30;
+  if (origin.id === "artist") {
+    Game.skills.art += 40;
+    Game.skills.charm += 10;
+  }
+  if (origin.id === "politician") Game.skills.communication += 25;
+  if (origin.id === "temple") {
+    Game.skills.communication += 15;
+    Game.happy += 5;
+  }
+  if (origin.id === "mafia") {
+    Game.skills.charm += 20;
+    Game.health += 15;
+  }
+  if (origin.id === "star") Game.skills.charm += 30;
+  if (origin.id === "royal") Game.skills.charm += 30;
+  if (origin.id === "hacker") Game.skills.programming += 50;
+  if (origin.id === "monk") {
+    Game.health += 25;
+    Game.happy += 10;
+  }
+  if (origin.id === "cheffamily" || origin.id === "chef_family") {
+    Game.skills.cooking += 60;
+    Game.skills.art += 20;
+  }
+  if (origin.id === "fashion") {
+    Game.skills.charm += 35;
+    Game.skills.art += 25;
+  }
+  if (origin.id === "scientistfamily") {
+    Game.intel += 80;
+  } // 補上
 
-    // 9. 隱藏分配畫面，進入特質選擇
-    document.getElementById("stats-allocation-screen").style.display = "none";
-    
-    // 初始化特質選擇流程
-    currentTraitStep = 0; // 確保全域變數重置
-    selectedTraits = [];
-    showTraitSelection();
+  // 6. 應用天賦效果 (Talents)
+  Game.talents.forEach((t) => t.effect(Game));
+
+  // 7. 檢查負債標記
+  if (Game.money < 0) Game.hasBeenInDebt = true;
+
+  // 8. 生成第一回合動作
+  generateTurnActions();
+
+  // 9. 隱藏分配畫面，進入特質選擇
+  document.getElementById("stats-allocation-screen").style.display = "none";
+
+  // 初始化特質選擇流程
+  currentTraitStep = 0; // 確保全域變數重置
+  selectedTraits = [];
+  showTraitSelection();
 }
 function showTraitSelection() {
-    // 1. 隱藏分配點數畫面
-    document.getElementById("stats-allocation-screen").style.display = "none";
-    
-    // 2. 顯示特質選擇畫面 (這是剛剛在 HTML 補上的 ID)
-    document.getElementById("trait-selection-screen").style.display = "flex";
+  // 1. 隱藏分配點數畫面
+  document.getElementById("stats-allocation-screen").style.display = "none";
 
-    // 3. 初始化特質數據
-    // 防呆：確保 TRAITS 存在
-    if (typeof TRAITS === 'undefined') {
-        console.error("TRAITS 資料未定義，請檢查 data.js");
-        return;
-    }
+  // 2. 顯示特質選擇畫面 (這是剛剛在 HTML 補上的 ID)
+  document.getElementById("trait-selection-screen").style.display = "flex";
 
-    availableTraits = [...TRAITS]; // 從 data.js 載入所有特質
-    selectedTraits = []; // 清空已選
-    currentTraitIndex = 0; // 重置索引
+  // 3. 初始化特質數據
+  // 防呆：確保 TRAITS 存在
+  if (typeof TRAITS === "undefined") {
+    console.error("TRAITS 資料未定義，請檢查 data.js");
+    return;
+  }
 
-    // 4. 渲染介面
-    renderTraitCard();
-    updateSelectedTraitsDisplay();
+  availableTraits = [...TRAITS]; // 從 data.js 載入所有特質
+  selectedTraits = []; // 清空已選
+  currentTraitIndex = 0; // 重置索引
+
+  // 4. 渲染介面
+  renderTraitCard();
+  updateSelectedTraitsDisplay();
 }
 function prevOrigin() {
   currentOriginIndex--;
@@ -1236,18 +1289,49 @@ function updateUI() {
     skillsContainer.style.gap = "4px";
     skillsContainer.style.justifyContent = "flex-end"; // 靠右對齊 (配合儀表板布局)
   }
-  // 體力條
-  const stamina = Math.max(0, Math.min(100, Game.stamina));
-  const staminaRatio = stamina / 100;
-  document.getElementById("stamina-bar").style.transform =
-    `scaleX(${staminaRatio})`;
-  document.getElementById("stamina-text").textContent =
-    `${Math.floor(stamina)}/100`;
+  // ✅ 修改後的體力條邏輯 (支援學校/一般雙模式)
+  const staminaBar = document.getElementById("stamina-bar");
+  const staminaText = document.getElementById("stamina-text");
+  const staminaLabel = document.querySelector(".stamina-label span"); // 取得 "體力" 文字標籤
 
-  if (stamina < 20) {
-    document.getElementById("stamina-bar").classList.add("low");
+  if (Game.isInSchool) {
+      // === 🏫 學校模式 ===
+      // 計算比例
+      const maxSchool = Game.maxSchoolStamina || 60; // 防呆預設值
+      const currentSchool = Math.max(0, Game.schoolStamina);
+      const ratio = currentSchool / maxSchool;
+      
+      // 更新樣式 (橘色系)
+      staminaBar.style.transform = `scaleX(${ratio})`;
+      staminaBar.style.background = "linear-gradient(90deg, #ff9800, #ff5722)"; 
+      staminaText.textContent = `${Math.floor(currentSchool)}/${maxSchool}`;
+      
+      // 更新標籤文字
+      if(staminaLabel) staminaLabel.textContent = "🏫 學校精力";
+      
+      // 學校模式下移除低體力警示色
+      staminaBar.classList.remove("low");
   } else {
-    document.getElementById("stamina-bar").classList.remove("low");
+      // === ⚡ 一般模式 ===
+      // 計算比例
+      const maxStamina = Game.maxStamina || 100;
+      const currentStamina = Math.max(0, Math.min(maxStamina, Game.stamina));
+      const ratio = currentStamina / maxStamina;
+      
+      // 更新樣式 (原本的藍綠色系)
+      staminaBar.style.transform = `scaleX(${ratio})`;
+      staminaBar.style.background = "linear-gradient(90deg, #2196f3, #03dac6)"; 
+      staminaText.textContent = `${Math.floor(currentStamina)}/${maxStamina}`;
+      
+      // 更新標籤文字
+      if(staminaLabel) staminaLabel.textContent = "⚡ 體力";
+
+      // 低體力警示 (紅色)
+      if (currentStamina < 20) {
+        staminaBar.classList.add("low");
+      } else {
+        staminaBar.classList.remove("low");
+      }
   }
 
   // 狀態警告
@@ -1268,15 +1352,27 @@ function updateUI() {
 
   // 更新行動按鈕
   updateActionButtons();
+  if (Game.isInSchool) {
+      const btnContainer = document.getElementById("action-buttons");
+      // 插入一個顯眼的放學按鈕
+      btnContainer.innerHTML += `
+        <button onclick="endSchoolDay()" style="background: linear-gradient(135deg, #444, #666); border: 2px solid var(--accent);">
+            <div style="font-weight:bold;">🔔 放學回家</div>
+            <div class="cost-tag">精力歸零</div>
+        </button>
+      `;
+  }
 }
 // game.js - 請新增此函數
 
 function generateTurnActions() {
   let pool = [];
-
-  // 根據年齡決定動作庫
-  // 防呆：確保 ACTIONS_POOL 存在 (在 data.js 中)
-  if (typeof ACTIONS_POOL === "undefined") {
+  // ✅ 判斷：如果是學校模式，只抓取 school_life
+  if (Game.isInSchool) {
+    pool = ACTIONS_POOL.school_life;
+  } else if (typeof ACTIONS_POOL === "undefined") {
+    // 根據年齡決定動作庫
+    // 防呆：確保 ACTIONS_POOL 存在 (在 data.js 中)
     console.error("ACTIONS_POOL 未定義！請檢查 data.js");
     return;
   }
@@ -1464,59 +1560,46 @@ function action(actId) {
 
   if (!act) return console.error("❌ 找不到動作 ID:", actId);
 
-  // 2. 檢查資源消耗
-  const staminaCost = act.cost && act.cost.stamina ? act.cost.stamina : 0;
-  if (Game.stamina < staminaCost) return showPopup("❌ 體力不足！", "red");
+  // ✅ 2. 資源檢查 (區分學校精力與一般體力)
+  const staminaCost = act.cost?.stamina || 0;
+  const schoolStaminaCost = act.cost?.schoolStamina || 0; // 新增
+
+  if (staminaCost > 0 && Game.stamina < staminaCost)
+    return showPopup("❌ 體力不足！", "red");
+
+  if (schoolStaminaCost > 0 && Game.schoolStamina < schoolStaminaCost)
+    return showPopup("❌ 學校精力不足，該放學了！", "orange");
 
   let realMoneyCost = 0;
   if (act.cost && act.cost.money) {
     realMoneyCost = getInflatedPrice(act.cost.money);
-    if (Game.money < realMoneyCost)
-      return showPopup(
-        `💸 金錢不足！需要 $${realMoneyCost.toLocaleString()}`,
-        "red",
-      );
+    if (Game.money < realMoneyCost) return showPopup(`💸 金錢不足！`, "red");
   }
 
-  // 鎖定狀態
   isProcessing = true;
 
-  // 3. 執行消耗
+  // ✅ 3. 執行消耗
   Game.stamina -= staminaCost;
+  Game.schoolStamina -= schoolStaminaCost; // 扣除學校精力
   if (realMoneyCost > 0) Game.money -= realMoneyCost;
   Game.totalActions++;
 
-  // 4. 執行效果 (並收集數值變化)
+  // 4. 執行效果 (保持原本邏輯)
+  const snapshot = { ...Game, skills: { ...Game.skills } };
   let resultMsg = "";
-  // 我們需要攔截效果函數裡的數值變化，但因為效果函數是直接修改 Game 物件，
-  // 最簡單的方法是比較執行前後的 Game 狀態，或者手動記錄。
-  // 為了簡化且不改動 data.js，我們這裡用一個小技巧：
-  // 在 data.js 的 effect 裡通常只會修改屬性。
-  // 我們這裡手動解析 data.js 裡的 effect 寫法比較困難，
-  // 所以我們改用「手動記錄變化」的方式，這需要修改 data.js 的結構會太大工程。
-  // ✅ 替代方案：我們再次執行一次 effect 邏輯來計算，或是讓 effect 回傳變化。
-  // 但因為你的 data.js 已經寫死了直接修改 g[key]，我們採用「快照比較法」。
-
-  const snapshot = { ...Game, skills: { ...Game.skills } }; // 淺拷貝狀態
-
   try {
-    if (act.effect) {
-      resultMsg = act.effect(Game);
-    }
+    if (act.effect) resultMsg = act.effect(Game);
   } catch (e) {
-    console.error("Action Error:", e);
-    resultMsg = "發生未知錯誤";
+    console.error(e);
   }
 
-  // 5. 計算變化並顯示 (中文化)
+  // 5. 計算變化 (加入 schoolStamina 顯示)
   const changes = [];
-
-  // 檢查消耗顯示
   if (staminaCost > 0)
     changes.push(`${getStatName("stamina")} -${staminaCost}`);
+  if (schoolStaminaCost > 0) changes.push(`🏫精力 -${schoolStaminaCost}`); // 顯示變化
   if (realMoneyCost > 0)
     changes.push(`${getStatName("money")} -${realMoneyCost.toLocaleString()}`);
-
   // 檢查屬性變化
   ["money", "health", "happy", "intel"].forEach((key) => {
     const diff = Game[key] - snapshot[key];
@@ -2876,9 +2959,19 @@ function nextYear() {
 
     // 初始化年份計數器
     if (!Game.yearsPassed) Game.yearsPassed = 0;
-
+    updateInflation();
+    if (!Game.yearsPassed) Game.yearsPassed = 0;
     updateInflation();
 
+    // ✅ 核心修改：判斷是否要強制上學 (6-18歲)
+    if (Game.age >= 6 && Game.age <= 18) {
+      startSchoolDay(); // 進入學校模式
+    } else {
+      // 成年人或幼兒，直接補滿一般體力
+      Game.stamina = Game.maxStamina;
+      Game.isInSchool = false;
+      generateTurnActions();
+    }
     // 🏦 1. 處理房貸扣款
     if (Game.mortgage && Game.mortgage.active) {
       const payment = Game.mortgage.yearlyPayment;
@@ -3867,14 +3960,16 @@ function showEducationMenu() {
   if (Game.isStudying) {
     html += `<div style="margin-bottom: 20px;">`;
     // 判斷是否為義務教育階段，顯示不同的進度文字
-    const currentEduLevel = EDUCATION_LEVELS.find(e => e.id === Game.education);
+    const currentEduLevel = EDUCATION_LEVELS.find(
+      (e) => e.id === Game.education,
+    );
     if (currentEduLevel && currentEduLevel.compulsory) {
-        html += `<p style="color: var(--blue);">🎒 義務教育中 (隨年齡自動畢業)</p>`;
+      html += `<p style="color: var(--blue);">🎒 義務教育中 (隨年齡自動畢業)</p>`;
     } else {
-        html += `<p style="color: var(--blue);">📚 學習進度: ${Math.floor(Game.studyProgress)}%</p>`;
-        html += `<div style="background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px;">`;
-        html += `<div style="width: ${Game.studyProgress}%; height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.3s;"></div>`;
-        html += `</div>`;
+      html += `<p style="color: var(--blue);">📚 學習進度: ${Math.floor(Game.studyProgress)}%</p>`;
+      html += `<div style="background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px;">`;
+      html += `<div style="width: ${Game.studyProgress}%; height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.3s;"></div>`;
+      html += `</div>`;
     }
     html += `</div>`;
   }
@@ -3889,47 +3984,49 @@ function showEducationMenu() {
       (e) => e.id === Game.education,
     );
     const isCompleted = currentEduIndex >= index;
-    
+
     // 判斷是否正在就讀該階段
     // 注意：原本的邏輯是 education 指向「畢業學歷」，所以就讀中通常是 education 還在前一階
     // 但為了配合新的義務教育邏輯 (一入學就把 education 設為該階段)，我們直接比對 id
-    const isStudyingThis = (Game.isStudying && Game.education === edu.id);
+    const isStudyingThis = Game.isStudying && Game.education === edu.id;
 
     let statusHtml = "";
     let cardStyle = "opacity: 0.6;";
 
     // ✅ 核心修改：區分「義務教育」與「高等教育」的顯示方式
     if (edu.compulsory) {
-        // === 義務教育 (國小/國中/高中) ===
-        if (isCompleted && !isStudyingThis) {
-             statusHtml = `<span style="color:var(--green)">✅ 已畢業</span>`;
-             cardStyle = "border-left: 3px solid var(--green);";
-        } else if (isStudyingThis) {
-             statusHtml = `<span style="color:var(--blue)">🎒 在學中</span>`;
-             cardStyle = "border-left: 3px solid var(--blue); background:rgba(33, 150, 243, 0.1); opacity: 1;";
-        } else {
-             // 還沒到入學年齡
-             statusHtml = `<span style="color:var(--text-dim)">⏳ 等待入學</span>`;
-        }
+      // === 義務教育 (國小/國中/高中) ===
+      if (isCompleted && !isStudyingThis) {
+        statusHtml = `<span style="color:var(--green)">✅ 已畢業</span>`;
+        cardStyle = "border-left: 3px solid var(--green);";
+      } else if (isStudyingThis) {
+        statusHtml = `<span style="color:var(--blue)">🎒 在學中</span>`;
+        cardStyle =
+          "border-left: 3px solid var(--blue); background:rgba(33, 150, 243, 0.1); opacity: 1;";
+      } else {
+        // 還沒到入學年齡
+        statusHtml = `<span style="color:var(--text-dim)">⏳ 等待入學</span>`;
+      }
     } else {
-        // === 高等教育 (大學/碩士/博士) - 保持原有手動申請邏輯 ===
-        if (isCompleted) {
-            statusHtml = `<span style="color:var(--green)">✅ 已完成</span>`;
-            cardStyle = "border-left: 3px solid var(--green);";
-        } else if (isStudyingThis) {
-            statusHtml = `<span style="color:var(--blue)">📚 就讀中</span>`;
-            cardStyle = "border-left: 3px solid var(--blue); background:rgba(33, 150, 243, 0.1);";
-        } else if (canEnter) {
-            if (MAJORS[edu.id]) {
-                statusHtml = `<button class="btn-main" style="padding:5px 15px; font-size:0.9em;" onclick="showMajorSelection('${edu.id}')">選擇科系</button>`;
-            } else {
-                statusHtml = `<button class="btn-main" style="padding:5px 15px; font-size:0.9em;" onclick="enterEducation('${edu.id}')">申請入學</button>`;
-            }
-            cardStyle = "border-left: 3px solid var(--gold); opacity: 1;";
+      // === 高等教育 (大學/碩士/博士) - 保持原有手動申請邏輯 ===
+      if (isCompleted) {
+        statusHtml = `<span style="color:var(--green)">✅ 已完成</span>`;
+        cardStyle = "border-left: 3px solid var(--green);";
+      } else if (isStudyingThis) {
+        statusHtml = `<span style="color:var(--blue)">📚 就讀中</span>`;
+        cardStyle =
+          "border-left: 3px solid var(--blue); background:rgba(33, 150, 243, 0.1);";
+      } else if (canEnter) {
+        if (MAJORS[edu.id]) {
+          statusHtml = `<button class="btn-main" style="padding:5px 15px; font-size:0.9em;" onclick="showMajorSelection('${edu.id}')">選擇科系</button>`;
         } else {
-            statusHtml = `<span style="color:var(--red)">🔒 未達標</span>`;
-            cardStyle = "border-left: 3px solid var(--red); opacity: 0.5;";
+          statusHtml = `<button class="btn-main" style="padding:5px 15px; font-size:0.9em;" onclick="enterEducation('${edu.id}')">申請入學</button>`;
         }
+        cardStyle = "border-left: 3px solid var(--gold); opacity: 1;";
+      } else {
+        statusHtml = `<span style="color:var(--red)">🔒 未達標</span>`;
+        cardStyle = "border-left: 3px solid var(--red); opacity: 0.5;";
+      }
     }
 
     html += `
@@ -3937,7 +4034,7 @@ function showEducationMenu() {
             <div>
                 <div style="font-size: 1.1em; font-weight: bold; color: var(--white);">${edu.name}</div>
                 <div style="font-size: 0.8em; color: var(--text-dim); margin-top: 4px;">
-                    需 ${edu.minAge} 歲 ${edu.compulsory ? '(義務教育)' : `| 學費 $${(edu.cost || 0).toLocaleString()}`}
+                    需 ${edu.minAge} 歲 ${edu.compulsory ? "(義務教育)" : `| 學費 $${(edu.cost || 0).toLocaleString()}`}
                 </div>
             </div>
             <div>${statusHtml}</div>
@@ -4987,10 +5084,10 @@ function nav(page, event) {
     // 显示所有成就（包括未解锁的）
     ACHIEVEMENTS.forEach((ach) => {
       const isUnlocked = Game.unlockedAchievements.includes(ach.id);
-      
+
       // ✅ 修改這裡：直接顯示 ach.desc，不再顯示 "???"
       // 同時調整未解鎖時的文字顏色，讓它看起來暗一點
-      const descText = ach.desc; 
+      const descText = ach.desc;
       const descColor = isUnlocked ? "var(--text-dim)" : "#777"; // 未解鎖時文字較暗
 
       achievementHtml += `
@@ -5010,7 +5107,7 @@ function nav(page, event) {
                                 ${descText}
                             </div>
                         </div>
-                        ${isUnlocked ? '<div style="color: var(--green); font-weight: bold; font-size: 1.2em;">✓</div>' : ''}
+                        ${isUnlocked ? '<div style="color: var(--green); font-weight: bold; font-size: 1.2em;">✓</div>' : ""}
                     </div>
                 </div>
             `;
@@ -5285,7 +5382,9 @@ function renderMap() {
 
 function travelTo(locId) {
   if (locId === Game.currentLocation) return;
-
+  if (Game.isInSchool) {
+      return showPopup("🚫 上課期間不能離開學校！請等放學。", "orange");
+  }
   const travelCost = 10;
 
   if (Game.stamina < travelCost) {
@@ -5507,4 +5606,37 @@ function meetFriend() {
   updateUI();
   setTimeout(() => (isProcessing = false), 300);
 }
+// game.js - 新增於任意位置
+
+// 🎒 開始上學：鎖定地點，切換精力條
+function startSchoolDay() {
+  Game.isInSchool = true;
+  Game.currentLocation = "school"; // 強制移動到學校
+  Game.schoolStamina = Game.maxSchoolStamina; // 補滿學校精力
+  Game.stamina = 0; // 暫時歸零一般體力 (放學才給)
+
+  log("🏫 早上到了，揹著書包去上學！(進入學校模式)");
+
+  // 強制更新動作列表為學校動作
+  generateTurnActions();
+}
+
+// 🏫 放學：恢復自由，補滿一般體力
+function endSchoolDay() {
+  if (!confirm("確定要放學回家嗎？學校精力將歸零。")) return;
+
+  Game.isInSchool = false;
+  Game.schoolStamina = 0;
+  Game.currentLocation = "home";
+
+  // 放學後獲得正常體力 (可設為滿體力，或稍微扣減因為上學累了)
+  Game.stamina = Game.maxStamina;
+
+  log("🔔 噹噹噹！放學了，回家享受自由時間！");
+
+  generateTurnActions(); // 重新生成回家的動作
+  updateUI();
+  renderMap(); // 更新地圖顯示
+}
+
 initCreation();
